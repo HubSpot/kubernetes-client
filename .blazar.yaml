@@ -1,0 +1,16 @@
+enabled: true
+
+env:
+  SET_VERSION_OVERRIDE: 4.7-hubspot-$GIT_BRANCH-SNAPSHOT
+  MAVEN_OPTS: -Xmx2048m
+  MAVEN_ARGS: -DskipTests -am -pl kubernetes-client
+
+buildpack:
+  host: git.hubteam.com
+  organization: HubSpot
+  repository: Blazar-Buildpack-Java
+  branch: v2-single-module
+
+provides:
+  - name: kubernetes-client
+    version: 4.7-hubspot-$GIT_BRANCH-SNAPSHOT
