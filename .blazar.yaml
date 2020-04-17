@@ -5,6 +5,10 @@ env:
   MAVEN_OPTS: -Xmx4096m
   MAVEN_ARGS: -DskipTests -am -pl kubernetes-client,kubernetes-model
 
+buildResources:
+  cpus: 2
+  memoryMb: 5120
+
 buildpack:
   host: git.hubteam.com
   organization: HubSpot
