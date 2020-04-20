@@ -3,7 +3,7 @@ enabled: true
 env:
   SET_VERSION_OVERRIDE: 4.9-hubspot-$GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
-  MAVEN_ARGS: -DskipTests -am -pl kubernetes-client,kubernetes-model
+  MAVEN_ARGS: -DskipTests -am -pl kubernetes-client,kubernetes-model,kubernetes-server-mock
 
 buildResources:
   cpus: 2
@@ -19,4 +19,6 @@ provides:
   - name: kubernetes-client
     version: 4.9-hubspot-$GIT_BRANCH-SNAPSHOT
   - name: kubernetes-model
+    version: 4.9-hubspot-$GIT_BRANCH-SNAPSHOT
+  - name: kubernetes-server-mock
     version: 4.9-hubspot-$GIT_BRANCH-SNAPSHOT
