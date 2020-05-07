@@ -1075,7 +1075,7 @@ public class BaseOperation<T, L extends KubernetesResourceList, D extends Doneab
 
     long end = System.nanoTime() + timeoutInMillis;
     while (System.nanoTime() < end) {
-      T item = get();
+      T item = fromServer().get();
       if (condition.test(item)) {
         return item;
       }
@@ -1084,7 +1084,7 @@ public class BaseOperation<T, L extends KubernetesResourceList, D extends Doneab
       Thread.sleep(500);
     }
 
-    T item = get();
+    T item = fromServer().get();
     if (condition.test(item)) {
       return item;
     }
