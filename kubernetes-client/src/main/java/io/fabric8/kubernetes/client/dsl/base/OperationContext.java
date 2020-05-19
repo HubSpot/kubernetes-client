@@ -20,6 +20,7 @@ import java.util.Map;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.dsl.Waitable;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import io.fabric8.kubernetes.client.utils.Utils;
 import okhttp3.OkHttpClient;
@@ -44,8 +45,8 @@ public class OperationContext {
   protected long gracePeriodSeconds = -1L;
   protected DeletionPropagation propagationPolicy;
 
-  protected long watchRetryInitialBackoffMillis = 5;
-  protected double watchRetryBackoffMultiplier = 2;
+  protected long watchRetryInitialBackoffMillis = Waitable.DEFAULT_INITIAL_BACKOFF_MILLIS;
+  protected double watchRetryBackoffMultiplier = Waitable.DEFAULT_BACKOFF_MULTIPLIER;
 
   protected Map<String, String> labels;
   protected Map<String, String[]> labelsNot;
