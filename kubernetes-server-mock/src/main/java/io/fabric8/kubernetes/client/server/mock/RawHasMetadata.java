@@ -1,10 +1,14 @@
 package io.fabric8.kubernetes.client.server.mock;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonDeserializer.None;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 
+// Override the default KubernetesSerializer
+@JsonDeserialize(using = None.class)
 public class RawHasMetadata implements HasMetadata {
 
   private String apiVersion;
