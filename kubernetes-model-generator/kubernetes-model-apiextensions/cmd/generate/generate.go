@@ -93,6 +93,31 @@ func main() {
     return
   }
 
+  serdes := map[string]*schemagen.JavaSerDeDescriptor{
+  	"kubernetes_apiextensions_JSONSchemaPropsOrBool": &schemagen.JavaSerDeDescriptor{
+				Serializer: "JSONSchemaPropsOrBoolSerDe.Serializer.class",
+				Deserializer: "JSONSchemaPropsOrBoolSerDe.Deserializer.class",
+		},
+		"kubernetes_apiextensions_JSONSchemaPropsOrArray": &schemagen.JavaSerDeDescriptor{
+				Serializer: "JSONSchemaPropsOrArraySerDe.Serializer.class",
+				Deserializer: "JSONSchemaPropsOrArraySerDe.Deserializer.class",
+		},
+		"kubernetes_apiextensions_JSONSchemaPropsOrStringArray": &schemagen.JavaSerDeDescriptor{
+				Serializer: "JSONSchemaPropsOrStringArraySerDe.Serializer.class",
+				Deserializer: "JSONSchemaPropsOrStringArraySerDe.Deserializer.class",
+		},
+		"kubernetes_apiextensions_JSON": &schemagen.JavaSerDeDescriptor{
+				Serializer: "JSONSerDe.Serializer.class",
+				Deserializer: "JSONSerDe.Deserializer.class",
+		},
+  }
+
+  for definitionKey, descriptor := range serdes {
+  	val := schema.Definitions[definitionKey]
+  	val.JavaSerDeDescriptor = descriptor
+  	schema.Definitions[definitionKey] = val
+  }
+
   args := os.Args[1:]
   if len(args) < 1 || args[0] != "validation" {
     schema.Resources = nil
@@ -104,16 +129,6 @@ func main() {
   }
   result := string(b)
   result = strings.Replace(result, "\"additionalProperty\":", "\"additionalProperties\":", -1)
-
-  /**
-   * Hack to fix https://github.com/fabric8io/kubernetes-client/issues/1565 and https://github.com/fabric8io/kubernetes-client/issues/2144
-   *
-   * The source golang code uses a type JSON which has a custom serializer and deserializer to ensure that it gets properly
-   * translated to and from a string. This gets compiled into a JSON.java class which does not have any such serialization support.
-   * This JSON type sounds a lot like JsonNode, which encapsulates any json value. Use that instead.
-   */
-  result = strings.Replace(result, "{\"$ref\":\"#/definitions/kubernetes_apiextensions_JSON\",\"javaType\":\"io.fabric8.kubernetes.api.model.apiextensions.JSON\"}",
-  "{\"javaType\":\"com.fasterxml.jackson.databind.JsonNode\"}", -1)
 
   var out bytes.Buffer
   err = json.Indent(&out, []byte(result), "", "  ")

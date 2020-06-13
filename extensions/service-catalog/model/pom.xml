@@ -95,7 +95,7 @@
               <goal>process</goal>
             </goals>
             <configuration>
-              <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+              <outputDirectory>${project.build.directory}/generated-sources/catalog</outputDirectory>
               <processor>io.sundr.builder.internal.processor.BuildableProcessor</processor>
             </configuration>
           </execution>
@@ -112,7 +112,7 @@
           <includeJsr303Annotations>false</includeJsr303Annotations>
           <includeToString>false</includeToString>
           <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
-          <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+          <outputDirectory>${project.build.directory}/generated-sources/catalog</outputDirectory>
           <customAnnotator>io.fabric8.kubernetes.ModelAnnotator</customAnnotator>
         </configuration>
         <executions>

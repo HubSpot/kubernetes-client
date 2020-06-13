@@ -125,7 +125,7 @@
             <includeJsr303Annotations>false</includeJsr303Annotations>
             <includeToString>false</includeToString>
             <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
-            <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+            <outputDirectory>${project.build.directory}/generated-sources/schemagen</outputDirectory>
             <annotationStyle>none</annotationStyle>
           </configuration>
           <executions>

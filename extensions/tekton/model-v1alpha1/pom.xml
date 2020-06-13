@@ -99,7 +99,7 @@
             <includeJsr303Annotations>false</includeJsr303Annotations>
             <includeToString>false</includeToString>
             <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
-            <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+            <outputDirectory>${project.build.directory}/generated-sources/tekton</outputDirectory>
             <customAnnotator>io.fabric8.kubernetes.ModelAnnotator</customAnnotator>
           </configuration>
           <executions>
@@ -128,7 +128,7 @@
                 <target>
                   <!-- removing the generated Schema class -->
                   <delete
-                    file="${project.build.directory}/generated-sources/io/fabric8/tekton/api/model/TektonSchemaV1alpha1.java"
+                    file="${project.build.directory}/generated-sources/tekton/io/fabric8/tekton/api/model/TektonSchemaV1alpha1.java"
                     verbose="true"/>
                 </target>
               </configuration>

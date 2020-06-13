@@ -60,10 +60,10 @@
               <target>
                 <echo>removing the duplicate generated class</echo>
                 <delete
-                  file="${project.build.directory}/generated-sources/io/fabric8/openshift/api/model/Template.java"
+                  file="${project.build.directory}/generated-sources/schemagen/io/fabric8/openshift/api/model/Template.java"
                   verbose="true" />
                 <delete verbose="true">
-                  <fileset dir="${project.build.directory}/generated-sources">
+                  <fileset dir="${project.build.directory}/generated-sources/schemagen">
                     <include name="*.java" />
                   </fileset>
                 </delete>
