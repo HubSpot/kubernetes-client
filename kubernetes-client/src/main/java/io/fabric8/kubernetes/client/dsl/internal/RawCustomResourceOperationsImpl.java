@@ -15,7 +15,16 @@
  */
 package io.fabric8.kubernetes.client.dsl.internal;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.fabric8.kubernetes.api.model.DeleteOptions;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.ListOptions;
@@ -37,14 +46,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class simple does basic operations for custom defined resources without
@@ -174,7 +175,7 @@ public class RawCustomResourceOperationsImpl extends OperationSupport {
    * @throws IOException in case of network/serializiation failures or failures from Kuberntes API
    */
   public Map<String, Object> createOrReplace(String objectAsString) throws IOException {
-    return createOrReplaceJsonStringObject(null, objectAsString);
+    return createOrReplaceObject(null, load(objectAsString));
   }
 
   /**
@@ -185,7 +186,7 @@ public class RawCustomResourceOperationsImpl extends OperationSupport {
    * @throws IOException in case of network/serialization failures or failures from Kubernetes API
    */
   public Map<String, Object> createOrReplace(Map<String, Object> customResourceObject) throws IOException {
-    return createOrReplace(objectMapper.writeValueAsString(customResourceObject));
+    return createOrReplaceObject(null, customResourceObject);
   }
 
   /**
@@ -208,7 +209,7 @@ public class RawCustomResourceOperationsImpl extends OperationSupport {
    * @throws IOException in case of network/serialization failures or failures from Kubernetes API
    */
   public Map<String, Object> createOrReplace(String namespace, String objectAsString) throws IOException {
-    return createOrReplaceJsonStringObject(namespace, objectAsString);
+    return createOrReplaceObject(namespace, load(objectAsString));
   }
 
   /**
@@ -220,7 +221,7 @@ public class RawCustomResourceOperationsImpl extends OperationSupport {
    * @throws IOException in case of network/serialization failures or failures from Kubernetes API
    */
   public Map<String, Object> createOrReplace(String namespace, Map<String, Object> customResourceObject) throws IOException {
-    return createOrReplace(namespace, objectMapper.writeValueAsString(customResourceObject));
+    return createOrReplaceObject(namespace, customResourceObject);
   }
 
   /**
@@ -680,24 +681,35 @@ public class RawCustomResourceOperationsImpl extends OperationSupport {
 
   }
 
-  private Map<String, Object> createOrReplaceJsonStringObject(String namespace, String objectAsString) throws IOException {
+  private Map<String, Object> createOrReplaceObject(String namespace, Map<String, Object> objectAsMap) throws IOException {
     Map<String, Object> ret;
+
+    String name;
     try {
-      if(namespace != null) {
-        ret = create(namespace, objectAsString);
+      name = ((Map<String, Object>) objectAsMap.get("metadata")).get("name").toString();
+    } catch (NullPointerException nullPointerException) {
+      throw KubernetesClientException.launderThrowable(new IllegalStateException("Invalid json string provided."));
+    }
+
+    try {
+      ret = namespace != null ?
+        get(namespace, name) : get(name);
+    } catch (KubernetesClientException e) {
+      if (e.getCode() == 404) {
+        ret = null;
       } else {
-        ret = create(objectAsString);
-      }
-    } catch (KubernetesClientException exception) {
-      try {
-        Map<String, Object> objectMap = load(objectAsString);
-        String name = ((Map<String, Object>) objectMap.get("metadata")).get("name").toString();
-        ret =  namespace != null ?
-          edit(namespace, name, objectAsString) : edit(name, objectAsString);
-      } catch (NullPointerException nullPointerException) {
-        throw KubernetesClientException.launderThrowable(new IllegalStateException("Invalid json string provided."));
+        throw e;
       }
     }
+
+    if (ret == null) {
+      ret = namespace != null ?
+        create(namespace, objectAsMap) : create(objectAsMap);
+    } else {
+      ret = namespace != null ?
+        edit(namespace, name, objectAsMap) : edit(name, objectAsMap);
+    }
+
     return ret;
   }
 
