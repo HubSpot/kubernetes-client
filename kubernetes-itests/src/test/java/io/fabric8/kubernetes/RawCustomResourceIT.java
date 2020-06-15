@@ -94,13 +94,13 @@ public class RawCustomResourceIT {
       "\"spec\": {\"image\": \"my-awesome-walrus-image\"}}";
     object = client.customResource(customResourceDefinitionContext).createOrReplace(currentNamespace, rawJsonCustomResourceObj);
     assertThat(((HashMap<String, String>)object.get("metadata")).get("name")).isEqualTo("walrus");
-    assertThat(object.get("image")).isEqualTo("my-awesome-walrus-image");
+    assertThat(((HashMap<String, String>)object.get("spec")).get("image")).isEqualTo("my-awesome-walrus-image");
 
     // Test replace with object
-    object.put("image", "new-walrus-image");
+    ((HashMap<String, String>)object.get("spec")).put("image", "new-walrus-image");
     object = client.customResource(customResourceDefinitionContext).createOrReplace(currentNamespace, object);
     assertThat(((HashMap<String, String>)object.get("metadata")).get("name")).isEqualTo("walrus");
-    assertThat(object.get("image")).isEqualTo("new-walrus-image");
+    assertThat(((HashMap<String, String>)object.get("spec")).get("image")).isEqualTo("new-walrus-image");
 
     // Test Get:
     object = client.customResource(customResourceDefinitionContext).get(currentNamespace, "otter");

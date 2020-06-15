@@ -46,10 +46,7 @@ import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 public class CustomResourceCrudTest {
   @Rule
   public KubernetesServer kubernetesServer = new KubernetesServer(true,true);
-
-  @Rule
-  public KubernetesServer mockServer = new KubernetesServer(true,false);
-
+  
   private CustomResourceDefinition cronTabCrd;
   private CustomResourceDefinitionContext crdContext;
 
