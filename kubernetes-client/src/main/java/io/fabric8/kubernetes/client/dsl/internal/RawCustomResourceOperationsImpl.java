@@ -720,15 +720,6 @@ public class RawCustomResourceOperationsImpl extends OperationSupport {
         throw KubernetesClientException.launderThrowable(new IllegalStateException("Invalid object provided -- metadata.name is required."));
       }
     }
-
-    if (ret == null) {
-      ret = namespace != null ?
-        create(namespace, objectAsMap) : create(objectAsMap);
-    } else {
-      ret = namespace != null ?
-        edit(namespace, name, objectAsMap) : edit(name, objectAsMap);
-    }
-
     return ret;
   }
 
