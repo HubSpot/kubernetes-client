@@ -52,7 +52,7 @@ public class RawCustomResourceOperationsImplTest {
   private Response mockSuccessResponse;
 
   @BeforeEach
-  public void setUp() {
+  public void setUp() throws IOException {
     this.mockClient = Mockito.mock(OkHttpClient.class, Mockito.RETURNS_DEEP_STUBS);
     this.config = new ConfigBuilder().withMasterUrl("https://localhost:8443/").build();
     this.customResourceDefinitionContext = new CustomResourceDefinitionContext.Builder()
