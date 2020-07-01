@@ -273,6 +273,8 @@ public class WatchConnectionManager<T extends HasMetadata, L extends KubernetesR
           logger.error("Received wrong type of object for watch", e);
         } catch (IllegalArgumentException e) {
           logger.error("Invalid event type", e);
+        } catch (Throwable e) {
+          logger.error("Unhandled exception encountered in watcher event handler", e);
         }
       }
 
