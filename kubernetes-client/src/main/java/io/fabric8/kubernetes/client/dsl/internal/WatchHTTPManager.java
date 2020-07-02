@@ -129,14 +129,10 @@ public class WatchHTTPManager<T extends HasMetadata, L extends KubernetesResourc
     // for API groups we can use the name in the path rather than a fieldSelector
     // which is more likely to work well for API Groups
     if (name != null && name.length() > 0) {
-      if (baseOperation.isApiGroup()) {
-        httpUrlBuilder.addPathSegment(name);
-      } else {
-        if (fieldQueryString.length() > 0) {
-          fieldQueryString += ",";
-        }
-        fieldQueryString += "metadata.name=" + name;
+      if (fieldQueryString.length() > 0) {
+        fieldQueryString += ",";
       }
+      fieldQueryString += "metadata.name=" + name;
     }
 
     if (Utils.isNotNullOrEmpty(fieldQueryString)) {
