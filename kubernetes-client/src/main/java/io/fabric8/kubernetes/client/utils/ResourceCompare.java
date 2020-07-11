@@ -49,7 +49,11 @@ public class ResourceCompare {
     private static HashMap<String, Object> trim(Map<String, Object> map) {
         HashMap<String, Object> result = new HashMap<>(map);
         result.remove(STATUS);
-        result.remove(METADATA);
+        if (result.containsKey(METADATA)) {
+          Map<String, Object> metadata = (Map<String, Object>) result.get(METADATA);
+          metadata.remove("resourceVersion");
+          metadata.remove("generation");
+        }
         return result;
     }
 
