@@ -100,6 +100,9 @@ public class ResourceCompare {
       return false;
     }
 
+    rightMetadata.remove("resourceVersion");
+    rightMetadata.remove("generation");
+
     return isLeftMapSupersetOfRight(leftMetadata, rightMetadata);
   }
 
