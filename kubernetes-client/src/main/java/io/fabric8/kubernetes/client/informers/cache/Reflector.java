@@ -92,10 +92,7 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
 
   private void reListAndSync() {
     final L list = getList();
-    final String latestResourceVersion = list.getMetadata() == null
-      ? ""
-      : list.getMetadata().getResourceVersion();
-
+    final String latestResourceVersion = list.getMetadata().getResourceVersion();
     log.debug("Listing items ({}) for resource {} v{}", list.getItems().size(), apiTypeClass, latestResourceVersion);
     lastSyncResourceVersion.set(latestResourceVersion);
     store.replace(list.getItems(), latestResourceVersion);
