@@ -62,18 +62,6 @@
     <tag>${project.version}</tag>
   </scm>
 
-  <distributionManagement>
-    <snapshotRepository>
-      <id>oss-sonatype-staging</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-    </snapshotRepository>
-    <repository>
-      <id>oss-sonatype-staging</id>
-      <name>Sonatype Staging Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-    </repository>
-  </distributionManagement>
-
   <properties>
     <useIncrementalCompilation>false</useIncrementalCompilation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -828,17 +816,6 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.sonatype.plugins</groupId>
-        <artifactId>nexus-staging-maven-plugin</artifactId>
-        <version>1.6.8</version>
-        <extensions>true</extensions>
-        <configuration>
-          <serverId>oss-sonatype-staging</serverId>
-          <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-          <autoReleaseAfterClose>true</autoReleaseAfterClose>
-        </configuration>
       </plugin>
     </plugins>
   </build>
