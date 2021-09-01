@@ -445,7 +445,7 @@ public class KubernetesCrudDispatcher extends CrudDispatcher {
     metadata.put("uid", getOrDefault(existingMetadata, "uid", uuid.toString()));
     // resourceVersion is not yet handled appropriately
     metadata.put("resourceVersion", "1");
-    metadata.put("generation", 1);
+    metadata.put("generation", Integer.parseInt(getOrDefault(existingMetadata, "generation", "0")) + 1);
     metadata.put("creationTimestamp", getOrDefault(existingMetadata, "creationTimestamp", ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)));
   }
 

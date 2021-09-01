@@ -1,0 +1,20 @@
+enabled: true
+
+env:
+  SET_VERSION_OVERRIDE: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
+  MAVEN_OPTS: -Xmx4096m
+  MAVEN_ARGS: -DskipTests -am -pl kubernetes-server-mock
+
+buildResources:
+  cpus: 2
+  memoryMb: 5120
+
+buildpack:
+  host: git.hubteam.com
+  organization: HubSpot
+  repository: Blazar-Buildpack-Java
+  branch: v2-single-module
+
+provides:
+  - name: kubernetes-server-mock
+    version: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
