@@ -16,5 +16,7 @@ buildpack:
   branch: v2-single-module
 
 provides:
+  - name: kubernetes-client
+    version: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
   - name: kubernetes-server-mock
     version: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
