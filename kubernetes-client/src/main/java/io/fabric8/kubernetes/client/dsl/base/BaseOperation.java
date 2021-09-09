@@ -1034,13 +1034,19 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
   @Override
   public SharedIndexInformer<T> inform(ResourceEventHandler<T> handler, long resync) {
+    SharedIndexInformer<T> result = runnableInformer(handler, resync);
+    // synchronous start list/watch must succeed in the calling thread
+    // initial add events will be processed in the calling thread as well
+    result.run();
+    return result;
+  }
+
+  @Override
+  public SharedIndexInformer<T> runnableInformer(ResourceEventHandler<T> handler, long resync) {
     DefaultSharedIndexInformer<T, L> result = createInformer(resync);
     if (handler != null) {
       result.addEventHandler(handler);
     }
-    // synchronous start list/watch must succeed in the calling thread
-    // initial add events will be processed in the calling thread as well
-    result.run();
     return result;
   }
 

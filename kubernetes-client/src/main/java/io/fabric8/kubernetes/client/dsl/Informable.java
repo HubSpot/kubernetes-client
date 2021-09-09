@@ -81,6 +81,19 @@ public interface Informable<T> {
    * @return a running {@link SharedIndexInformer}
    */
   SharedIndexInformer<T> inform(ResourceEventHandler<T> handler, long resync);
+
+  /**
+   * Similar to a {@link Watch}, but will attempt to handle failures after successfully started.
+   * and provides a store of all the current resources.
+   * <p>You are expected to call stop to terminate the underlying Watch.
+   * <p>Additional handlers can be added, but processing of the events will be in the websocket thread,
+   * so consider non-blocking handler operations for more than one handler.
+   *
+   * @param handler to notify
+   * @param resync the resync period or 0 for no resync
+   * @return a non-running {@link SharedIndexInformer}
+   */
+  SharedIndexInformer<T> runnableInformer(ResourceEventHandler<T> handler, long resync);
   
   /**
    * Return a {@link Future} when the list at this context satisfies the given {@link Predicate}.
