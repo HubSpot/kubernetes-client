@@ -1,7 +1,7 @@
 enabled: true
 
 env:
-  SET_VERSION_OVERRIDE: GIT_BRANCH-SNAPSHOT
+  SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
   MAVEN_ARGS: -DskipTests -am -pl model-annotator,kubernetes-model-generator,kubernetes-client,kubernetes-server-mock
 
