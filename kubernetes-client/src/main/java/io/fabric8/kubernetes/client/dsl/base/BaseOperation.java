@@ -1061,7 +1061,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
   }
 
   @Override
-  public SharedIndexInformer<T> runnableInformer(ResourceEventHandler<T> handler, long resync) {
+  public SharedIndexInformer<T> runnableInformer(ResourceEventHandler<? super T> handler, long resync) {
     DefaultSharedIndexInformer<T, L> result = createInformer(resync);
     if (handler != null) {
       result.addEventHandler(handler);

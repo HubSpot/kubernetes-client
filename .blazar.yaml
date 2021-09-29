@@ -1,7 +1,7 @@
 enabled: true
 
 env:
-  SET_VERSION_OVERRIDE: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
+  SET_VERSION_OVERRIDE: GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
   MAVEN_ARGS: -DskipTests -am -pl model-annotator,kubernetes-model-generator,kubernetes-client,kubernetes-server-mock
 
@@ -17,6 +17,6 @@ buildpack:
 
 provides:
   - name: kubernetes-client
-    version: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
+    version: $GIT_BRANCH-SNAPSHOT
   - name: kubernetes-server-mock
-    version: 5.7-hubspot-$GIT_BRANCH-SNAPSHOT
+    version: $GIT_BRANCH-SNAPSHOT

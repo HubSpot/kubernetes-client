@@ -93,7 +93,6 @@ public interface Informable<T> {
    * @return a non-running {@link SharedIndexInformer}
    */
   SharedIndexInformer<T> runnableInformer(long resync);
-  SharedIndexInformer<T> inform(ResourceEventHandler<T> handler, long resync);
 
   /**
    * Similar to a {@link Watch}, but will attempt to handle failures after successfully started.
@@ -106,7 +105,7 @@ public interface Informable<T> {
    * @param resync the resync period or 0 for no resync
    * @return a non-running {@link SharedIndexInformer}
    */
-  SharedIndexInformer<T> runnableInformer(ResourceEventHandler<T> handler, long resync);
+  SharedIndexInformer<T> runnableInformer(ResourceEventHandler<? super T> handler, long resync);
   
   /**
    * Return a {@link Future} when the list at this context satisfies the given {@link Predicate}.
