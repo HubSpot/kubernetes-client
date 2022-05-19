@@ -13,7 +13,7 @@ buildpack:
   host: git.hubteam.com
   organization: HubSpot
   repository: Blazar-Buildpack-Java
-  branch: v2-single-module
+  branch: v2
 
 provides:
   - name: kubernetes-client
