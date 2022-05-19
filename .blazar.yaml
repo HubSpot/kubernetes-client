@@ -1,5 +1,8 @@
 enabled: true
 
+buildDeps:
+  - maven3
+
 env:
   SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
