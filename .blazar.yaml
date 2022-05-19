@@ -8,10 +8,3 @@ env:
 buildResources:
   cpus: 2
   memoryMb: 5120
-
-buildpack:
-  host: git.hubteam.com
-  organization: HubSpot
-  repository: Blazar-Buildpack-Java
-  branch: v2
-  
