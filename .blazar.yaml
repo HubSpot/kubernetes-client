@@ -3,6 +3,7 @@ enabled: true
 env:
   SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
+  MAVEN_ARGS: -DskipTests -am -pl model-annotator,kubernetes-model-generator,kubernetes-client,kubernetes-server-mock
 
 buildResources:
   cpus: 2
@@ -13,3 +14,9 @@ buildpack:
   organization: HubSpot
   repository: Blazar-Buildpack-Java
   branch: v2
+
+provides:
+  - name: kubernetes-client
+    version: $GIT_BRANCH-SNAPSHOT
+  - name: kubernetes-model-apiextensions
+    version: $GIT_BRANCH-SNAPSHOT
