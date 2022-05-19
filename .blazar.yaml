@@ -3,7 +3,6 @@ enabled: true
 env:
   SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
-  MAVEN_ARGS: -DskipTests -am -pl kubernetes-server-mock,kubernetes-model-generator,kubernetes-model-generator/kubernetes-model-apiextensions,kubernetes-client
 
 buildResources:
   cpus: 2
@@ -14,49 +13,3 @@ buildpack:
   organization: HubSpot
   repository: Blazar-Buildpack-Java
   branch: v2
-
-provides:
-  - name: kubernetes-client
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-admissionregistration
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-apiextensions
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-apps
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-autoscaling
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-batch
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-certificates
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-common
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-coordination
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-core
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-discovery
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-events
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-extensions
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-metrics
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-networking
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-node
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-policy
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-rbac
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-scheduling
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-model-storageclass
-    version: $GIT_BRANCH-SNAPSHOT
-  - name: kubernetes-server-mock
-    version: $GIT_BRANCH-SNAPSHOT
