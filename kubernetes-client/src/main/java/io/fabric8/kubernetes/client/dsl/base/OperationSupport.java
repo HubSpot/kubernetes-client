@@ -282,9 +282,10 @@ public class OperationSupport {
       deleteOptions.setDryRun(Collections.singletonList("All"));
     }
 
-    LOG.debug("Executing delete for {} with {} grace period seconds", requestUrl, gracePeriodSeconds);
+    String deleteOptionsBody = JSON_MAPPER.writeValueAsString(deleteOptions);
+    LOG.debug("Executing delete for {} with body {}", requestUrl, deleteOptionsBody);
 
-    HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder().delete(JSON, JSON_MAPPER.writeValueAsString(deleteOptions)).url(requestUrl);
+    HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder().delete(JSON, deleteOptionsBody).url(requestUrl);
     handleResponse(requestBuilder, null, Collections.<String, String>emptyMap());
   }
 
