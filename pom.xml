@@ -1469,5 +1469,21 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>blazar-sources</id>
+      <activation>
+        <property>
+          <name>env.BLAZAR_COORDINATES</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
