@@ -72,11 +72,14 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
    * <br>Should be called only at start and when HttpGone is seen.
    */
   public void listSyncAndWatch() {
+    log.debug("Listing items for resource {}", apiTypeClass);
     running = true;
     KubernetesResourceList<T> result = null;
     String continueVal = null;
     Set<String> nextKeys = new LinkedHashSet<>();
+    long listStartTimeMillis = System.currentTimeMillis();
     do {
+      long chunkStartTimeMillis = System.currentTimeMillis();
       result = listerWatcher
           .list(new ListOptionsBuilder().withLimit(listerWatcher.getLimit()).withContinue(continueVal).withAllowWatchBookmarks(false).build());
       result.getItems().forEach(i -> {
@@ -86,13 +89,21 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
         nextKeys.add(key);
       });
       continueVal = result.getMetadata().getContinue();
+      log.debug(
+        "--- Listed chunk of {} items for resource {} in {}ms, result resource version: {}",
+        result.getItems().size(),
+        apiTypeClass,
+        System.currentTimeMillis() - chunkStartTimeMillis,
+        result.getMetadata().getResourceVersion()
+      );
     } while (Utils.isNotNullOrEmpty(continueVal));
+    long totalListTimeMillis = System.currentTimeMillis() - listStartTimeMillis;
     
     store.retainAll(nextKeys);
     
     final String latestResourceVersion = result.getMetadata().getResourceVersion();
     lastSyncResourceVersion = latestResourceVersion;
-    log.debug("Listing items ({}) for resource {} v{}", nextKeys.size(), apiTypeClass, latestResourceVersion);
+    log.debug("Listed items ({}) for resource {} v{} in {}ms", nextKeys.size(), apiTypeClass, latestResourceVersion, totalListTimeMillis);
     startWatcher(latestResourceVersion);
   }
 
@@ -100,7 +111,7 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
     if (!running) {
         return;
     }
-    log.debug("Starting watcher for resource {} v{}", apiTypeClass, latestResourceVersion);
+    log.debug("Starting watcher for resource {} v{}. Existing watch maybe: {}", apiTypeClass, latestResourceVersion, watch.get());
     // there's no need to stop the old watch, that will happen automatically when this call completes
     watch.set(
         listerWatcher.watch(new ListOptionsBuilder().withResourceVersion(latestResourceVersion)
@@ -131,9 +142,11 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
     @Override
     public void eventReceived(Action action, T resource) {
       if (action == null) {
+        log.error("Watcher {} v{} received null action, throwing Unrecognized event error", apiTypeClass, lastSyncResourceVersion);
         throw new KubernetesClientException("Unrecognized event");
       }
       if (resource == null) {
+        log.error("Watcher {} v{} received null resource, throwing Unrecognized resource error", apiTypeClass, lastSyncResourceVersion);
         throw new KubernetesClientException("Unrecognized resource");  
       }
       if (log.isDebugEnabled()) {
@@ -148,6 +161,15 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
       }
       switch (action) {
         case ERROR:
+          log.error(
+            "ERROR event received for watcher of {} v{}. Action: {}, resource: {}/{}, version: {}",
+            apiTypeClass,
+            lastSyncResourceVersion,
+            action.name(),
+            resource.getKind(),
+            resource.getMetadata().getName(),
+            resource.getMetadata().getResourceVersion()
+          );
           throw new KubernetesClientException("ERROR event");
         case ADDED:
           store.add(resource);
@@ -169,15 +191,16 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
       boolean restarted = false;
       try {
         if (exception.isHttpGone()) {
-          log.debug("Watch restarting due to http gone");
+          log.debug("Watch for {} v{} restarting due to http gone.", apiTypeClass, lastSyncResourceVersion);
           listSyncAndWatch();
           restarted = true;
         } else {
-          log.warn("Watch closing with exception", exception);
+          log.warn("Watch for {} v{} closing with exception", apiTypeClass, lastSyncResourceVersion, exception);
           running = false; // shouldn't happen, but it means the watch won't restart
         }
       } finally {
         if (!restarted) {
+          log.error("Watch for {} v{} wasn't restarted after an exception triggered the close", apiTypeClass, lastSyncResourceVersion);
           watchStopped(); // report the watch as stopped after a problem
         }
       }
@@ -186,7 +209,7 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
     @Override
     public void onClose() {
       watchStopped();
-      log.debug("Watch gracefully closed");
+      log.debug("Watch for {} v{} gracefully closed", apiTypeClass, lastSyncResourceVersion);
     }
 
     @Override
