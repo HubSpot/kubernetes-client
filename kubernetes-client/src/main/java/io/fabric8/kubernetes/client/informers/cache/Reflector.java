@@ -77,9 +77,9 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
     KubernetesResourceList<T> result = null;
     String continueVal = null;
     Set<String> nextKeys = new LinkedHashSet<>();
-    long listStartTimeMillis = System.currentTimeMillis();
+    long listStartTimeNano = System.nanoTime();
     do {
-      long chunkStartTimeMillis = System.currentTimeMillis();
+      long chunkStartTimeNano = System.nanoTime();
       result = listerWatcher
           .list(new ListOptionsBuilder().withLimit(listerWatcher.getLimit()).withContinue(continueVal).withAllowWatchBookmarks(false).build());
       result.getItems().forEach(i -> {
@@ -93,17 +93,17 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
         "--- Listed chunk of {} items for resource {} in {}ms, result resource version: {}",
         result.getItems().size(),
         apiTypeClass,
-        System.currentTimeMillis() - chunkStartTimeMillis,
+        (System.nanoTime() - chunkStartTimeNano) * 1e-6,
         result.getMetadata().getResourceVersion()
       );
     } while (Utils.isNotNullOrEmpty(continueVal));
-    long totalListTimeMillis = System.currentTimeMillis() - listStartTimeMillis;
+    long totalListTimeNano = System.nanoTime() - listStartTimeNano;
     
     store.retainAll(nextKeys);
     
     final String latestResourceVersion = result.getMetadata().getResourceVersion();
     lastSyncResourceVersion = latestResourceVersion;
-    log.debug("Listed items ({}) for resource {} v{} in {}ms", nextKeys.size(), apiTypeClass, latestResourceVersion, totalListTimeMillis);
+    log.debug("Listed items ({}) for resource {} v{} in {}ms", nextKeys.size(), apiTypeClass, latestResourceVersion, totalListTimeNano * 1e-6);
     startWatcher(latestResourceVersion);
   }
 
