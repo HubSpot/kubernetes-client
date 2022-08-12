@@ -17,6 +17,7 @@ package io.fabric8.kubernetes.client.dsl.base;
 
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.client.dsl.WritableOperation;
+import io.fabric8.kubernetes.client.informers.cache.Reflector;
 import io.fabric8.kubernetes.client.utils.CreateOrReplaceHelper;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
@@ -80,6 +81,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceList<T>, R extends Resource<T>>
   extends CreateOnlyResourceOperation<T, T>
   implements
@@ -91,6 +95,8 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
   private static final String WATCH = "watch";
   private static final String READ_ONLY_UPDATE_EXCEPTION_MESSAGE = "Cannot update read-only resources";
   private static final String READ_ONLY_EDIT_EXCEPTION_MESSAGE = "Cannot edit read-only resources";
+
+  private static final Logger LOG = LoggerFactory.getLogger(BaseOperation.class);
 
   private final boolean cascading;
   private final T item;
@@ -569,7 +575,9 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         config.getWatchReconnectLimit(),
         config.getWebsocketTimeout()
       );
+      LOG.debug("Waiting for watch to become ready. Resource type: {}, version: {}", this.listType, this.resourceVersion);
       watch.waitUntilReady();
+      LOG.debug("Watch became ready. Resource type: {}, version: {}", this.listType, this.resourceVersion);
       return watch;
     } catch (MalformedURLException e) {
       throw KubernetesClientException.launderThrowable(forOperationType(WATCH), e);
@@ -593,6 +601,13 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
       // If the HTTP return code is 200 or 503, we retry the watch again using a persistent hanging
       // HTTP GET. This is meant to handle cases like kubectl local proxy which does not support
       // websockets. Issue: https://github.com/kubernetes/kubernetes/issues/25126
+      LOG.warn(
+        "Watch attempt failed. Trying the watch again using a persistent hanging HTTP GET. " +
+          "Resource type: {}, version: {}",
+        this.listType,
+        this.resourceVersion,
+        ke
+        );
       try {
         return new WatchHTTPManager<>(
           httpClient,
