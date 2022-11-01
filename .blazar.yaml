@@ -1,3 +1,6 @@
+buildpack:
+  name: Blazar-Buildpack-Java-single-module
+
 enabled: true
 
 env:
@@ -9,11 +12,6 @@ buildResources:
   cpus: 2
   memoryMb: 5120
 
-buildpack:
-  host: git.hubteam.com
-  organization: HubSpot
-  repository: Blazar-Buildpack-Java
-  branch: v2-single-module
 
 provides:
   - name: kubernetes-client
