@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.fabric8.kubernetes.client;
 
-package io.fabric8.kubernetes.client.dsl;
+public class V2AutoscalingAPIGroupExtensionAdapter extends APIGroupExtensionAdapter<V2AutoscalingAPIGroupClient> {
 
-import io.fabric8.kubernetes.client.Client;
-import io.fabric8.kubernetes.client.V1AutoscalingAPIGroupDSL;
-import io.fabric8.kubernetes.client.V2beta1AutoscalingAPIGroupDSL;
-import io.fabric8.kubernetes.client.V2beta2AutoscalingAPIGroupDSL;
-import io.fabric8.kubernetes.client.V2AutoscalingAPIGroupDSL;
+  @Override
+  protected String getAPIGroupName() {
+    return "autoscaling/v2";
+  }
 
-public interface AutoscalingAPIGroupDSL extends Client {
-  V1AutoscalingAPIGroupDSL v1();
-  V2beta1AutoscalingAPIGroupDSL v2beta1();
-  V2beta2AutoscalingAPIGroupDSL v2beta2();
-  V2AutoscalingAPIGroupDSL v2();
+  @Override
+  public Class<V2AutoscalingAPIGroupClient> getExtensionType() {
+    return V2AutoscalingAPIGroupClient.class;
+  }
+
+  @Override
+  protected V2AutoscalingAPIGroupClient newInstance(Client client) {
+    return new V2AutoscalingAPIGroupClient(client);
+  }
+
 }

@@ -13,18 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.fabric8.kubernetes.client;
 
-package io.fabric8.kubernetes.client.dsl;
+import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler;
+import io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscalerList;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 
-import io.fabric8.kubernetes.client.Client;
-import io.fabric8.kubernetes.client.V1AutoscalingAPIGroupDSL;
-import io.fabric8.kubernetes.client.V2beta1AutoscalingAPIGroupDSL;
-import io.fabric8.kubernetes.client.V2beta2AutoscalingAPIGroupDSL;
-import io.fabric8.kubernetes.client.V2AutoscalingAPIGroupDSL;
-
-public interface AutoscalingAPIGroupDSL extends Client {
-  V1AutoscalingAPIGroupDSL v1();
-  V2beta1AutoscalingAPIGroupDSL v2beta1();
-  V2beta2AutoscalingAPIGroupDSL v2beta2();
-  V2AutoscalingAPIGroupDSL v2();
+public interface V2AutoscalingAPIGroupDSL extends Client {
+  MixedOperation<HorizontalPodAutoscaler, HorizontalPodAutoscalerList, Resource<HorizontalPodAutoscaler>> horizontalPodAutoscalers();
 }
