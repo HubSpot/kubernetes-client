@@ -89,6 +89,7 @@
               io.fabric8.kubernetes.api.model.autoscaling.v1,
               io.fabric8.kubernetes.api.model.autoscaling.v2beta1,
               io.fabric8.kubernetes.api.model.autoscaling.v2beta2,
+              io.fabric8.kubernetes.api.model.autoscaling.v2,
               io.fabric8.kubernetes.api.model.batch.v1,
               io.fabric8.kubernetes.api.model.batch.v1beta1,
               io.fabric8.kubernetes.api.model.certificates.v1,

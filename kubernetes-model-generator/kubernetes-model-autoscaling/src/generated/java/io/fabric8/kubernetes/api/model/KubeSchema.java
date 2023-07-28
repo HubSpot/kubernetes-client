@@ -53,6 +53,8 @@ import lombok.experimental.Accessors;
     "UpdateOptions",
     "V1HorizontalPodAutoscaler",
     "V1HorizontalPodAutoscalerList",
+    "V2HorizontalPodAutoscaler",
+    "V2HorizontalPodAutoscalerList",
     "V2beta1HorizontalPodAutoscaler",
     "V2beta1HorizontalPodAutoscalerList",
     "V2beta2HorizontalPodAutoscaler",
@@ -118,6 +120,10 @@ public class KubeSchema {
     private io.fabric8.kubernetes.api.model.autoscaling.v1.HorizontalPodAutoscaler v1HorizontalPodAutoscaler;
     @JsonProperty("V1HorizontalPodAutoscalerList")
     private io.fabric8.kubernetes.api.model.autoscaling.v1.HorizontalPodAutoscalerList v1HorizontalPodAutoscalerList;
+    @JsonProperty("V2HorizontalPodAutoscaler")
+    private io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler v2HorizontalPodAutoscaler;
+    @JsonProperty("V2HorizontalPodAutoscalerList")
+    private io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscalerList v2HorizontalPodAutoscalerList;
     @JsonProperty("V2beta1HorizontalPodAutoscaler")
     private io.fabric8.kubernetes.api.model.autoscaling.v2beta1.HorizontalPodAutoscaler v2beta1HorizontalPodAutoscaler;
     @JsonProperty("V2beta1HorizontalPodAutoscalerList")
@@ -156,6 +162,8 @@ public class KubeSchema {
      * @param v2beta1HorizontalPodAutoscalerList
      * @param v2beta2HorizontalPodAutoscaler
      * @param v2beta1HorizontalPodAutoscaler
+     * @param v2HorizontalPodAutoscaler
+     * @param v2HorizontalPodAutoscalerList
      * @param objectMeta
      * @param rootPaths
      * @param getOptions
@@ -163,7 +171,7 @@ public class KubeSchema {
      * @param info
      * @param status
      */
-    public KubeSchema(APIGroup aPIGroup, APIGroupList aPIGroupList, BaseKubernetesList baseKubernetesList, CreateOptions createOptions, DeleteOptions deleteOptions, GetOptions getOptions, Info info, ListOptions listOptions, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, Patch patch, PatchOptions patchOptions, Quantity quantity, RootPaths rootPaths, Scale scale, Status status, String time, TypeMeta typeMeta, UpdateOptions updateOptions, io.fabric8.kubernetes.api.model.autoscaling.v1.HorizontalPodAutoscaler v1HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v1.HorizontalPodAutoscalerList v1HorizontalPodAutoscalerList, io.fabric8.kubernetes.api.model.autoscaling.v2beta1.HorizontalPodAutoscaler v2beta1HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v2beta1.HorizontalPodAutoscalerList v2beta1HorizontalPodAutoscalerList, io.fabric8.kubernetes.api.model.autoscaling.v2beta2.HorizontalPodAutoscaler v2beta2HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v2beta2.HorizontalPodAutoscalerList v2beta2HorizontalPodAutoscalerList) {
+    public KubeSchema(APIGroup aPIGroup, APIGroupList aPIGroupList, BaseKubernetesList baseKubernetesList, CreateOptions createOptions, DeleteOptions deleteOptions, GetOptions getOptions, Info info, ListOptions listOptions, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, Patch patch, PatchOptions patchOptions, Quantity quantity, RootPaths rootPaths, Scale scale, Status status, String time, TypeMeta typeMeta, UpdateOptions updateOptions, io.fabric8.kubernetes.api.model.autoscaling.v1.HorizontalPodAutoscaler v1HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v1.HorizontalPodAutoscalerList v1HorizontalPodAutoscalerList, io.fabric8.kubernetes.api.model.autoscaling.v2beta1.HorizontalPodAutoscaler v2beta1HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v2beta1.HorizontalPodAutoscalerList v2beta1HorizontalPodAutoscalerList, io.fabric8.kubernetes.api.model.autoscaling.v2beta2.HorizontalPodAutoscaler v2beta2HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v2beta2.HorizontalPodAutoscalerList v2beta2HorizontalPodAutoscalerList, io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler v2HorizontalPodAutoscaler, io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscalerList v2HorizontalPodAutoscalerList) {
         super();
         this.aPIGroup = aPIGroup;
         this.aPIGroupList = aPIGroupList;
@@ -189,6 +197,8 @@ public class KubeSchema {
         this.v2beta1HorizontalPodAutoscalerList = v2beta1HorizontalPodAutoscalerList;
         this.v2beta2HorizontalPodAutoscaler = v2beta2HorizontalPodAutoscaler;
         this.v2beta2HorizontalPodAutoscalerList = v2beta2HorizontalPodAutoscalerList;
+        this.v2HorizontalPodAutoscaler = v2HorizontalPodAutoscaler;
+        this.v2HorizontalPodAutoscalerList = v2HorizontalPodAutoscalerList;
     }
 
     @JsonProperty("APIGroup")
@@ -421,6 +431,15 @@ public class KubeSchema {
         this.v2beta2HorizontalPodAutoscaler = v2beta2HorizontalPodAutoscaler;
     }
 
+  @JsonProperty("V2HorizontalPodAutoscaler")
+  public io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler getV2HorizontalPodAutoscaler() {
+    return v2HorizontalPodAutoscaler;
+  }
+
+  @JsonProperty("V2HorizontalPodAutoscaler")
+  public void setV2HorizontalPodAutoscaler(io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscaler v2HorizontalPodAutoscaler) {
+    this.v2HorizontalPodAutoscaler = v2HorizontalPodAutoscaler;
+  }
     @JsonProperty("V2beta2HorizontalPodAutoscalerList")
     public io.fabric8.kubernetes.api.model.autoscaling.v2beta2.HorizontalPodAutoscalerList getV2beta2HorizontalPodAutoscalerList() {
         return v2beta2HorizontalPodAutoscalerList;
@@ -429,6 +448,16 @@ public class KubeSchema {
     @JsonProperty("V2beta2HorizontalPodAutoscalerList")
     public void setV2beta2HorizontalPodAutoscalerList(io.fabric8.kubernetes.api.model.autoscaling.v2beta2.HorizontalPodAutoscalerList v2beta2HorizontalPodAutoscalerList) {
         this.v2beta2HorizontalPodAutoscalerList = v2beta2HorizontalPodAutoscalerList;
+    }
+
+    @JsonProperty("V2HorizontalPodAutoscalerList")
+    public io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscalerList getV2HorizontalPodAutoscalerList() {
+        return v2HorizontalPodAutoscalerList;
+    }
+
+    @JsonProperty("V2HorizontalPodAutoscalerList")
+    public void setV2HorizontalPodAutoscalerList(io.fabric8.kubernetes.api.model.autoscaling.v2.HorizontalPodAutoscalerList v2HorizontalPodAutoscalerList) {
+        this.v2HorizontalPodAutoscalerList = v2HorizontalPodAutoscalerList;
     }
 
     @JsonAnyGetter
