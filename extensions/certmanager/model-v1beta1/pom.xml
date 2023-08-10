@@ -22,7 +22,7 @@
   <parent>
     <groupId>io.fabric8</groupId>
     <artifactId>certmanager-extension-pom</artifactId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>certmanager-model-v1beta1</artifactId>
@@ -38,11 +38,6 @@
     <osgi.export>
       io.fabric8.certmanager.api.model.*
     </osgi.export>
-    <osgi.include.resources>
-      ${osgi.include.resources.default},
-      /model-v1beta1.properties=target/classes/model.properties
-    </osgi.include.resources>
-
     <clone-kube>true</clone-kube>
   </properties>
 
@@ -69,71 +64,46 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-migrationsupport</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
     </dependency>
   </dependencies>
+  
+  <profiles>
+    <profile>
+      <id>generate</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jsonschema2pojo</groupId>
+            <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <target>
+                    <echo>removing the duplicate generated class</echo>
+                    <delete
+                      file="${generate.targetDirectory}/io/fabric8/certmanager/api/model/v1beta1/CertificateRequestSpec.java"
+                      verbose="true" />
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.jsonschema2pojo</groupId>
-        <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-        <version>${jsonschema2pojo.version}</version>
-        <configuration>
-          <sourceDirectory>${project.basedir}/src/main/resources/schema</sourceDirectory>
-          <targetPackage>io.fabric8.certmanager.api.model</targetPackage>
-          <includeConstructors>true</includeConstructors>
-          <includeJsr303Annotations>false</includeJsr303Annotations>
-          <includeToString>false</includeToString>
-          <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
-          <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
-          <customAnnotator>io.fabric8.kubernetes.ModelAnnotator</customAnnotator>
-        </configuration>
-        <executions>
-          <execution>
-            <id>generate</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>model-annotator</artifactId>
-            <version>${project.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-                <echo>removing the duplicate generated class</echo>
-                <delete
-                  file="${project.build.directory}/generated-sources/io/fabric8/certmanager/api/model/acme/v1beta1/ACMEChallengeSolverHTTP01Ingress.java"
-                  verbose="true" />
-                <delete
-                  file="${project.build.directory}/generated-sources/io/fabric8/certmanager/api/model/v1beta1/CertificateRequestSpec.java"
-                  verbose="true" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>

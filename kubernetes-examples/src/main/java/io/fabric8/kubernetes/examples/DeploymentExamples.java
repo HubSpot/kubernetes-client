@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,42 +34,43 @@ public class DeploymentExamples {
   private static final String NAMESPACE = "this-is-a-test";
 
   public static void main(String[] args) {
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       // Create a namespace for all our stuff
-      Namespace ns = new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).addToLabels("this", "rocks").endMetadata().build();
-      logger.info("Created namespace: {}", client.namespaces().createOrReplace(ns));
+      Namespace ns = new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).addToLabels("this", "rocks").endMetadata()
+          .build();
+      logger.info("Created namespace: {}", client.namespaces().resource(ns).createOrReplace());
 
       ServiceAccount fabric8 = new ServiceAccountBuilder().withNewMetadata().withName("fabric8").endMetadata().build();
 
-      client.serviceAccounts().inNamespace(NAMESPACE).createOrReplace(fabric8);
+      client.serviceAccounts().inNamespace(NAMESPACE).resource(fabric8).createOrReplace();
       try {
         Deployment deployment = new DeploymentBuilder()
-          .withNewMetadata()
-          .withName("nginx")
-          .endMetadata()
-          .withNewSpec()
-          .withReplicas(1)
-          .withNewTemplate()
-          .withNewMetadata()
-          .addToLabels("app", "nginx")
-          .endMetadata()
-          .withNewSpec()
-          .addNewContainer()
-          .withName("nginx")
-          .withImage("nginx")
-          .addNewPort()
-          .withContainerPort(80)
-          .endPort()
-          .endContainer()
-          .endSpec()
-          .endTemplate()
-          .withNewSelector()
-          .addToMatchLabels("app", "nginx")
-          .endSelector()
-          .endSpec()
-          .build();
+            .withNewMetadata()
+            .withName("nginx")
+            .endMetadata()
+            .withNewSpec()
+            .withReplicas(1)
+            .withNewTemplate()
+            .withNewMetadata()
+            .addToLabels("app", "nginx")
+            .endMetadata()
+            .withNewSpec()
+            .addNewContainer()
+            .withName("nginx")
+            .withImage("nginx")
+            .addNewPort()
+            .withContainerPort(80)
+            .endPort()
+            .endContainer()
+            .endSpec()
+            .endTemplate()
+            .withNewSelector()
+            .addToMatchLabels("app", "nginx")
+            .endSelector()
+            .endSpec()
+            .build();
 
-        deployment = client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+        deployment = client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
         logger.info("Created deployment: {}", deployment);
 
         logger.info("Scaling up: {}", deployment.getMetadata().getName());

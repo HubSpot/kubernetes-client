@@ -15,29 +15,30 @@
  */
 package io.fabric8.openshift.client.dsl.internal.apps;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.autoscaling.v1.Scale;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.KubernetesClientTimeoutException;
+import io.fabric8.kubernetes.client.dsl.BytesLimitTerminateTimeTailPrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.Loggable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
-import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.dsl.PrettyLoggable;
+import io.fabric8.kubernetes.client.dsl.TailPrettyLoggable;
+import io.fabric8.kubernetes.client.dsl.TimeTailPrettyLoggable;
+import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperation;
 import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
 import io.fabric8.kubernetes.client.dsl.internal.LogWatchCallback;
-import io.fabric8.kubernetes.client.dsl.internal.RollingOperationContext;
-import io.fabric8.kubernetes.client.utils.PodOperationUtil;
+import io.fabric8.kubernetes.client.dsl.internal.OperationContext;
+import io.fabric8.kubernetes.client.dsl.internal.PodOperationContext;
+import io.fabric8.kubernetes.client.dsl.internal.core.v1.PodOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.internal.extensions.v1beta1.LegacyRollableScalableResourceOperation;
 import io.fabric8.kubernetes.client.utils.URLUtils;
-import io.fabric8.kubernetes.client.utils.URLUtils.URLBuilder;
+import io.fabric8.kubernetes.client.utils.internal.PodOperationUtil;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigList;
-import io.fabric8.openshift.client.OpenshiftClientContext;
 import io.fabric8.openshift.client.dsl.DeployableScalableResource;
-import io.fabric8.openshift.client.dsl.internal.OpenShiftOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.MalformedURLException;
@@ -45,27 +46,22 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 
 import static io.fabric8.openshift.client.OpenShiftAPIGroups.APPS;
 
-public class DeploymentConfigOperationsImpl extends OpenShiftOperation<DeploymentConfig, DeploymentConfigList,
-  DeployableScalableResource<DeploymentConfig>> implements DeployableScalableResource<DeploymentConfig> {
+public class DeploymentConfigOperationsImpl
+    extends HasMetadataOperation<DeploymentConfig, DeploymentConfigList, DeployableScalableResource<DeploymentConfig>>
+    implements DeployableScalableResource<DeploymentConfig> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(DeploymentConfigOperationsImpl.class);
-  private static final Integer DEFAULT_POD_LOG_WAIT_TIMEOUT = 5;
   public static final String OPENSHIFT_IO_DEPLOYMENT_CONFIG_NAME = "openshift.io/deployment-config.name";
-  private final RollingOperationContext rollingOperationContext;
+  private final PodOperationContext rollingOperationContext;
 
-  public DeploymentConfigOperationsImpl(OpenshiftClientContext clientContext) {
-    this(new RollingOperationContext(), HasMetadataOperationsImpl.defaultContext(clientContext));
+  public DeploymentConfigOperationsImpl(Client client) {
+    this(new PodOperationContext(), HasMetadataOperationsImpl.defaultContext(client));
   }
 
-  public DeploymentConfigOperationsImpl(RollingOperationContext context, OperationContext superContext) {
+  public DeploymentConfigOperationsImpl(PodOperationContext context, OperationContext superContext) {
     super(superContext.withApiGroupName(APPS).withPlural("deploymentconfigs"),
         DeploymentConfig.class, DeploymentConfigList.class);
     this.rollingOperationContext = context;
@@ -77,135 +73,48 @@ public class DeploymentConfigOperationsImpl extends OpenShiftOperation<Deploymen
   }
 
   @Override
-  public DeploymentConfig edit(UnaryOperator<DeploymentConfig> function) {
-    if (isCascading()) {
-      return cascading(false).edit(function);
-    }
-    return super.edit(function);
-  }
-
-  @Override
-  public DeploymentConfig accept(Consumer<DeploymentConfig> consumer) {
-    if (isCascading()) {
-      return cascading(false).accept(consumer);
-    }
-    return super.accept(consumer);
-  }
-
-
-  @Override
-  public DeploymentConfig replace(DeploymentConfig item) {
-    if (isCascading()) {
-      return cascading(false).replace(item);
-    }
-    return super.replace(item);
-  }
-
-  @Override
-  public DeploymentConfig patch(PatchContext patchContext, DeploymentConfig item) {
-    if (isCascading()) {
-      return cascading(false).patch(patchContext, item);
-    }
-    return super.patch(patchContext, item);
-  }
-
-  @Override
-  public DeploymentConfig deployLatest() {
-    return deployLatest(false);
+  public Scale scale(Scale scaleParam) {
+    return LegacyRollableScalableResourceOperation.scale(scaleParam, this);
   }
 
   @Override
   public DeploymentConfig deployLatest(boolean wait) {
-    Long currentVersion = getMandatory().getStatus().getLatestVersion();
-    if(currentVersion == null){
+    DeploymentConfigOperationsImpl deployable = this;
+    if (wait) {
+      deployable = this.withTimeoutInMillis(getRequestConfig().getScaleTimeout());
+    }
+    return deployable.deployLatest();
+  }
+
+  @Override
+  public DeploymentConfig deployLatest() {
+    Long currentVersion = getItemOrRequireFromServer().getStatus().getLatestVersion();
+    if (currentVersion == null) {
       currentVersion = 1L;
     }
     final Long latestVersion = currentVersion + 1;
-    DeploymentConfig deployment = cascading(false).accept(d -> d.getStatus().setLatestVersion(latestVersion));
-    if (wait) {
-      waitUntilDeploymentConfigIsScaled(deployment.getSpec().getReplicas());
-      deployment = getMandatory();
+    DeploymentConfig deployment = accept(d -> d.getStatus().setLatestVersion(latestVersion));
+    if (context.getTimeout() > 0) {
+      waitUntilScaled(deployment.getSpec().getReplicas());
+      deployment = getItemOrRequireFromServer();
     }
     return deployment;
-  }
-
-  @Override
-  public DeploymentConfig scale(int count) {
-    return scale(count, false);
-  }
-
-  @Override
-  public DeploymentConfig scale(int count, boolean wait) {
-    DeploymentConfig deployment = cascading(false).accept(d -> d.getSpec().setReplicas(count));
-    if (wait) {
-      waitUntilDeploymentConfigIsScaled(count);
-      deployment = getMandatory();
-    }
-    return deployment;
-  }
-
-  @Override
-  public Scale scale() {
-    return handleScale(null);
-  }
-
-  @Override
-  public Scale scale(Scale scale) {
-    return handleScale(scale);
-  }
-
-  /**
-   * Lets wait until there are enough Ready pods of the given Deployment
-   */
-  private void waitUntilDeploymentConfigIsScaled(final int count) {
-    final AtomicReference<Integer> replicasRef = new AtomicReference<>(0);
-
-    final String name = checkName(getItem());
-    final String namespace = checkNamespace(getItem());
-
-    try {
-      waitUntilCondition(deploymentConfig -> {
-        //If the rs is gone, we shouldn't wait.
-        if (deploymentConfig == null) {
-          if (count == 0) {
-            return true;
-          }
-          throw new IllegalStateException("Can't wait for DeploymentConfig: " + checkName(getItem()) + " in namespace: "
-              + checkName(getItem()) + " to scale. Resource is no longer available.");
-        }
-        replicasRef.set(deploymentConfig.getStatus().getReplicas());
-        int currentReplicas = deploymentConfig.getStatus().getReplicas() != null ? deploymentConfig.getStatus().getReplicas() : 0;
-        if (deploymentConfig.getStatus().getObservedGeneration() >= deploymentConfig.getMetadata().getGeneration()
-            && Objects.equals(deploymentConfig.getSpec().getReplicas(), currentReplicas)) {
-          return true;
-        }
-        LOG.debug("Only {}/{} pods scheduled for DeploymentConfig: {} in namespace: {} seconds so waiting...",
-            deploymentConfig.getStatus().getReplicas(), deploymentConfig.getSpec().getReplicas(),
-            deploymentConfig.getMetadata().getName(), namespace);
-        return false;
-      }, getConfig().getScaleTimeout(), TimeUnit.MILLISECONDS);
-      LOG.debug("{}/{} pod(s) ready for DeploymentConfig: {} in namespace: {}.",
-          replicasRef.get(), count, name, namespace);
-    } catch (KubernetesClientTimeoutException e) {
-      LOG.error("{}/{} pod(s) ready for DeploymentConfig: {} in namespace: {}  after waiting for {} seconds so giving up",
-          replicasRef.get(), count, name, namespace,
-          TimeUnit.MILLISECONDS.toSeconds(getConfig().getScaleTimeout()));
-    }
   }
 
   @Override
   public String getLog() {
-    return getLog(false);
+    return getLog(rollingOperationContext.isPrettyOutput());
   }
 
   @Override
-  public String getLog(Boolean isPretty) {
-    return doGetLog(isPretty, String.class);
+  public String getLog(boolean isPretty) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withPrettyOutput(isPretty), context)
+        .doGetLog(String.class);
   }
 
-  private <T> T doGetLog(Boolean isPretty, Class<T> type) {
+  private <T> T doGetLog(Class<T> type) {
     try {
-      URL url = getResourceLogUrl(isPretty, false);
+      URL url = getResourceLogUrl(false);
       return handleRawGet(url, type);
     } catch (Throwable t) {
       throw KubernetesClientException.launderThrowable(forOperationType("doGetLog"), t);
@@ -214,11 +123,22 @@ public class DeploymentConfigOperationsImpl extends OpenShiftOperation<Deploymen
 
   /**
    * Returns an unclosed Reader. It's the caller responsibility to close it.
+   *
    * @return Reader
    */
   @Override
   public Reader getLogReader() {
-    return doGetLog(false, Reader.class);
+    return doGetLog(Reader.class);
+  }
+
+  /**
+   * Returns an unclosed InputStream. It's the caller responsibility to close it.
+   *
+   * @return InputStream
+   */
+  @Override
+  public InputStream getLogInputStream() {
+    return doGetLog(InputStream.class);
   }
 
   @Override
@@ -230,42 +150,48 @@ public class DeploymentConfigOperationsImpl extends OpenShiftOperation<Deploymen
   public LogWatch watchLog(OutputStream out) {
     try {
       // In case of DeploymentConfig we directly get logs at DeploymentConfig Url, but we need to wait for Pods
-      waitUntilDeploymentConfigPodBecomesReady(fromServer().get());
-      URL url = getResourceLogUrl(false, true);
-      final LogWatchCallback callback = new LogWatchCallback(this.config, out);
+      waitUntilDeploymentConfigPodBecomesReady(get());
+      URL url = getResourceLogUrl(true);
+      final LogWatchCallback callback = new LogWatchCallback(out, context);
       return callback.callAndWait(this.httpClient, url);
     } catch (Throwable t) {
       throw KubernetesClientException.launderThrowable(forOperationType("watchLog"), t);
     }
   }
 
-  private URL getResourceLogUrl(Boolean withPrettyOutput, Boolean follow) throws MalformedURLException {
-    URLBuilder requestUrlBuilder = new URLBuilder(URLUtils.join(getResourceUrl().toString(), "log"));
-    if (Boolean.TRUE.equals(withPrettyOutput)) {
-      requestUrlBuilder.addQueryParameter("pretty", withPrettyOutput.toString());
-    }
+  private URL getResourceLogUrl(Boolean follow) throws MalformedURLException {
     if (Boolean.TRUE.equals(follow)) {
-      requestUrlBuilder.addQueryParameter("follow", "true");
+      return new URL(URLUtils.join(getResourceUrl().toString(),
+          rollingOperationContext.getLogParameters() + "&follow=true"));
+    } else {
+      return new URL(
+          URLUtils.join(getResourceUrl().toString(), rollingOperationContext.getLogParameters()));
     }
-    return requestUrlBuilder.build();
   }
 
   @Override
-  public Loggable<LogWatch> withLogWaitTimeout(Integer logWaitTimeout) {
-    return new DeploymentConfigOperationsImpl(rollingOperationContext.withLogWaitTimout(logWaitTimeout), context);
+  public Loggable withLogWaitTimeout(Integer logWaitTimeout) {
+    return withReadyWaitTimeout(logWaitTimeout);
+  }
+
+  @Override
+  public Loggable withReadyWaitTimeout(Integer timeout) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withReadyWaitTimeout(timeout), context);
   }
 
   private void waitUntilDeploymentConfigPodBecomesReady(DeploymentConfig deploymentConfig) {
-    Integer podLogWaitTimeout = rollingOperationContext.getLogWaitTimeout();
-    List<PodResource<Pod>> podOps = PodOperationUtil.getPodOperationsForController(context, deploymentConfig.getMetadata().getUid(),
-      getDeploymentConfigPodLabels(deploymentConfig), false, podLogWaitTimeout, rollingOperationContext.getContainerId());
+    Integer podLogWaitTimeout = rollingOperationContext.getReadyWaitTimeout();
+    List<PodResource> podOps = PodOperationUtil.getPodOperationsForController(context,
+        rollingOperationContext,
+        deploymentConfig.getMetadata().getUid(), getDeploymentConfigPodLabels(deploymentConfig));
 
-    waitForBuildPodToBecomeReady(podOps, podLogWaitTimeout != null ? podLogWaitTimeout : DEFAULT_POD_LOG_WAIT_TIMEOUT);
+    waitForBuildPodToBecomeReady(podOps,
+        podLogWaitTimeout != null ? podLogWaitTimeout : PodOperationsImpl.DEFAULT_POD_READY_WAIT_TIMEOUT_MS);
   }
 
-  private static void waitForBuildPodToBecomeReady(List<PodResource<Pod>> podOps, Integer podLogWaitTimeout) {
-    for (PodResource<Pod> podOp : podOps) {
-      PodOperationUtil.waitUntilReadyBeforeFetchingLogs(podOp, podLogWaitTimeout);
+  private static void waitForBuildPodToBecomeReady(List<PodResource> podOps, Integer podLogWaitTimeout) {
+    for (PodResource podOp : podOps) {
+      PodOperationUtil.waitUntilReadyOrTerminal(podOp, podLogWaitTimeout);
     }
   }
 
@@ -278,7 +204,53 @@ public class DeploymentConfigOperationsImpl extends OpenShiftOperation<Deploymen
   }
 
   @Override
-  public Loggable<LogWatch> inContainer(String id) {
+  public Loggable inContainer(String id) {
     return new DeploymentConfigOperationsImpl(rollingOperationContext.withContainerId(id), context);
   }
+
+  @Override
+  public TimeTailPrettyLoggable limitBytes(int limitBytes) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withLimitBytes(limitBytes), context);
+  }
+
+  @Override
+  public TimeTailPrettyLoggable terminated() {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withTerminatedStatus(true), context);
+  }
+
+  @Override
+  public Loggable withPrettyOutput() {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withPrettyOutput(true), context);
+  }
+
+  @Override
+  public PrettyLoggable tailingLines(int lines) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withTailingLines(lines), context);
+  }
+
+  @Override
+  public TailPrettyLoggable sinceTime(String timestamp) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withSinceTimestamp(timestamp), context);
+  }
+
+  @Override
+  public TailPrettyLoggable sinceSeconds(int seconds) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withSinceSeconds(seconds), context);
+  }
+
+  @Override
+  public BytesLimitTerminateTimeTailPrettyLoggable usingTimestamps() {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext.withTimestamps(true), context);
+  }
+
+  @Override
+  public DeploymentConfigOperationsImpl withTimeout(long timeout, TimeUnit unit) {
+    return new DeploymentConfigOperationsImpl(rollingOperationContext, context.withTimeout(timeout, unit));
+  }
+
+  @Override
+  public DeploymentConfigOperationsImpl withTimeoutInMillis(long timeoutInMillis) {
+    return withTimeout(timeoutInMillis, TimeUnit.MILLISECONDS);
+  }
+
 }

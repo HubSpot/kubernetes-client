@@ -19,8 +19,8 @@ import io.fabric8.kubernetes.api.builder.Visitor;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
@@ -37,17 +37,16 @@ public class WatchExample {
   @SuppressWarnings("java:S1604")
   public static void main(String[] args) {
     try (
-      KubernetesClient client = new DefaultKubernetesClient();
-      Watch ignored = newConfigMapWatch(client)
-    ) {
+        KubernetesClient client = new KubernetesClientBuilder().build();
+        Watch ignored = newConfigMapWatch(client)) {
       final String namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
-      final String name = "watch-config-map-test-" + UUID.randomUUID().toString();
-      final ConfigMap cm = client.configMaps().inNamespace(namespace).createOrReplace(new ConfigMapBuilder()
-        .withNewMetadata().withName(name).endMetadata()
-        .build()
-      );
+      final String name = "watch-config-map-test-" + UUID.randomUUID();
+      final ConfigMap cm = client.configMaps().inNamespace(namespace).resource(new ConfigMapBuilder()
+          .withNewMetadata().withName(name).endMetadata()
+          .build())
+          .createOrReplace();
       client.configMaps().inNamespace(namespace).withName(name)
-        .patch(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData("key", "value").build());
+          .patch(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().addToData("key", "value").build());
       //noinspection Convert2Lambda
       client.configMaps().inNamespace(namespace).withName(name).edit(new Visitor<ObjectMetaBuilder>() {
         @Override
@@ -55,7 +54,7 @@ public class WatchExample {
           omb.addToAnnotations("annotation", "value");
         }
       });
-      client.configMaps().delete(cm);
+      client.configMaps().resource(cm).delete();
     } catch (Exception e) {
       logger.error("Global Error: {}", e.getMessage(), e);
     }

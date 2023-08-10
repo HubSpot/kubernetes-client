@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -55,15 +56,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class GroupRestriction implements KubernetesResource
 {
 
     @JsonProperty("groups")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> groups = new ArrayList<String>();
     @JsonProperty("labels")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.kubernetes.api.model.LabelSelector> labels = new ArrayList<io.fabric8.kubernetes.api.model.LabelSelector>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -72,11 +76,6 @@ public class GroupRestriction implements KubernetesResource
     public GroupRestriction() {
     }
 
-    /**
-     * 
-     * @param groups
-     * @param labels
-     */
     public GroupRestriction(List<String> groups, List<io.fabric8.kubernetes.api.model.LabelSelector> labels) {
         super();
         this.groups = groups;

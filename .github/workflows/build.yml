@@ -20,15 +20,23 @@ env:
   MAVEN_ARGS: -B -C -V -ntp -Dhttp.keepAlive=false -e
 
 on:
+  workflow_dispatch:
   push:
     branches:
-      - master
+      - main
   pull_request:
+    paths-ignore:
+      - 'doc/**'
+      - 'ide-config/**'
+      - '**.md'
 
 concurrency:
   # Only run once for latest commit per ref and cancel other (previous) runs.
   group: ci-build-kubernetes-client-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -39,11 +47,16 @@ jobs:
         java: [8,11]
     steps:
       - name: Checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
       - name: Setup Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
       - name: Build Project
         run: ./mvnw ${MAVEN_ARGS} clean install
+
+      - name: Check java-generator CLI
+        run: |
+          chmod a+x java-generator/cli/target/java-gen
+          java-generator/cli/target/java-gen --source=java-generator/core/src/test/resources/crontab-crd.yml --target=./tmp

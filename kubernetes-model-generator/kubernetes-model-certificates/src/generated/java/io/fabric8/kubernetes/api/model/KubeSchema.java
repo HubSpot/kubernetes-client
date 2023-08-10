@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -18,6 +19,8 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.certificates.v1alpha1.ClusterTrustBundle;
+import io.fabric8.kubernetes.api.model.certificates.v1alpha1.ClusterTrustBundleList;
 import io.fabric8.kubernetes.api.model.version.Info;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
@@ -54,6 +57,8 @@ import lombok.experimental.Accessors;
     "Time",
     "TypeMeta",
     "UpdateOptions",
+    "V1Alpha1ClusterTrustBundle",
+    "V1Alpha1ClusterTrustBundleList",
     "V1Beta1CertificateSigningRequest",
     "V1Beta1CertificateSigningRequestCondition",
     "V1Beta1CertificateSigningRequestList",
@@ -78,6 +83,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class KubeSchema {
 
     @JsonProperty("APIGroup")
@@ -85,7 +91,7 @@ public class KubeSchema {
     @JsonProperty("APIGroupList")
     private APIGroupList aPIGroupList;
     @JsonProperty("BaseKubernetesList")
-    private BaseKubernetesList baseKubernetesList;
+    private KubernetesList baseKubernetesList;
     @JsonProperty("CertificateSigningRequest")
     private io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequest certificateSigningRequest;
     @JsonProperty("CertificateSigningRequestCondition")
@@ -124,6 +130,10 @@ public class KubeSchema {
     private TypeMeta typeMeta;
     @JsonProperty("UpdateOptions")
     private UpdateOptions updateOptions;
+    @JsonProperty("V1Alpha1ClusterTrustBundle")
+    private ClusterTrustBundle v1Alpha1ClusterTrustBundle;
+    @JsonProperty("V1Alpha1ClusterTrustBundleList")
+    private ClusterTrustBundleList v1Alpha1ClusterTrustBundleList;
     @JsonProperty("V1Beta1CertificateSigningRequest")
     private io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequest v1Beta1CertificateSigningRequest;
     @JsonProperty("V1Beta1CertificateSigningRequestCondition")
@@ -135,7 +145,7 @@ public class KubeSchema {
     @JsonProperty("V1Beta1CertificateSigningRequestStatus")
     private io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestStatus v1Beta1CertificateSigningRequestStatus;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -144,37 +154,7 @@ public class KubeSchema {
     public KubeSchema() {
     }
 
-    /**
-     * 
-     * @param listOptions
-     * @param aPIGroupList
-     * @param baseKubernetesList
-     * @param certificateSigningRequestSpec
-     * @param updateOptions
-     * @param certificateSigningRequest
-     * @param patch
-     * @param v1Beta1CertificateSigningRequestCondition
-     * @param v1Beta1CertificateSigningRequestSpec
-     * @param rootPaths
-     * @param certificateSigningRequestStatus
-     * @param info
-     * @param patchOptions
-     * @param deleteOptions
-     * @param quantity
-     * @param certificateSigningRequestList
-     * @param createOptions
-     * @param aPIGroup
-     * @param typeMeta
-     * @param objectMeta
-     * @param v1Beta1CertificateSigningRequestList
-     * @param v1Beta1CertificateSigningRequestStatus
-     * @param getOptions
-     * @param time
-     * @param certificateSigningRequestCondition
-     * @param status
-     * @param v1Beta1CertificateSigningRequest
-     */
-    public KubeSchema(APIGroup aPIGroup, APIGroupList aPIGroupList, BaseKubernetesList baseKubernetesList, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequest certificateSigningRequest, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestCondition certificateSigningRequestCondition, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestList certificateSigningRequestList, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestSpec certificateSigningRequestSpec, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestStatus certificateSigningRequestStatus, CreateOptions createOptions, DeleteOptions deleteOptions, GetOptions getOptions, Info info, ListOptions listOptions, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, Patch patch, PatchOptions patchOptions, Quantity quantity, RootPaths rootPaths, Status status, String time, TypeMeta typeMeta, UpdateOptions updateOptions, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequest v1Beta1CertificateSigningRequest, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestCondition v1Beta1CertificateSigningRequestCondition, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestList v1Beta1CertificateSigningRequestList, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestSpec v1Beta1CertificateSigningRequestSpec, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestStatus v1Beta1CertificateSigningRequestStatus) {
+    public KubeSchema(APIGroup aPIGroup, APIGroupList aPIGroupList, KubernetesList baseKubernetesList, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequest certificateSigningRequest, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestCondition certificateSigningRequestCondition, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestList certificateSigningRequestList, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestSpec certificateSigningRequestSpec, io.fabric8.kubernetes.api.model.certificates.v1.CertificateSigningRequestStatus certificateSigningRequestStatus, CreateOptions createOptions, DeleteOptions deleteOptions, GetOptions getOptions, Info info, ListOptions listOptions, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, Patch patch, PatchOptions patchOptions, Quantity quantity, RootPaths rootPaths, Status status, String time, TypeMeta typeMeta, UpdateOptions updateOptions, ClusterTrustBundle v1Alpha1ClusterTrustBundle, ClusterTrustBundleList v1Alpha1ClusterTrustBundleList, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequest v1Beta1CertificateSigningRequest, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestCondition v1Beta1CertificateSigningRequestCondition, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestList v1Beta1CertificateSigningRequestList, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestSpec v1Beta1CertificateSigningRequestSpec, io.fabric8.kubernetes.api.model.certificates.v1beta1.CertificateSigningRequestStatus v1Beta1CertificateSigningRequestStatus) {
         super();
         this.aPIGroup = aPIGroup;
         this.aPIGroupList = aPIGroupList;
@@ -198,6 +178,8 @@ public class KubeSchema {
         this.time = time;
         this.typeMeta = typeMeta;
         this.updateOptions = updateOptions;
+        this.v1Alpha1ClusterTrustBundle = v1Alpha1ClusterTrustBundle;
+        this.v1Alpha1ClusterTrustBundleList = v1Alpha1ClusterTrustBundleList;
         this.v1Beta1CertificateSigningRequest = v1Beta1CertificateSigningRequest;
         this.v1Beta1CertificateSigningRequestCondition = v1Beta1CertificateSigningRequestCondition;
         this.v1Beta1CertificateSigningRequestList = v1Beta1CertificateSigningRequestList;
@@ -226,12 +208,12 @@ public class KubeSchema {
     }
 
     @JsonProperty("BaseKubernetesList")
-    public BaseKubernetesList getBaseKubernetesList() {
+    public KubernetesList getBaseKubernetesList() {
         return baseKubernetesList;
     }
 
     @JsonProperty("BaseKubernetesList")
-    public void setBaseKubernetesList(BaseKubernetesList baseKubernetesList) {
+    public void setBaseKubernetesList(KubernetesList baseKubernetesList) {
         this.baseKubernetesList = baseKubernetesList;
     }
 
@@ -423,6 +405,26 @@ public class KubeSchema {
     @JsonProperty("UpdateOptions")
     public void setUpdateOptions(UpdateOptions updateOptions) {
         this.updateOptions = updateOptions;
+    }
+
+    @JsonProperty("V1Alpha1ClusterTrustBundle")
+    public ClusterTrustBundle getV1Alpha1ClusterTrustBundle() {
+        return v1Alpha1ClusterTrustBundle;
+    }
+
+    @JsonProperty("V1Alpha1ClusterTrustBundle")
+    public void setV1Alpha1ClusterTrustBundle(ClusterTrustBundle v1Alpha1ClusterTrustBundle) {
+        this.v1Alpha1ClusterTrustBundle = v1Alpha1ClusterTrustBundle;
+    }
+
+    @JsonProperty("V1Alpha1ClusterTrustBundleList")
+    public ClusterTrustBundleList getV1Alpha1ClusterTrustBundleList() {
+        return v1Alpha1ClusterTrustBundleList;
+    }
+
+    @JsonProperty("V1Alpha1ClusterTrustBundleList")
+    public void setV1Alpha1ClusterTrustBundleList(ClusterTrustBundleList v1Alpha1ClusterTrustBundleList) {
+        this.v1Alpha1ClusterTrustBundleList = v1Alpha1ClusterTrustBundleList;
     }
 
     @JsonProperty("V1Beta1CertificateSigningRequest")

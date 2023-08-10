@@ -17,8 +17,8 @@ package io.fabric8.kubernetes.examples;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
@@ -35,53 +35,52 @@ public class SharedInformerExample {
   private static final String POD_NAME = "myapp-pod";
 
   public static void main(String[] args) throws InterruptedException {
-    try (final KubernetesClient client = new DefaultKubernetesClient()) {
+    try (final KubernetesClient client = new KubernetesClientBuilder().build()) {
       SharedInformerFactory sharedInformerFactory = client.informers();
       SharedIndexInformer<Pod> podInformer = sharedInformerFactory.sharedIndexInformerFor(Pod.class, 30 * 1000L);
       logger.info("Informer factory initialized.");
 
       podInformer.addEventHandler(
-        new ResourceEventHandler<Pod>() {
-          @Override
-          public void onAdd(Pod pod) {
-            logger.info("{} pod added", pod.getMetadata().getName());
-          }
+          new ResourceEventHandler<Pod>() {
+            @Override
+            public void onAdd(Pod pod) {
+              logger.info("{} pod added", pod.getMetadata().getName());
+            }
 
-          @Override
-          public void onUpdate(Pod oldPod, Pod newPod) {
-            logger.info("{} pod updated", oldPod.getMetadata().getName());
-          }
+            @Override
+            public void onUpdate(Pod oldPod, Pod newPod) {
+              logger.info("{} pod updated", oldPod.getMetadata().getName());
+            }
 
-          @Override
-          public void onDelete(Pod pod, boolean deletedFinalStateUnknown) {
-            logger.info("{} pod deleted", pod.getMetadata().getName());
-          }
-        }
-      );
+            @Override
+            public void onDelete(Pod pod, boolean deletedFinalStateUnknown) {
+              logger.info("{} pod deleted", pod.getMetadata().getName());
+            }
+          });
 
       logger.info("Starting all registered informers");
       sharedInformerFactory.startAllRegisteredInformers();
       Pod testPod = new PodBuilder()
-        .withNewMetadata().withName(POD_NAME).withLabels(Collections.singletonMap("app", POD_NAME)).endMetadata()
-        .withNewSpec()
-        .addNewContainer()
-        .withName("myapp-container")
-        .withImage("busybox:1.28")
-        .withCommand("sh", "-c", "echo The app is running!; sleep 10")
-        .endContainer()
-        .addNewInitContainer()
-        .withName("init-myservice")
-        .withImage("busybox:1.28")
-        .withCommand("sh", "-c", "echo inititalizing...; sleep 5")
-        .endInitContainer()
-        .endSpec()
-        .build();
+          .withNewMetadata().withName(POD_NAME).withLabels(Collections.singletonMap("app", POD_NAME)).endMetadata()
+          .withNewSpec()
+          .addNewContainer()
+          .withName("myapp-container")
+          .withImage("busybox:1.28")
+          .withCommand("sh", "-c", "echo The app is running!; sleep 10")
+          .endContainer()
+          .addNewInitContainer()
+          .withName("init-myservice")
+          .withImage("busybox:1.28")
+          .withCommand("sh", "-c", "echo inititalizing...; sleep 5")
+          .endInitContainer()
+          .endSpec()
+          .build();
 
-      client.pods().inNamespace("default").create(testPod);
+      client.pods().inNamespace("default").resource(testPod).create();
       logger.info("Pod created");
       Thread.sleep(3000L);
 
-      Lister<Pod> podLister = new Lister<> (podInformer.getIndexer(), "default");
+      Lister<Pod> podLister = new Lister<>(podInformer.getIndexer(), "default");
       Pod myPod = podLister.get(POD_NAME);
       logger.info("PodLister has {}", podLister.list().size());
 
@@ -92,6 +91,7 @@ public class SharedInformerExample {
       // Wait for some time now
       TimeUnit.MINUTES.sleep(3);
 
+      podInformer.close();
       sharedInformerFactory.stopAllRegisteredInformers();
     }
   }

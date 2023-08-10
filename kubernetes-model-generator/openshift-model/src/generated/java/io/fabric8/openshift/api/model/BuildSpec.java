@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -64,6 +65,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class BuildSpec implements KubernetesResource
 {
 
@@ -72,7 +74,8 @@ public class BuildSpec implements KubernetesResource
     @JsonProperty("mountTrustedCA")
     private Boolean mountTrustedCA;
     @JsonProperty("nodeSelector")
-    private Map<String, String> nodeSelector;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> nodeSelector = new LinkedHashMap<String, String>();
     @JsonProperty("output")
     private BuildOutput output;
     @JsonProperty("postCommit")
@@ -91,7 +94,7 @@ public class BuildSpec implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<BuildTriggerCause> triggeredBy = new ArrayList<BuildTriggerCause>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -100,20 +103,6 @@ public class BuildSpec implements KubernetesResource
     public BuildSpec() {
     }
 
-    /**
-     * 
-     * @param output
-     * @param mountTrustedCA
-     * @param completionDeadlineSeconds
-     * @param resources
-     * @param serviceAccount
-     * @param source
-     * @param postCommit
-     * @param strategy
-     * @param nodeSelector
-     * @param revision
-     * @param triggeredBy
-     */
     public BuildSpec(Long completionDeadlineSeconds, Boolean mountTrustedCA, Map<String, String> nodeSelector, BuildOutput output, BuildPostCommitSpec postCommit, io.fabric8.kubernetes.api.model.ResourceRequirements resources, SourceRevision revision, java.lang.String serviceAccount, BuildSource source, BuildStrategy strategy, List<BuildTriggerCause> triggeredBy) {
         super();
         this.completionDeadlineSeconds = completionDeadlineSeconds;

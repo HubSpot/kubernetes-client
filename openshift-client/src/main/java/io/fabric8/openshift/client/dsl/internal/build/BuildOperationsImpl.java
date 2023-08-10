@@ -15,8 +15,7 @@
  */
 package io.fabric8.openshift.client.dsl.internal.build;
 
-import io.fabric8.kubernetes.api.builder.VisitableBuilder;
-import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.BytesLimitTerminateTimeTailPrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
@@ -25,22 +24,21 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.PrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.TailPrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.TimeTailPrettyLoggable;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
+import io.fabric8.kubernetes.client.dsl.TimestampBytesLimitTerminateTimeTailPrettyLoggable;
+import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperation;
 import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
 import io.fabric8.kubernetes.client.dsl.internal.LogWatchCallback;
-import io.fabric8.kubernetes.client.internal.PatchUtils;
-import io.fabric8.kubernetes.client.utils.PodOperationUtil;
+import io.fabric8.kubernetes.client.dsl.internal.OperationContext;
+import io.fabric8.kubernetes.client.dsl.internal.PodOperationContext;
+import io.fabric8.kubernetes.client.dsl.internal.core.v1.PodOperationsImpl;
 import io.fabric8.kubernetes.client.utils.URLUtils;
+import io.fabric8.kubernetes.client.utils.internal.PodOperationUtil;
 import io.fabric8.openshift.api.model.Build;
-import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildList;
-import io.fabric8.openshift.client.OpenshiftClientContext;
 import io.fabric8.openshift.client.dsl.BuildResource;
-import io.fabric8.openshift.client.dsl.internal.BuildOperationContext;
-import io.fabric8.openshift.client.dsl.internal.OpenShiftOperation;
-import io.fabric8.openshift.client.internal.patchmixins.BuildMixIn;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URL;
@@ -50,78 +48,43 @@ import java.util.Map;
 
 import static io.fabric8.openshift.client.OpenShiftAPIGroups.BUILD;
 
-public class BuildOperationsImpl extends OpenShiftOperation<Build, BuildList,
-  BuildResource<Build, LogWatch>> implements
-  BuildResource<Build, LogWatch> {
+public class BuildOperationsImpl extends HasMetadataOperation<Build, BuildList, BuildResource> implements
+    BuildResource {
 
   public static final String OPENSHIFT_IO_BUILD_NAME = "openshift.io/build.name";
-  private final boolean withTerminatedStatus;
-  private final boolean withTimestamps;
-  private final String sinceTimestamp;
-  private final Integer sinceSeconds;
-  private final Integer withTailingLines;
-  private final boolean withPrettyOutput;
-  private final String version;
-  private final Integer limitBytes;
-  private static final Integer DEFAULT_POD_LOG_WAIT_TIMEOUT = 5;
-  private Integer podLogWaitTimeout;
-  private final BuildOperationContext buildOperationContext;
+  private Integer version;
+  private final PodOperationContext operationContext;
 
-  public BuildOperationsImpl(OpenshiftClientContext clientContext) {
-    this(new BuildOperationContext(), HasMetadataOperationsImpl.defaultContext(clientContext));
+  public BuildOperationsImpl(Client client) {
+    this(new PodOperationContext(), HasMetadataOperationsImpl.defaultContext(client), null);
   }
 
-  public BuildOperationsImpl(BuildOperationContext context, OperationContext superContext) {
+  public BuildOperationsImpl(PodOperationContext context, OperationContext superContext, Integer version) {
     super(superContext.withApiGroupName(BUILD)
-      .withPlural("builds"), Build.class, BuildList.class);
-    this.buildOperationContext = context;
-    this.withTerminatedStatus = context.isTerminatedStatus();
-    this.withTimestamps = context.isTimestamps();
-    this.sinceTimestamp = context.getSinceTimestamp();
-    this.sinceSeconds = context.getSinceSeconds();
-    this.withTailingLines = context.getTailingLines();
-    this.withPrettyOutput = context.isPrettyOutput();
-    this.version = context.getVersion();
-    this.limitBytes = context.getLimitBytes();
-    PatchUtils.addMixInToMapper(Build.class, BuildMixIn.class);
+        .withPlural("builds"), Build.class, BuildList.class);
+    this.operationContext = context;
+    this.context = superContext;
+    this.version = version;
   }
 
   @Override
   public BuildOperationsImpl newInstance(OperationContext context) {
-    return new BuildOperationsImpl(buildOperationContext, context);
+    return new BuildOperationsImpl(operationContext, context, version);
   }
 
-  BuildOperationContext getContext() {
-    return buildOperationContext;
+  PodOperationContext getContext() {
+    return operationContext;
   }
 
   protected String getLogParameters() {
-    StringBuilder sb = new StringBuilder();
-    sb.append("log?pretty=").append(withPrettyOutput);
-    if (version != null && !version.isEmpty()) {
-      sb.append("&version=").append(version);
+    String params = operationContext.getLogParameters();
+    if (version != null) {
+      params += ("&version=" + version);
     }
-    if (withTerminatedStatus) {
-      sb.append("&previous=true");
-    }
-    if (sinceSeconds != null) {
-      sb.append("&sinceSeconds=").append(sinceSeconds);
-    } else if (sinceTimestamp != null) {
-      sb.append("&sinceTime=").append(sinceTimestamp);
-    }
-    if (withTailingLines != null) {
-      sb.append("&tailLines=").append(withTailingLines);
-    }
-    if (limitBytes != null) {
-      sb.append("&limitBytes=").append(limitBytes);
-    }
-    if (withTimestamps) {
-      sb.append("&timestamps=true");
-    }
-    return sb.toString();
+    return params;
   }
 
-  protected <T> T doGetLog(Class<T> type){
+  protected <T> T doGetLog(Class<T> type) {
     try {
       URL url = new URL(URLUtils.join(getResourceUrl().toString(), getLogParameters()));
       return handleRawGet(url, type);
@@ -136,17 +99,28 @@ public class BuildOperationsImpl extends OpenShiftOperation<Build, BuildList,
   }
 
   @Override
-  public String getLog(Boolean isPretty) {
-    return new BuildOperationsImpl(getContext().withPrettyOutput(isPretty), context).getLog();
+  public String getLog(boolean isPretty) {
+    return new BuildOperationsImpl(getContext().withPrettyOutput(isPretty), context, version).getLog();
   }
 
   /**
    * Returns an unclosed Reader. It's the caller responsibility to close it.
+   *
    * @return Reader
    */
   @Override
-  public Reader getLogReader(){
+  public Reader getLogReader() {
     return doGetLog(Reader.class);
+  }
+
+  /**
+   * Returns an unclosed InputStream. It's the caller responsibility to close it.
+   *
+   * @return InputStream
+   */
+  @Override
+  public InputStream getLogInputStream() {
+    return doGetLog(InputStream.class);
   }
 
   @Override
@@ -158,9 +132,9 @@ public class BuildOperationsImpl extends OpenShiftOperation<Build, BuildList,
   public LogWatch watchLog(OutputStream out) {
     try {
       // In case of Build we directly get logs at Build Url, but we need to wait for Pods
-      waitUntilBuildPodBecomesReady(fromServer().get());
+      waitUntilBuildPodBecomesReady(get());
       URL url = new URL(URLUtils.join(getResourceUrl().toString(), getLogParameters() + "&follow=true"));
-      final LogWatchCallback callback = new LogWatchCallback(this.config, out);
+      final LogWatchCallback callback = new LogWatchCallback(out, context);
       return callback.callAndWait(this.httpClient, url);
     } catch (IOException t) {
       throw KubernetesClientException.launderThrowable(forOperationType("watchLog"), t);
@@ -168,62 +142,68 @@ public class BuildOperationsImpl extends OpenShiftOperation<Build, BuildList,
   }
 
   @Override
-  public Loggable<LogWatch> withLogWaitTimeout(Integer logWaitTimeout) {
-    BuildOperationsImpl result = newInstance(context);
-    result.podLogWaitTimeout = logWaitTimeout;
-    return result;
+  public Loggable withLogWaitTimeout(Integer logWaitTimeout) {
+    return withReadyWaitTimeout(logWaitTimeout);
   }
 
   @Override
-  public Loggable<LogWatch> withPrettyOutput() {
-    return new BuildOperationsImpl(getContext().withPrettyOutput(true), context);
+  public Loggable withReadyWaitTimeout(Integer timeout) {
+    return new BuildOperationsImpl(getContext().withReadyWaitTimeout(timeout), context, version);
   }
 
   @Override
-  public PrettyLoggable<LogWatch> tailingLines(int tailingLines) {
-    return new BuildOperationsImpl(getContext().withTailingLines(tailingLines), context);
+  public Loggable withPrettyOutput() {
+    return new BuildOperationsImpl(getContext().withPrettyOutput(true), context, version);
   }
 
   @Override
-  public TimeTailPrettyLoggable<LogWatch> terminated() {
-    return new BuildOperationsImpl(getContext().withTerminatedStatus(true), context);
+  public PrettyLoggable tailingLines(int tailingLines) {
+    return new BuildOperationsImpl(getContext().withTailingLines(tailingLines), context, version);
   }
 
   @Override
-  public TailPrettyLoggable<LogWatch> sinceTime(String sinceTimestamp) {
-    return new BuildOperationsImpl(getContext().withSinceTimestamp(sinceTimestamp), context);
+  public TimeTailPrettyLoggable terminated() {
+    return new BuildOperationsImpl(getContext().withTerminatedStatus(true), context, version);
   }
 
   @Override
-  public TailPrettyLoggable<LogWatch> sinceSeconds(int sinceSeconds) {
-    return new BuildOperationsImpl(getContext().withSinceSeconds(sinceSeconds), context);
+  public TailPrettyLoggable sinceTime(String sinceTimestamp) {
+    return new BuildOperationsImpl(getContext().withSinceTimestamp(sinceTimestamp), context, version);
   }
 
   @Override
-  public BytesLimitTerminateTimeTailPrettyLoggable<LogWatch> limitBytes(int limitBytes) {
-    return new BuildOperationsImpl(getContext().withLimitBytes(limitBytes), context);
+  public TailPrettyLoggable sinceSeconds(int sinceSeconds) {
+    return new BuildOperationsImpl(getContext().withSinceSeconds(sinceSeconds), context, version);
   }
 
   @Override
-  public BytesLimitTerminateTimeTailPrettyLoggable<LogWatch> usingTimestamps() {
-    return new BuildOperationsImpl(getContext().withTimestamps(true), context);
+  public BytesLimitTerminateTimeTailPrettyLoggable limitBytes(int limitBytes) {
+    return new BuildOperationsImpl(getContext().withLimitBytes(limitBytes), context, version);
   }
 
   @Override
-  protected VisitableBuilder<Build, ?> createVisitableBuilder(Build item) {
-    return new BuildBuilder(item);
+  public TimestampBytesLimitTerminateTimeTailPrettyLoggable withVersion(Integer version) {
+    return new BuildOperationsImpl(getContext(), context, version);
+  }
+
+  @Override
+  public BytesLimitTerminateTimeTailPrettyLoggable usingTimestamps() {
+    return new BuildOperationsImpl(getContext().withTimestamps(true), context, version);
   }
 
   private void waitUntilBuildPodBecomesReady(Build build) {
-    List<PodResource<Pod>> podOps = PodOperationUtil.getPodOperationsForController(context, build.getMetadata().getUid(),
-      getBuildPodLabels(build), withPrettyOutput, podLogWaitTimeout, null);
+    List<PodResource> podOps = PodOperationUtil.getPodOperationsForController(context,
+        operationContext, build.getMetadata().getUid(),
+        getBuildPodLabels(build));
 
-    waitForBuildPodToBecomeReady(podOps, podLogWaitTimeout != null ? podLogWaitTimeout : DEFAULT_POD_LOG_WAIT_TIMEOUT);
+    waitForBuildPodToBecomeReady(podOps,
+        operationContext.getReadyWaitTimeout() != null ? operationContext.getReadyWaitTimeout()
+            : PodOperationsImpl.DEFAULT_POD_READY_WAIT_TIMEOUT_MS);
   }
 
-  private static void waitForBuildPodToBecomeReady(List<PodResource<Pod>> podOps, Integer podLogWaitTimeout) {
-    for (PodResource<Pod> podOp : podOps) {
-      PodOperationUtil.waitUntilReadyBeforeFetchingLogs(podOp, podLogWaitTimeout);
+  private static void waitForBuildPodToBecomeReady(List<PodResource> podOps, Integer podLogWaitTimeout) {
+    for (PodResource podOp : podOps) {
+      PodOperationUtil.waitUntilReadyOrTerminal(podOp, podLogWaitTimeout);
     }
   }
 

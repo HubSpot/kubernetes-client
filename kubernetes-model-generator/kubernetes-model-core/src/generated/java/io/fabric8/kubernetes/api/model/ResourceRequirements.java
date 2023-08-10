@@ -1,8 +1,11 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,6 +25,7 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "claims",
     "limits",
     "requests"
 })
@@ -33,15 +37,21 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class ResourceRequirements implements KubernetesResource
 {
 
+    @JsonProperty("claims")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<ResourceClaim> claims = new ArrayList<ResourceClaim>();
     @JsonProperty("limits")
-    private Map<String, io.fabric8.kubernetes.api.model.Quantity> limits;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.Quantity> limits = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.Quantity>();
     @JsonProperty("requests")
-    private Map<String, io.fabric8.kubernetes.api.model.Quantity> requests;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.Quantity> requests = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.Quantity>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -50,15 +60,21 @@ public class ResourceRequirements implements KubernetesResource
     public ResourceRequirements() {
     }
 
-    /**
-     * 
-     * @param requests
-     * @param limits
-     */
-    public ResourceRequirements(Map<String, io.fabric8.kubernetes.api.model.Quantity> limits, Map<String, io.fabric8.kubernetes.api.model.Quantity> requests) {
+    public ResourceRequirements(List<ResourceClaim> claims, Map<String, io.fabric8.kubernetes.api.model.Quantity> limits, Map<String, io.fabric8.kubernetes.api.model.Quantity> requests) {
         super();
+        this.claims = claims;
         this.limits = limits;
         this.requests = requests;
+    }
+
+    @JsonProperty("claims")
+    public List<ResourceClaim> getClaims() {
+        return claims;
+    }
+
+    @JsonProperty("claims")
+    public void setClaims(List<ResourceClaim> claims) {
+        this.claims = claims;
     }
 
     @JsonProperty("limits")

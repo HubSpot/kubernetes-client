@@ -15,16 +15,17 @@
  */
 package io.fabric8.verticalpodautoscaler.client;
 
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.RequestConfig;
 import io.fabric8.kubernetes.client.WithRequestCallable;
 import io.fabric8.kubernetes.client.dsl.FunctionCallable;
+import io.fabric8.kubernetes.client.extension.ExtensionRootClientAdapter;
+import io.fabric8.kubernetes.client.extension.SupportTestingClient;
 import io.fabric8.verticalpodautoscaler.client.dsl.V1APIGroupDSL;
 
-public class DefaultVerticalPodAutoscalerClient extends BaseClient implements NamespacedVerticalPodAutoscalerClient {
+public class DefaultVerticalPodAutoscalerClient extends ExtensionRootClientAdapter<DefaultVerticalPodAutoscalerClient>
+    implements NamespacedVerticalPodAutoscalerClient, SupportTestingClient {
 
   public DefaultVerticalPodAutoscalerClient() {
     super();
@@ -34,22 +35,13 @@ public class DefaultVerticalPodAutoscalerClient extends BaseClient implements Na
     super(configuration);
   }
 
-  public DefaultVerticalPodAutoscalerClient(ClientContext clientContext) {
-    super(clientContext);
+  public DefaultVerticalPodAutoscalerClient(Client client) {
+    super(client);
   }
 
   @Override
-  public NamespacedVerticalPodAutoscalerClient inAnyNamespace() {
-    return inNamespace(null);
-  }
-
-  @Override
-  public NamespacedVerticalPodAutoscalerClient inNamespace(String namespace) {
-    Config updated = new ConfigBuilder(getConfiguration())
-      .withNamespace(namespace)
-      .build();
-
-    return new DefaultVerticalPodAutoscalerClient(newState(updated));
+  protected DefaultVerticalPodAutoscalerClient newInstance(Client client) {
+    return new DefaultVerticalPodAutoscalerClient(client);
   }
 
   @Override
@@ -58,6 +50,13 @@ public class DefaultVerticalPodAutoscalerClient extends BaseClient implements Na
   }
 
   @Override
-  public V1APIGroupDSL v1() { return adapt(V1APIGroupClient.class); }
+  public V1APIGroupDSL v1() {
+    return adapt(V1APIGroupClient.class);
+  }
+
+  @Override
+  public boolean isSupported() {
+    return getClient().hasApiGroup(VerticalPodAutoscalerExtensionAdapter.API_GROUP, false);
+  }
 
 }

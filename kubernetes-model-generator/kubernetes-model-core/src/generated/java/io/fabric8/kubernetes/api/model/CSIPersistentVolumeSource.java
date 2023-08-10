@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,6 +27,7 @@ import lombok.experimental.Accessors;
     "controllerPublishSecretRef",
     "driver",
     "fsType",
+    "nodeExpandSecretRef",
     "nodePublishSecretRef",
     "nodeStageSecretRef",
     "readOnly",
@@ -40,6 +42,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class CSIPersistentVolumeSource implements KubernetesResource
 {
 
@@ -51,6 +54,8 @@ public class CSIPersistentVolumeSource implements KubernetesResource
     private java.lang.String driver;
     @JsonProperty("fsType")
     private java.lang.String fsType;
+    @JsonProperty("nodeExpandSecretRef")
+    private SecretReference nodeExpandSecretRef;
     @JsonProperty("nodePublishSecretRef")
     private SecretReference nodePublishSecretRef;
     @JsonProperty("nodeStageSecretRef")
@@ -58,11 +63,12 @@ public class CSIPersistentVolumeSource implements KubernetesResource
     @JsonProperty("readOnly")
     private Boolean readOnly;
     @JsonProperty("volumeAttributes")
-    private Map<String, String> volumeAttributes;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> volumeAttributes = new LinkedHashMap<String, String>();
     @JsonProperty("volumeHandle")
     private java.lang.String volumeHandle;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,24 +77,13 @@ public class CSIPersistentVolumeSource implements KubernetesResource
     public CSIPersistentVolumeSource() {
     }
 
-    /**
-     * 
-     * @param controllerPublishSecretRef
-     * @param driver
-     * @param nodePublishSecretRef
-     * @param nodeStageSecretRef
-     * @param volumeHandle
-     * @param readOnly
-     * @param controllerExpandSecretRef
-     * @param fsType
-     * @param volumeAttributes
-     */
-    public CSIPersistentVolumeSource(SecretReference controllerExpandSecretRef, SecretReference controllerPublishSecretRef, java.lang.String driver, java.lang.String fsType, SecretReference nodePublishSecretRef, SecretReference nodeStageSecretRef, Boolean readOnly, Map<String, String> volumeAttributes, java.lang.String volumeHandle) {
+    public CSIPersistentVolumeSource(SecretReference controllerExpandSecretRef, SecretReference controllerPublishSecretRef, java.lang.String driver, java.lang.String fsType, SecretReference nodeExpandSecretRef, SecretReference nodePublishSecretRef, SecretReference nodeStageSecretRef, Boolean readOnly, Map<String, String> volumeAttributes, java.lang.String volumeHandle) {
         super();
         this.controllerExpandSecretRef = controllerExpandSecretRef;
         this.controllerPublishSecretRef = controllerPublishSecretRef;
         this.driver = driver;
         this.fsType = fsType;
+        this.nodeExpandSecretRef = nodeExpandSecretRef;
         this.nodePublishSecretRef = nodePublishSecretRef;
         this.nodeStageSecretRef = nodeStageSecretRef;
         this.readOnly = readOnly;
@@ -134,6 +129,16 @@ public class CSIPersistentVolumeSource implements KubernetesResource
     @JsonProperty("fsType")
     public void setFsType(java.lang.String fsType) {
         this.fsType = fsType;
+    }
+
+    @JsonProperty("nodeExpandSecretRef")
+    public SecretReference getNodeExpandSecretRef() {
+        return nodeExpandSecretRef;
+    }
+
+    @JsonProperty("nodeExpandSecretRef")
+    public void setNodeExpandSecretRef(SecretReference nodeExpandSecretRef) {
+        this.nodeExpandSecretRef = nodeExpandSecretRef;
     }
 
     @JsonProperty("nodePublishSecretRef")

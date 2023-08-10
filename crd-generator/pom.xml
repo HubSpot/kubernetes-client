@@ -23,7 +23,7 @@
   <parent>
     <groupId>io.fabric8</groupId>
     <artifactId>kubernetes-client-project</artifactId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>crd-generator-parent</artifactId>
@@ -33,5 +33,6 @@
   <modules>
     <module>apt</module>
     <module>api</module>
+    <module>test</module>
   </modules>
 </project>

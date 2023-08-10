@@ -19,8 +19,8 @@ package io.fabric8.kubernetes.examples;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,31 +32,32 @@ public class ServiceExample {
   private static final Logger logger = LoggerFactory.getLogger(ServiceExample.class);
 
   public static void main(String[] args) {
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       String namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
       if (args.length > 0) {
         namespace = args[0];
       }
       Service service = new ServiceBuilder()
-        .withNewMetadata()
-        .withName("my-service")
-        .endMetadata()
-        .withNewSpec()
-        .withSelector(Collections.singletonMap("app", "MyApp"))
-        .addNewPort()
-        .withName("test-port")
-        .withProtocol("TCP")
-        .withPort(80)
-        .withTargetPort(new IntOrString(9376))
-        .endPort()
-        .withType("LoadBalancer")
-        .endSpec()
-        .build();
+          .withNewMetadata()
+          .withName("my-service")
+          .endMetadata()
+          .withNewSpec()
+          .withSelector(Collections.singletonMap("app", "MyApp"))
+          .addNewPort()
+          .withName("test-port")
+          .withProtocol("TCP")
+          .withPort(80)
+          .withTargetPort(new IntOrString(9376))
+          .endPort()
+          .withType("LoadBalancer")
+          .endSpec()
+          .build();
 
-      service = client.services().inNamespace(namespace).create(service);
+      service = client.services().inNamespace(namespace).resource(service).create();
       logger.info("Created service with name {}", service.getMetadata().getName());
 
-      String serviceURL = client.services().inNamespace(namespace).withName(service.getMetadata().getName()).getURL("test-port");
+      String serviceURL = client.services().inNamespace(namespace).withName(service.getMetadata().getName())
+          .getURL("test-port");
       logger.info("Service URL {}", serviceURL);
     }
   }

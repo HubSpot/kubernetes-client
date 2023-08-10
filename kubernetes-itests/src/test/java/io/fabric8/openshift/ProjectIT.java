@@ -15,35 +15,31 @@
  */
 package io.fabric8.openshift;
 
+import io.fabric8.junit.jupiter.api.RequireK8sSupport;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.arquillian.cube.openshift.impl.requirement.RequiresOpenshift;
-import org.arquillian.cube.requirement.ArquillianConditionalRunner;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(ArquillianConditionalRunner.class)
-@RequiresOpenshift
-public class ProjectIT {
-  @ArquillianResource
+@RequireK8sSupport(Project.class)
+class ProjectIT {
+
   OpenShiftClient client;
 
   @Test
-  public void testCreateReadDelete() {
+  void testCreateReadDelete() {
     // Given
     String name = "projectit-createreaddelete";
     Project project = new ProjectBuilder()
-      .withNewMetadata().withName(name).endMetadata()
-      .build();
+        .withNewMetadata().withName(name).endMetadata()
+        .build();
 
     // Create
     Project createdProject = client.projects().createOrReplace(project);
@@ -55,11 +51,11 @@ public class ProjectIT {
     assertEquals(name, projectFromServer.getMetadata().getName());
 
     // Delete
-    assertTrue(client.projects().withName(name).delete());
+    assertTrue(client.projects().withName(name).delete().size() == 1);
   }
 
   @Test
-  public void createProjectAlongWithRoleBindings() {
+  void createProjectAlongWithRoleBindings() {
     // Given
     String name = "projectit-createrolebindings";
     String displayName = "ProjectIT CreateRoleBindings";
@@ -68,7 +64,8 @@ public class ProjectIT {
     String adminUser = "admin-user";
 
     // When
-    List<HasMetadata> itemsCreated = client.projects().createProjectAndRoleBindings(name, description, displayName, adminUser, requestingUser);
+    List<HasMetadata> itemsCreated = client.projects().createProjectAndRoleBindings(name, description, displayName, adminUser,
+        requestingUser);
 
     // Then
     Project createdProject = client.projects().withName(name).get();
@@ -78,6 +75,6 @@ public class ProjectIT {
     assertEquals(displayName, createdProject.getMetadata().getAnnotations().get("openshift.io/display-name"));
     assertEquals(description, createdProject.getMetadata().getAnnotations().get("openshift.io/description"));
     assertEquals(requestingUser, createdProject.getMetadata().getAnnotations().get("openshift.io/requester"));
-    assertTrue(client.projects().withName(name).delete());
+    assertTrue(client.projects().withName(name).delete().size() == 1);
   }
 }

@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.storage.v1beta1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,11 +61,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1beta1")
 @Group("storage.k8s.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "storage.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class CSIStorageCapacity implements HasMetadata, Namespaced
 {
 
@@ -93,7 +95,7 @@ public class CSIStorageCapacity implements HasMetadata, Namespaced
     @JsonProperty("storageClassName")
     private String storageClassName;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -102,16 +104,6 @@ public class CSIStorageCapacity implements HasMetadata, Namespaced
     public CSIStorageCapacity() {
     }
 
-    /**
-     * 
-     * @param maximumVolumeSize
-     * @param metadata
-     * @param apiVersion
-     * @param nodeTopology
-     * @param kind
-     * @param storageClassName
-     * @param capacity
-     */
     public CSIStorageCapacity(String apiVersion, Quantity capacity, String kind, Quantity maximumVolumeSize, io.fabric8.kubernetes.api.model.ObjectMeta metadata, io.fabric8.kubernetes.api.model.LabelSelector nodeTopology, String storageClassName) {
         super();
         this.apiVersion = apiVersion;

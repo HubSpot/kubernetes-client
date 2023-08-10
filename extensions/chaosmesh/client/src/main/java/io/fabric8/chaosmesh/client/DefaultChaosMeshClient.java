@@ -15,14 +15,14 @@
  */
 package io.fabric8.chaosmesh.client;
 
-import io.fabric8.chaosmesh.v1alpha1.AwsChaos;
-import io.fabric8.chaosmesh.v1alpha1.AwsChaosList;
+import io.fabric8.chaosmesh.v1alpha1.AWSChaos;
+import io.fabric8.chaosmesh.v1alpha1.AWSChaosList;
 import io.fabric8.chaosmesh.v1alpha1.DNSChaos;
 import io.fabric8.chaosmesh.v1alpha1.DNSChaosList;
 import io.fabric8.chaosmesh.v1alpha1.HTTPChaos;
 import io.fabric8.chaosmesh.v1alpha1.HTTPChaosList;
-import io.fabric8.chaosmesh.v1alpha1.IoChaos;
-import io.fabric8.chaosmesh.v1alpha1.IoChaosList;
+import io.fabric8.chaosmesh.v1alpha1.IOChaos;
+import io.fabric8.chaosmesh.v1alpha1.IOChaosList;
 import io.fabric8.chaosmesh.v1alpha1.JVMChaos;
 import io.fabric8.chaosmesh.v1alpha1.JVMChaosList;
 import io.fabric8.chaosmesh.v1alpha1.KernelChaos;
@@ -31,116 +31,111 @@ import io.fabric8.chaosmesh.v1alpha1.NetworkChaos;
 import io.fabric8.chaosmesh.v1alpha1.NetworkChaosList;
 import io.fabric8.chaosmesh.v1alpha1.PodChaos;
 import io.fabric8.chaosmesh.v1alpha1.PodChaosList;
-import io.fabric8.chaosmesh.v1alpha1.PodIoChaos;
-import io.fabric8.chaosmesh.v1alpha1.PodIoChaosList;
+import io.fabric8.chaosmesh.v1alpha1.PodIOChaos;
+import io.fabric8.chaosmesh.v1alpha1.PodIOChaosList;
 import io.fabric8.chaosmesh.v1alpha1.PodNetworkChaos;
 import io.fabric8.chaosmesh.v1alpha1.PodNetworkChaosList;
 import io.fabric8.chaosmesh.v1alpha1.StressChaos;
 import io.fabric8.chaosmesh.v1alpha1.StressChaosList;
 import io.fabric8.chaosmesh.v1alpha1.TimeChaos;
 import io.fabric8.chaosmesh.v1alpha1.TimeChaosList;
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.RequestConfig;
 import io.fabric8.kubernetes.client.WithRequestCallable;
 import io.fabric8.kubernetes.client.dsl.FunctionCallable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.extension.ExtensionRootClientAdapter;
+import io.fabric8.kubernetes.client.extension.SupportTestingClient;
 
-public class DefaultChaosMeshClient extends BaseClient implements NamespacedChaosMeshClient {
+public class DefaultChaosMeshClient extends ExtensionRootClientAdapter<DefaultChaosMeshClient>
+    implements NamespacedChaosMeshClient, SupportTestingClient {
 
-    public DefaultChaosMeshClient() {
-        super();
-    }
+  public DefaultChaosMeshClient() {
+    super();
+  }
 
-    public DefaultChaosMeshClient(Config configuration) {
-        super(configuration);
-    }
+  public DefaultChaosMeshClient(Config config) {
+    super(config);
+  }
 
-    public DefaultChaosMeshClient(ClientContext clientContext) {
-        super(clientContext);
-    }
-
-    @Override
-    public NamespacedChaosMeshClient inAnyNamespace() {
-        return inNamespace(null);
-    }
-
-    @Override
-    public NamespacedChaosMeshClient inNamespace(String namespace) {
-        Config updated = new ConfigBuilder(getConfiguration()).withNamespace(namespace).build();
-
-        return new DefaultChaosMeshClient(newState(updated));
-    }
-
-    @Override
-    public FunctionCallable<NamespacedChaosMeshClient> withRequestConfig(RequestConfig requestConfig) {
-        return new WithRequestCallable<>(this, requestConfig);
-    }
-
-
-  @Override
-  public MixedOperation<IoChaos, IoChaosList, Resource<IoChaos>> ioChaos() {
-    return Handlers.getOperation(IoChaos.class, IoChaosList.class, this);
+  public DefaultChaosMeshClient(Client client) {
+    super(client);
   }
 
   @Override
-  public MixedOperation<KernelChaos, KernelChaosList,
-    Resource<KernelChaos>> kernelChaos() {
-    return Handlers.getOperation(KernelChaos.class, KernelChaosList.class, this);
+  protected DefaultChaosMeshClient newInstance(Client client) {
+    return new DefaultChaosMeshClient(client);
+  }
+
+  @Override
+  public FunctionCallable<NamespacedChaosMeshClient> withRequestConfig(RequestConfig requestConfig) {
+    return new WithRequestCallable<>(this, requestConfig);
+  }
+
+  @Override
+  public MixedOperation<IOChaos, IOChaosList, Resource<IOChaos>> ioChaos() {
+    return resources(IOChaos.class, IOChaosList.class);
+  }
+
+  @Override
+  public MixedOperation<KernelChaos, KernelChaosList, Resource<KernelChaos>> kernelChaos() {
+    return resources(KernelChaos.class, KernelChaosList.class);
   }
 
   @Override
   public MixedOperation<NetworkChaos, NetworkChaosList, Resource<NetworkChaos>> networkChaos() {
-    return Handlers.getOperation(NetworkChaos.class, NetworkChaosList.class, this);
+    return resources(NetworkChaos.class, NetworkChaosList.class);
   }
 
   @Override
   public MixedOperation<PodChaos, PodChaosList, Resource<PodChaos>> podChaos() {
-    return Handlers.getOperation(PodChaos.class, PodChaosList.class, this);
+    return resources(PodChaos.class, PodChaosList.class);
   }
 
   @Override
-  public MixedOperation<PodIoChaos, PodIoChaosList, Resource<PodIoChaos>> podIoChaos() {
-    return Handlers.getOperation(PodIoChaos.class, PodIoChaosList.class, this);
+  public MixedOperation<PodIOChaos, PodIOChaosList, Resource<PodIOChaos>> podIOChaos() {
+    return resources(PodIOChaos.class, PodIOChaosList.class);
   }
 
   @Override
   public MixedOperation<PodNetworkChaos, PodNetworkChaosList, Resource<PodNetworkChaos>> podNetworkChaos() {
-    return Handlers.getOperation(PodNetworkChaos.class, PodNetworkChaosList.class, this);
+    return resources(PodNetworkChaos.class, PodNetworkChaosList.class);
   }
 
   @Override
-  public MixedOperation<StressChaos, StressChaosList,
-    Resource<StressChaos>> stressChaos() {
-    return Handlers.getOperation(StressChaos.class, StressChaosList.class, this);
+  public MixedOperation<StressChaos, StressChaosList, Resource<StressChaos>> stressChaos() {
+    return resources(StressChaos.class, StressChaosList.class);
   }
 
   @Override
   public MixedOperation<TimeChaos, TimeChaosList, Resource<TimeChaos>> timeChaos() {
-    return Handlers.getOperation(TimeChaos.class, TimeChaosList.class, this);
+    return resources(TimeChaos.class, TimeChaosList.class);
   }
 
   @Override
   public MixedOperation<JVMChaos, JVMChaosList, Resource<JVMChaos>> jvmChaos() {
-    return Handlers.getOperation(JVMChaos.class, JVMChaosList.class, this);
+    return resources(JVMChaos.class, JVMChaosList.class);
   }
 
   @Override
   public MixedOperation<HTTPChaos, HTTPChaosList, Resource<HTTPChaos>> httpChaos() {
-    return Handlers.getOperation(HTTPChaos.class, HTTPChaosList.class, this);
+    return resources(HTTPChaos.class, HTTPChaosList.class);
   }
 
   @Override
   public MixedOperation<DNSChaos, DNSChaosList, Resource<DNSChaos>> dnsChaos() {
-    return Handlers.getOperation(DNSChaos.class, DNSChaosList.class, this);
+    return resources(DNSChaos.class, DNSChaosList.class);
   }
 
   @Override
-  public MixedOperation<AwsChaos, AwsChaosList, Resource<AwsChaos>> awsChaos() {
-    return Handlers.getOperation(AwsChaos.class, AwsChaosList.class, this);
+  public MixedOperation<AWSChaos, AWSChaosList, Resource<AWSChaos>> awsChaos() {
+    return resources(AWSChaos.class, AWSChaosList.class);
+  }
+
+  @Override
+  public boolean isSupported() {
+    return hasApiGroup("chaos-mesh.org", false);
   }
 }

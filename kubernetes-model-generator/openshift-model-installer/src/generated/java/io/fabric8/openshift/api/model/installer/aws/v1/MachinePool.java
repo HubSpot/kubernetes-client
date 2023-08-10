@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.aws.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,6 +38,7 @@ import lombok.experimental.Accessors;
     "metadata",
     "amiID",
     "iamRole",
+    "metadataService",
     "rootVolume",
     "type",
     "zones"
@@ -59,6 +61,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class MachinePool implements KubernetesResource
 {
 
@@ -66,6 +69,8 @@ public class MachinePool implements KubernetesResource
     private String amiID;
     @JsonProperty("iamRole")
     private String iamRole;
+    @JsonProperty("metadataService")
+    private EC2Metadata metadataService;
     @JsonProperty("rootVolume")
     private EC2RootVolume rootVolume;
     @JsonProperty("type")
@@ -74,7 +79,7 @@ public class MachinePool implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> zones = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -83,18 +88,11 @@ public class MachinePool implements KubernetesResource
     public MachinePool() {
     }
 
-    /**
-     * 
-     * @param iamRole
-     * @param amiID
-     * @param rootVolume
-     * @param type
-     * @param zones
-     */
-    public MachinePool(String amiID, String iamRole, EC2RootVolume rootVolume, String type, List<String> zones) {
+    public MachinePool(String amiID, String iamRole, EC2Metadata metadataService, EC2RootVolume rootVolume, String type, List<String> zones) {
         super();
         this.amiID = amiID;
         this.iamRole = iamRole;
+        this.metadataService = metadataService;
         this.rootVolume = rootVolume;
         this.type = type;
         this.zones = zones;
@@ -118,6 +116,16 @@ public class MachinePool implements KubernetesResource
     @JsonProperty("iamRole")
     public void setIamRole(String iamRole) {
         this.iamRole = iamRole;
+    }
+
+    @JsonProperty("metadataService")
+    public EC2Metadata getMetadataService() {
+        return metadataService;
+    }
+
+    @JsonProperty("metadataService")
+    public void setMetadataService(EC2Metadata metadataService) {
+        this.metadataService = metadataService;
     }
 
     @JsonProperty("rootVolume")

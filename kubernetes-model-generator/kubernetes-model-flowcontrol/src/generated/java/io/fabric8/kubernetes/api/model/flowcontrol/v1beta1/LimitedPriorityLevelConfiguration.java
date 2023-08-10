@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.flowcontrol.v1beta1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,6 +35,8 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "assuredConcurrencyShares",
+    "borrowingLimitPercent",
+    "lendablePercent",
     "limitResponse"
 })
 @ToString
@@ -54,15 +57,20 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class LimitedPriorityLevelConfiguration implements KubernetesResource
 {
 
     @JsonProperty("assuredConcurrencyShares")
     private Integer assuredConcurrencyShares;
+    @JsonProperty("borrowingLimitPercent")
+    private Integer borrowingLimitPercent;
+    @JsonProperty("lendablePercent")
+    private Integer lendablePercent;
     @JsonProperty("limitResponse")
     private LimitResponse limitResponse;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,14 +79,11 @@ public class LimitedPriorityLevelConfiguration implements KubernetesResource
     public LimitedPriorityLevelConfiguration() {
     }
 
-    /**
-     * 
-     * @param limitResponse
-     * @param assuredConcurrencyShares
-     */
-    public LimitedPriorityLevelConfiguration(Integer assuredConcurrencyShares, LimitResponse limitResponse) {
+    public LimitedPriorityLevelConfiguration(Integer assuredConcurrencyShares, Integer borrowingLimitPercent, Integer lendablePercent, LimitResponse limitResponse) {
         super();
         this.assuredConcurrencyShares = assuredConcurrencyShares;
+        this.borrowingLimitPercent = borrowingLimitPercent;
+        this.lendablePercent = lendablePercent;
         this.limitResponse = limitResponse;
     }
 
@@ -90,6 +95,26 @@ public class LimitedPriorityLevelConfiguration implements KubernetesResource
     @JsonProperty("assuredConcurrencyShares")
     public void setAssuredConcurrencyShares(Integer assuredConcurrencyShares) {
         this.assuredConcurrencyShares = assuredConcurrencyShares;
+    }
+
+    @JsonProperty("borrowingLimitPercent")
+    public Integer getBorrowingLimitPercent() {
+        return borrowingLimitPercent;
+    }
+
+    @JsonProperty("borrowingLimitPercent")
+    public void setBorrowingLimitPercent(Integer borrowingLimitPercent) {
+        this.borrowingLimitPercent = borrowingLimitPercent;
+    }
+
+    @JsonProperty("lendablePercent")
+    public Integer getLendablePercent() {
+        return lendablePercent;
+    }
+
+    @JsonProperty("lendablePercent")
+    public void setLendablePercent(Integer lendablePercent) {
+        this.lendablePercent = lendablePercent;
     }
 
     @JsonProperty("limitResponse")

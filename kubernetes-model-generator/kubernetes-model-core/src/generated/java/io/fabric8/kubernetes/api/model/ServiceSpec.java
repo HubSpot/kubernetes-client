@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -52,6 +53,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class ServiceSpec implements KubernetesResource
 {
 
@@ -91,7 +93,8 @@ public class ServiceSpec implements KubernetesResource
     @JsonProperty("publishNotReadyAddresses")
     private Boolean publishNotReadyAddresses;
     @JsonProperty("selector")
-    private Map<String, String> selector;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> selector = new LinkedHashMap<String, String>();
     @JsonProperty("sessionAffinity")
     private java.lang.String sessionAffinity;
     @JsonProperty("sessionAffinityConfig")
@@ -99,7 +102,7 @@ public class ServiceSpec implements KubernetesResource
     @JsonProperty("type")
     private java.lang.String type;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -108,28 +111,6 @@ public class ServiceSpec implements KubernetesResource
     public ServiceSpec() {
     }
 
-    /**
-     * 
-     * @param clusterIPs
-     * @param healthCheckNodePort
-     * @param ipFamilyPolicy
-     * @param externalIPs
-     * @param sessionAffinity
-     * @param allocateLoadBalancerNodePorts
-     * @param ports
-     * @param type
-     * @param loadBalancerClass
-     * @param sessionAffinityConfig
-     * @param ipFamilies
-     * @param loadBalancerIP
-     * @param externalName
-     * @param loadBalancerSourceRanges
-     * @param externalTrafficPolicy
-     * @param selector
-     * @param publishNotReadyAddresses
-     * @param internalTrafficPolicy
-     * @param clusterIP
-     */
     public ServiceSpec(Boolean allocateLoadBalancerNodePorts, java.lang.String clusterIP, List<java.lang.String> clusterIPs, List<java.lang.String> externalIPs, java.lang.String externalName, java.lang.String externalTrafficPolicy, Integer healthCheckNodePort, java.lang.String internalTrafficPolicy, List<java.lang.String> ipFamilies, java.lang.String ipFamilyPolicy, java.lang.String loadBalancerClass, java.lang.String loadBalancerIP, List<java.lang.String> loadBalancerSourceRanges, List<ServicePort> ports, Boolean publishNotReadyAddresses, Map<String, String> selector, java.lang.String sessionAffinity, SessionAffinityConfig sessionAffinityConfig, java.lang.String type) {
         super();
         this.allocateLoadBalancerNodePorts = allocateLoadBalancerNodePorts;

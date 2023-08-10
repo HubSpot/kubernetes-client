@@ -23,7 +23,7 @@
   <parent>
     <groupId>io.fabric8</groupId>
     <artifactId>istio-extension-pom</artifactId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>istio-model-v1beta1</artifactId>
@@ -33,19 +33,18 @@
   <properties>
     <osgi.import>
       io.fabric8.kubernetes.api.builder,
-      !io.fabric8.istio.*,
       *
     </osgi.import>
     <osgi.export>
       io.fabric8.istio.*
     </osgi.export>
-    <osgi.include.resources>
-      ${osgi.include.resources.default},
-      /model.properties=target/classes/model.properties
-    </osgi.include.resources>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>istio-model-v1alpha3</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.sundr</groupId>
       <artifactId>builder-annotations</artifactId>
@@ -68,64 +67,41 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+    <profile>
+      <id>generate</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jsonschema2pojo</groupId>
+            <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+          </plugin>
+          <plugin>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <configuration>
+                  <target>
+                    <!-- removing the generated Schema class -->
+                    <delete
+                      file="${generate.targetDirectory}/io/fabric8/istio/api/model/IstioSchema.java"
+                      verbose="true" />
+                  </target>
+                </configuration>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.jsonschema2pojo</groupId>
-        <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-        <version>${jsonschema2pojo.version}</version>
-        <configuration>
-          <sourceDirectory>${project.basedir}/src/main/resources/schema</sourceDirectory>
-          <targetPackage>io.fabric8.istio.api</targetPackage>
-          <includeConstructors>true</includeConstructors>
-          <includeJsr303Annotations>false</includeJsr303Annotations>
-          <includeToString>false</includeToString>
-          <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
-          <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
-          <customAnnotator>io.fabric8.kubernetes.ModelAnnotator</customAnnotator>
-          <customRuleFactory>io.fabric8.kubernetes.jsonschema2pojo.Fabric8RuleFactory</customRuleFactory>
-        </configuration>
-        <executions>
-          <execution>
-            <id>generate</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>generate</goal>
-            </goals>
-          </execution>
-        </executions>
-        <dependencies>
-          <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>model-annotator</artifactId>
-            <version>${project.version}</version>
-          </dependency>
-          <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-model-jsonschema2pojo</artifactId>
-            <version>${project.version}</version>
-          </dependency>
-        </dependencies>
-      </plugin>
-      <plugin>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <configuration>
-              <target>
-                <!-- removing the generated Schema class -->
-                <delete
-                  file="${project.build.directory}/generated-sources/io/fabric8/istio/api/model/IstioSchema.java"
-                  verbose="true" />
-              </target>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
@@ -144,6 +120,19 @@
                   <classifier>schema</classifier>
                 </artifact>
               </artifacts>
+            </configuration>
+          </execution>
+          <execution>
+            <id>add-source</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/generated/java</source>
+                <source>target/generated-sources/annotations</source>
+              </sources>
             </configuration>
           </execution>
         </executions>

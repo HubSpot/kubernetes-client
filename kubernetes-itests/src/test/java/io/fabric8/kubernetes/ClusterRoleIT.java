@@ -15,41 +15,26 @@
  */
 package io.fabric8.kubernetes;
 
-import java.util.concurrent.TimeUnit;
-
-import io.fabric8.commons.ClusterEntity;
-import io.fabric8.commons.DeleteEntity;
+import io.fabric8.junit.jupiter.api.LoadKubernetesManifests;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBuilder;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.arquillian.cube.kubernetes.impl.requirement.RequiresKubernetes;
-import org.arquillian.cube.requirement.ArquillianConditionalRunner;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import java.util.concurrent.TimeUnit;
 
-@RunWith(ArquillianConditionalRunner.class)
-@RequiresKubernetes
-public class ClusterRoleIT {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-  @ArquillianResource
+@LoadKubernetesManifests("/clusterrole-it.yml")
+class ClusterRoleIT {
+
   KubernetesClient client;
 
-  @BeforeClass
-  public static void init() {
-    ClusterEntity.apply(ClusterRoleIT.class.getResourceAsStream("/clusterrole-it.yml"));
-  }
-
   @Test
-  public void get() {
+  void get() {
 
     ClusterRole clusterRole = client.rbac().clusterRoles().withName("node-reader-get").get();
 
@@ -74,10 +59,10 @@ public class ClusterRoleIT {
   }
 
   @Test
-  public void load() {
+  void load() {
 
     ClusterRole aClusterRole = client.rbac().clusterRoles()
-      .load(getClass().getResourceAsStream("/test-kubernetesclusterrole.yml")).get();
+        .load(getClass().getResourceAsStream("/test-kubernetesclusterrole.yml")).item();
 
     assertNotNull(aClusterRole);
     assertEquals("ClusterRole", aClusterRole.getKind());
@@ -100,7 +85,7 @@ public class ClusterRoleIT {
   }
 
   @Test
-  public void list() {
+  void list() {
 
     ClusterRoleList clusterRoleList = client.rbac().clusterRoles().list();
     boolean found = false;
@@ -108,8 +93,8 @@ public class ClusterRoleIT {
     assertNotNull(clusterRoleList);
     assertNotNull(clusterRoleList.getItems());
 
-    for (ClusterRole clusterRole : clusterRoleList.getItems())  {
-      if (clusterRole.getMetadata().getName().equals("node-reader-list"))  {
+    for (ClusterRole clusterRole : clusterRoleList.getItems()) {
+      if (clusterRole.getMetadata().getName().equals("node-reader-list")) {
         assertEquals("ClusterRole", clusterRole.getKind());
         assertNotNull(clusterRole.getMetadata());
         assertEquals("node-reader-list", clusterRole.getMetadata().getName());
@@ -135,10 +120,11 @@ public class ClusterRoleIT {
   }
 
   @Test
-  public void update() {
+  void update() {
 
     ClusterRole clusterRole = client.rbac().clusterRoles().withName("node-reader-update").edit(c -> new ClusterRoleBuilder(c)
-                        .editRule(0).addToApiGroups(1, "extensions").endRule().build());
+        .editMetadata().withResourceVersion(null).endMetadata()
+        .editRule(0).addToApiGroups(1, "extensions").endRule().build());
 
     assertNotNull(clusterRole);
     assertEquals("ClusterRole", clusterRole.getKind());
@@ -162,23 +148,18 @@ public class ClusterRoleIT {
   }
 
   @Test
-  public void delete() {
+  void delete() {
 
     ClusterRoleList clusterRoleListBefore = client.rbac().clusterRoles().list();
 
-    boolean deleted = client.rbac().clusterRoles().withName("node-reader-delete").delete();
+    boolean deleted = client.rbac().clusterRoles().withName("node-reader-delete").delete().size() == 1;
     assertTrue(deleted);
 
-    DeleteEntity<ClusterRole> deleteEntity = new DeleteEntity<>(ClusterRole.class, client, "node-reader", null);
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.rbac().clusterRoles().withName("node-reader-delete")
+        .waitUntilCondition(cr -> cr == null || cr.getMetadata().getDeletionTimestamp() != null, 30, TimeUnit.SECONDS);
 
     ClusterRoleList clusterRoleListAfter = client.rbac().clusterRoles().list();
-    assertEquals(clusterRoleListBefore.getItems().size()-1,clusterRoleListAfter.getItems().size());
-  }
-
-  @AfterClass
-  public static void cleanup() {
-    ClusterEntity.remove(ClusterRoleBindingIT.class.getResourceAsStream("/clusterrole-it.yml"));
+    assertEquals(clusterRoleListBefore.getItems().size() - 1, clusterRoleListAfter.getItems().size());
   }
 
 }

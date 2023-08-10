@@ -16,17 +16,17 @@
 package io.fabric8.openclustermanagement.client;
 
 import io.fabric8.kubernetes.client.Client;
-import io.fabric8.kubernetes.client.ExtensionAdapter;
-import io.fabric8.kubernetes.client.ExtensionAdapterSupport;
+import io.fabric8.kubernetes.client.extension.ExtensionAdapter;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementAgentAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementAppsAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementClustersAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementDiscoveryAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementObservabilityAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementOperatorAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementPolicyAPIGroupDSL;
+import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementSearchAPIGroupDSL;
 
-import java.net.URL;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-public class OpenClusterManagementExtensionAdapter extends ExtensionAdapterSupport implements ExtensionAdapter<OpenClusterManagementClient> {
-
-  static final ConcurrentMap<URL, Boolean> IS_OCM = new ConcurrentHashMap<>();
-  static final ConcurrentMap<URL, Boolean> USES_OCM_APIGROUPS = new ConcurrentHashMap<>();
+public class OpenClusterManagementExtensionAdapter implements ExtensionAdapter<OpenClusterManagementClient> {
 
   @Override
   public Class<OpenClusterManagementClient> getExtensionType() {
@@ -34,12 +34,20 @@ public class OpenClusterManagementExtensionAdapter extends ExtensionAdapterSuppo
   }
 
   @Override
-  public Boolean isAdaptable(Client client) {
-    return isAdaptable(client, IS_OCM, USES_OCM_APIGROUPS, "open-cluster-management");
+  public OpenClusterManagementClient adapt(Client client) {
+    return new DefaultOpenClusterManagementClient(client);
   }
 
   @Override
-  public OpenClusterManagementClient adapt(Client client) {
-    return new DefaultOpenClusterManagementClient(client);
+  public void registerClients(ClientFactory factory) {
+    factory.register(OpenClusterManagementAppsAPIGroupDSL.class, new OpenClusterManagementAppsAPIGroupClient());
+    factory.register(OpenClusterManagementAgentAPIGroupDSL.class, new OpenClusterManagementAgentAPIGroupClient());
+    factory.register(OpenClusterManagementClustersAPIGroupDSL.class, new OpenClusterManagementClustersAPIGroupClient());
+    factory.register(OpenClusterManagementDiscoveryAPIGroupDSL.class, new OpenClusterManagementDiscoveryAPIGroupClient());
+    factory.register(OpenClusterManagementObservabilityAPIGroupDSL.class,
+        new OpenClusterManagementObservabilityAPIGroupClient());
+    factory.register(OpenClusterManagementOperatorAPIGroupDSL.class, new OpenClusterManagementOperatorAPIGroupClient());
+    factory.register(OpenClusterManagementPolicyAPIGroupDSL.class, new OpenClusterManagementPolicyAPIGroupClient());
+    factory.register(OpenClusterManagementSearchAPIGroupDSL.class, new OpenClusterManagementSearchAPIGroupClient());
   }
 }

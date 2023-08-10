@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.monitoring.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,11 +58,13 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ProbeTargetStaticConfig implements KubernetesResource
 {
 
     @JsonProperty("labels")
-    private Map<String, String> labels;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> labels = new LinkedHashMap<String, String>();
     @JsonProperty("relabelingConfigs")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<RelabelConfig> relabelingConfigs = new ArrayList<RelabelConfig>();
@@ -69,7 +72,7 @@ public class ProbeTargetStaticConfig implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> _static = new ArrayList<java.lang.String>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -78,12 +81,6 @@ public class ProbeTargetStaticConfig implements KubernetesResource
     public ProbeTargetStaticConfig() {
     }
 
-    /**
-     * 
-     * @param _static
-     * @param labels
-     * @param relabelingConfigs
-     */
     public ProbeTargetStaticConfig(Map<String, String> labels, List<RelabelConfig> relabelingConfigs, List<java.lang.String> _static) {
         super();
         this.labels = labels;

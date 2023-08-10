@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +34,7 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "importMode",
     "insecure",
     "scheduled"
 })
@@ -54,15 +56,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class TagImportPolicy implements KubernetesResource
 {
 
+    @JsonProperty("importMode")
+    private String importMode;
     @JsonProperty("insecure")
     private Boolean insecure;
     @JsonProperty("scheduled")
     private Boolean scheduled;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,15 +76,21 @@ public class TagImportPolicy implements KubernetesResource
     public TagImportPolicy() {
     }
 
-    /**
-     * 
-     * @param scheduled
-     * @param insecure
-     */
-    public TagImportPolicy(Boolean insecure, Boolean scheduled) {
+    public TagImportPolicy(String importMode, Boolean insecure, Boolean scheduled) {
         super();
+        this.importMode = importMode;
         this.insecure = insecure;
         this.scheduled = scheduled;
+    }
+
+    @JsonProperty("importMode")
+    public String getImportMode() {
+        return importMode;
+    }
+
+    @JsonProperty("importMode")
+    public void setImportMode(String importMode) {
+        this.importMode = importMode;
     }
 
     @JsonProperty("insecure")

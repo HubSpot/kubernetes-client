@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,17 +57,21 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class UserRestriction implements KubernetesResource
 {
 
     @JsonProperty("groups")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> groups = new ArrayList<String>();
     @JsonProperty("labels")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.kubernetes.api.model.LabelSelector> labels = new ArrayList<io.fabric8.kubernetes.api.model.LabelSelector>();
     @JsonProperty("users")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> users = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -75,12 +80,6 @@ public class UserRestriction implements KubernetesResource
     public UserRestriction() {
     }
 
-    /**
-     * 
-     * @param groups
-     * @param users
-     * @param labels
-     */
     public UserRestriction(List<String> groups, List<io.fabric8.kubernetes.api.model.LabelSelector> labels, List<String> users) {
         super();
         this.groups = groups;

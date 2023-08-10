@@ -2,8 +2,10 @@
 package io.fabric8.kubernetes.api.model.apiextensions.v1beta1;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -95,6 +97,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class JSONSchemaProps implements KubernetesResource
 {
 
@@ -115,9 +118,11 @@ public class JSONSchemaProps implements KubernetesResource
     @JsonProperty("default")
     private JsonNode _default;
     @JsonProperty("definitions")
-    private Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> definitions;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> definitions = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps>();
     @JsonProperty("dependencies")
-    private Map<String, JSONSchemaPropsOrStringArray> dependencies;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, JSONSchemaPropsOrStringArray> dependencies = new LinkedHashMap<String, JSONSchemaPropsOrStringArray>();
     @JsonProperty("description")
     private java.lang.String description;
     @JsonProperty("enum")
@@ -165,9 +170,11 @@ public class JSONSchemaProps implements KubernetesResource
     @JsonProperty("pattern")
     private java.lang.String pattern;
     @JsonProperty("patternProperties")
-    private Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> patternProperties;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> patternProperties = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps>();
     @JsonProperty("properties")
-    private Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> properties;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> properties = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps>();
     @JsonProperty("required")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> required = new ArrayList<java.lang.String>();
@@ -201,53 +208,6 @@ public class JSONSchemaProps implements KubernetesResource
     public JSONSchemaProps() {
     }
 
-    /**
-     * 
-     * @param xKubernetesIntOrString
-     * @param xKubernetesListType
-     * @param $schema
-     * @param nullable
-     * @param xKubernetesMapType
-     * @param minLength
-     * @param pattern
-     * @param description
-     * @param xKubernetesListMapKeys
-     * @param _enum
-     * @param title
-     * @param type
-     * @param required
-     * @param example
-     * @param exclusiveMaximum
-     * @param patternProperties
-     * @param allOf
-     * @param not
-     * @param oneOf
-     * @param xKubernetesEmbeddedResource
-     * @param xKubernetesValidations
-     * @param additionalItems
-     * @param id
-     * @param maxProperties
-     * @param exclusiveMinimum
-     * @param definitions
-     * @param multipleOf
-     * @param _default
-     * @param maxItems
-     * @param format
-     * @param anyOf
-     * @param xKubernetesPreserveUnknownFields
-     * @param dependencies
-     * @param minProperties
-     * @param minItems
-     * @param uniqueItems
-     * @param maximum
-     * @param additionalProperties
-     * @param externalDocs
-     * @param $ref
-     * @param items
-     * @param minimum
-     * @param maxLength
-     * @param properties
-     */
     public JSONSchemaProps(java.lang.String $ref, java.lang.String $schema, JSONSchemaPropsOrBool additionalItems, JSONSchemaPropsOrBool additionalProperties, List<JSONSchemaProps> allOf, List<JSONSchemaProps> anyOf, JsonNode _default, Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> definitions, Map<String, JSONSchemaPropsOrStringArray> dependencies, java.lang.String description, List<JsonNode> _enum, JsonNode example, Boolean exclusiveMaximum, Boolean exclusiveMinimum, ExternalDocumentation externalDocs, java.lang.String format, java.lang.String id, JSONSchemaPropsOrArray items, Long maxItems, Long maxLength, Long maxProperties, Double maximum, Long minItems, Long minLength, Long minProperties, Double minimum, Double multipleOf, JSONSchemaProps not, Boolean nullable, List<JSONSchemaProps> oneOf, java.lang.String pattern, Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> patternProperties, Map<String, io.fabric8.kubernetes.api.model.apiextensions.v1beta1.JSONSchemaProps> properties, List<java.lang.String> required, java.lang.String title, java.lang.String type, Boolean uniqueItems, Boolean xKubernetesEmbeddedResource, Boolean xKubernetesIntOrString, List<java.lang.String> xKubernetesListMapKeys, java.lang.String xKubernetesListType, java.lang.String xKubernetesMapType, Boolean xKubernetesPreserveUnknownFields, List<ValidationRule> xKubernetesValidations) {
         super();
         this.$ref = $ref;

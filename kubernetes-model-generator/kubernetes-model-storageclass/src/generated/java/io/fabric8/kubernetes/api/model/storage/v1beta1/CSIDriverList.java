@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.storage.v1beta1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -28,6 +29,8 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import io.sundr.transform.annotations.TemplateTransformation;
+import io.sundr.transform.annotations.TemplateTransformations;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -59,8 +62,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1beta1")
 @Group("storage.k8s.io")
+@Generated("jsonschema2pojo")
 public class CSIDriverList implements KubernetesResource, KubernetesResourceList<io.fabric8.kubernetes.api.model.storage.v1beta1.CSIDriver>
 {
 
@@ -72,6 +79,7 @@ public class CSIDriverList implements KubernetesResource, KubernetesResourceList
     @JsonProperty("apiVersion")
     private String apiVersion = "storage.k8s.io/v1beta1";
     @JsonProperty("items")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.kubernetes.api.model.storage.v1beta1.CSIDriver> items = new ArrayList<io.fabric8.kubernetes.api.model.storage.v1beta1.CSIDriver>();
     /**
      * 
@@ -83,7 +91,7 @@ public class CSIDriverList implements KubernetesResource, KubernetesResourceList
     @JsonProperty("metadata")
     private ListMeta metadata;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -92,13 +100,6 @@ public class CSIDriverList implements KubernetesResource, KubernetesResourceList
     public CSIDriverList() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param items
-     */
     public CSIDriverList(String apiVersion, List<io.fabric8.kubernetes.api.model.storage.v1beta1.CSIDriver> items, String kind, ListMeta metadata) {
         super();
         this.apiVersion = apiVersion;

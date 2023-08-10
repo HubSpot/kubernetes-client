@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.azure.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,8 +36,12 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "encryptionAtHost",
     "osDisk",
+    "osImage",
     "type",
+    "ultraSSDCapability",
+    "vmNetworkingType",
     "zones"
 })
 @ToString
@@ -57,18 +62,27 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class MachinePool implements KubernetesResource
 {
 
+    @JsonProperty("encryptionAtHost")
+    private Boolean encryptionAtHost;
     @JsonProperty("osDisk")
     private OSDisk osDisk;
+    @JsonProperty("osImage")
+    private OSImage osImage;
     @JsonProperty("type")
     private String type;
+    @JsonProperty("ultraSSDCapability")
+    private String ultraSSDCapability;
+    @JsonProperty("vmNetworkingType")
+    private String vmNetworkingType;
     @JsonProperty("zones")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> zones = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -77,17 +91,25 @@ public class MachinePool implements KubernetesResource
     public MachinePool() {
     }
 
-    /**
-     * 
-     * @param type
-     * @param zones
-     * @param osDisk
-     */
-    public MachinePool(OSDisk osDisk, String type, List<String> zones) {
+    public MachinePool(Boolean encryptionAtHost, OSDisk osDisk, OSImage osImage, String type, String ultraSSDCapability, String vmNetworkingType, List<String> zones) {
         super();
+        this.encryptionAtHost = encryptionAtHost;
         this.osDisk = osDisk;
+        this.osImage = osImage;
         this.type = type;
+        this.ultraSSDCapability = ultraSSDCapability;
+        this.vmNetworkingType = vmNetworkingType;
         this.zones = zones;
+    }
+
+    @JsonProperty("encryptionAtHost")
+    public Boolean getEncryptionAtHost() {
+        return encryptionAtHost;
+    }
+
+    @JsonProperty("encryptionAtHost")
+    public void setEncryptionAtHost(Boolean encryptionAtHost) {
+        this.encryptionAtHost = encryptionAtHost;
     }
 
     @JsonProperty("osDisk")
@@ -100,6 +122,16 @@ public class MachinePool implements KubernetesResource
         this.osDisk = osDisk;
     }
 
+    @JsonProperty("osImage")
+    public OSImage getOsImage() {
+        return osImage;
+    }
+
+    @JsonProperty("osImage")
+    public void setOsImage(OSImage osImage) {
+        this.osImage = osImage;
+    }
+
     @JsonProperty("type")
     public String getType() {
         return type;
@@ -108,6 +140,26 @@ public class MachinePool implements KubernetesResource
     @JsonProperty("type")
     public void setType(String type) {
         this.type = type;
+    }
+
+    @JsonProperty("ultraSSDCapability")
+    public String getUltraSSDCapability() {
+        return ultraSSDCapability;
+    }
+
+    @JsonProperty("ultraSSDCapability")
+    public void setUltraSSDCapability(String ultraSSDCapability) {
+        this.ultraSSDCapability = ultraSSDCapability;
+    }
+
+    @JsonProperty("vmNetworkingType")
+    public String getVmNetworkingType() {
+        return vmNetworkingType;
+    }
+
+    @JsonProperty("vmNetworkingType")
+    public void setVmNetworkingType(String vmNetworkingType) {
+        this.vmNetworkingType = vmNetworkingType;
     }
 
     @JsonProperty("zones")

@@ -28,8 +28,8 @@ public class KubernetesVersionExample {
     if (args.length > 0) {
       configBuilder.withMasterUrl(args[0]);
     }
-    try(KubernetesClient client = new DefaultKubernetesClient(configBuilder.build())) {
-      VersionInfo versionInfo = client.getVersion();
+    try (KubernetesClient client = new KubernetesClientBuilder().withConfig(configBuilder.build()).build()) {
+      VersionInfo versionInfo = client.getKubernetesVersion();
 
       logger.info("Version details of this Kubernetes cluster :-");
       logger.info("Major        : {}", versionInfo.getMajor());

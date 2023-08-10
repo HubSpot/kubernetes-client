@@ -30,7 +30,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableKubernetesMockClient(crud = true)
 public class StorageSpaceCrudTest {
@@ -50,11 +50,11 @@ public class StorageSpaceCrudTest {
     parameters.put("key", "value");
 
     StorageClass storageClass = new StorageClassBuilder().withApiVersion("storage.k8s.io/v1")
-      .withKind("StorageClass")
-      .withMetadata(metadata)
-      .withParameters(parameters)
-      .withProvisioner("kubernetes.io/aws-ebs")
-      .build();
+        .withKind("StorageClass")
+        .withMetadata(metadata)
+        .withParameters(parameters)
+        .withProvisioner("kubernetes.io/aws-ebs")
+        .build();
 
     //test create
     storageClass = client.storage().storageClasses().create(storageClass);
@@ -68,18 +68,18 @@ public class StorageSpaceCrudTest {
     assertEquals(1, storageClassList.getItems().size());
     assertEquals("kubernetes.io/aws-ebs", storageClassList.getItems().get(0).getProvisioner());
     assertEquals("value", storageClassList.getItems().get(0).getParameters().get("key"));
-    assertNull(storageClassList.getItems().get(0).getMetadata().getLabels());
+    assertTrue(storageClassList.getItems().get(0).getMetadata().getLabels().isEmpty());
 
     //test update
     storageClass = client.storage().storageClasses().withName(name).edit(s -> new StorageClassBuilder(s).editOrNewMetadata()
-      .addToLabels("key1", "value1")
-      .endMetadata().build());
+        .addToLabels("key1", "value1")
+        .endMetadata().build());
     logger.info("Updated Storage Class: {} ", storageClass.toString());
     assertNotNull(storageClass);
     assertEquals(1, storageClass.getMetadata().getLabels().size());
 
     //test delete
-    boolean result = client.storage().storageClasses().delete(storageClass);
+    boolean result = client.storage().storageClasses().delete(storageClass).size() == 1;
     assertEquals(true, result);
     StorageClassList storageClassList2 = client.storage().storageClasses().list();
     assertEquals(0, storageClassList2.getItems().size());

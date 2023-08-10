@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,11 +59,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("user.openshift.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "openshift.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class Identity implements HasMetadata
 {
 
@@ -74,7 +76,8 @@ public class Identity implements HasMetadata
     @JsonProperty("apiVersion")
     private java.lang.String apiVersion = "user.openshift.io/v1";
     @JsonProperty("extra")
-    private Map<String, String> extra;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> extra = new LinkedHashMap<String, String>();
     /**
      * 
      * (Required)
@@ -91,7 +94,7 @@ public class Identity implements HasMetadata
     @JsonProperty("user")
     private io.fabric8.kubernetes.api.model.ObjectReference user;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -100,16 +103,6 @@ public class Identity implements HasMetadata
     public Identity() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param extra
-     * @param providerUserName
-     * @param user
-     * @param providerName
-     */
     public Identity(java.lang.String apiVersion, Map<String, String> extra, java.lang.String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, java.lang.String providerName, java.lang.String providerUserName, io.fabric8.kubernetes.api.model.ObjectReference user) {
         super();
         this.apiVersion = apiVersion;

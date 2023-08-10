@@ -15,32 +15,15 @@
  */
 package io.fabric8.volumesnapshot.client.internal;
 
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
-import io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
-import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
+import io.fabric8.kubernetes.client.extension.ExtensibleResourceAdapter;
 import io.fabric8.volumesnapshot.api.model.VolumeSnapshot;
-import io.fabric8.volumesnapshot.api.model.VolumeSnapshotList;
+import io.fabric8.volumesnapshot.client.VolumeSnapshotResource;
 
-public class VolumeSnapshotOperationsImpl extends HasMetadataOperation<VolumeSnapshot, VolumeSnapshotList, VolumeSnapshotResource> implements VolumeSnapshotResource {
-
-  public VolumeSnapshotOperationsImpl(ClientContext clientContext) {
-    this(HasMetadataOperationsImpl.defaultContext(clientContext));
-  }
-
-  public VolumeSnapshotOperationsImpl(OperationContext ctx) {
-    super(ctx.withApiGroupName("snapshot.storage.k8s.io").withApiGroupVersion("v1").withPlural("volumesnapshots"),
-            VolumeSnapshot.class, VolumeSnapshotList.class);
-  }
+public class VolumeSnapshotOperationsImpl extends ExtensibleResourceAdapter<VolumeSnapshot> implements VolumeSnapshotResource {
 
   @Override
-  public BaseOperation<VolumeSnapshot, VolumeSnapshotList, VolumeSnapshotResource> newInstance(OperationContext context) {
-    return new VolumeSnapshotOperationsImpl(context);
+  public ExtensibleResourceAdapter<VolumeSnapshot> newInstance() {
+    return new VolumeSnapshotOperationsImpl();
   }
 
-  @Override
-  public boolean isResourceNamespaced() {
-    return true;
-  }
 }

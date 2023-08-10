@@ -16,33 +16,40 @@
 
 package io.fabric8.kubernetes.client.dsl.internal;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusCause;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.dsl.ExecListener.Response;
-import io.fabric8.kubernetes.client.dsl.base.OperationSupport;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
+import io.fabric8.kubernetes.client.dsl.internal.PodOperationContext.StreamContext;
 import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.http.WebSocket;
 import io.fabric8.kubernetes.client.http.WebSocketHandshakeException;
 import io.fabric8.kubernetes.client.utils.InputStreamPumper;
+import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
+import io.fabric8.kubernetes.client.utils.internal.SerialExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-
-import static io.fabric8.kubernetes.client.utils.Utils.closeQuietly;
 
 /**
  * A {@link WebSocket.Listener} for exec operations.
@@ -58,7 +65,13 @@ import static io.fabric8.kubernetes.client.utils.Utils.closeQuietly;
  */
 public class ExecWebSocketListener implements ExecWatch, AutoCloseable, WebSocket.Listener {
 
-    private final class SimpleResponse implements Response {
+  static final String CAUSE_REASON_EXIT_CODE = "ExitCode";
+  static final String REASON_NON_ZERO_EXIT_CODE = "NonZeroExitCode";
+  static final String STATUS_SUCCESS = "Success";
+
+  private static final long MAX_QUEUE_SIZE = 16 * 1024 * 1024L;
+
+  private final class SimpleResponse implements Response {
     private final HttpResponse<?> response;
 
     private SimpleResponse(HttpResponse<?> response) {
@@ -76,284 +89,408 @@ public class ExecWebSocketListener implements ExecWatch, AutoCloseable, WebSocke
     }
   }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExecWebSocketListener.class);
-    private static final String HEIGHT = "Height";
-    private static final String WIDTH = "Width";
+  @FunctionalInterface
+  public interface MessageHandler {
 
-    private final InputStream in;
-    private final OutputStream out;
-    private final OutputStream err;
-    private final OutputStream errChannel;
+    void handle(ByteBuffer bytes) throws IOException;
 
-    private final PipedOutputStream input;
-    private final PipedInputStream output;
-    private final PipedInputStream error;
-    private final PipedInputStream errorChannel;
+  }
 
-    private final AtomicReference<WebSocket> webSocketRef = new AtomicReference<>();
-    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private final class ListenerStream {
+    private MessageHandler handler;
+    private ExecWatchInputStream inputStream;
+    private String name;
 
-    private final ExecListener listener;
-
-    private final AtomicBoolean explicitlyClosed = new AtomicBoolean(false);
-
-    private final AtomicBoolean failed = new AtomicBoolean(false);
-    private final AtomicBoolean closed = new AtomicBoolean(false);
-    private final AtomicBoolean cleaned = new AtomicBoolean(false);
-
-    private final Set<Closeable> toClose = new LinkedHashSet<>();
-
-    private ObjectMapper objectMapper;
-
-    public ExecWebSocketListener(InputStream in, OutputStream out, OutputStream err, OutputStream errChannel, PipedOutputStream inputPipe, PipedInputStream outputPipe, PipedInputStream errorPipe, PipedInputStream errorChannelPipe, ExecListener listener, Integer bufferSize) {
-        this.listener = listener;
-        this.in = inputStreamOrPipe(in, inputPipe, toClose, bufferSize);
-        this.out = outputStreamOrPipe(out, outputPipe, toClose);
-        this.err = outputStreamOrPipe(err, errorPipe, toClose);
-        this.errChannel = outputStreamOrPipe(errChannel, errorChannelPipe, toClose);
-
-        this.input = inputPipe;
-        this.output = outputPipe;
-        this.error = errorPipe;
-        this.errorChannel = errorChannelPipe;
-        this.objectMapper = new ObjectMapper();
+    public ListenerStream(String name) {
+      this.name = name;
     }
 
+    private void handle(ByteBuffer byteString, WebSocket webSocket) throws IOException {
+      if (handler != null) {
+        if (LOGGER.isDebugEnabled()) {
+          LOGGER.debug("exec message received {} bytes on channel {}", byteString.remaining(), name);
+        }
+        handler.handle(byteString);
+      } else {
+        if (LOGGER.isDebugEnabled()) {
+          String message = ExecWebSocketListener.toString(byteString);
+          if (message.length() > 200) {
+            message = message.substring(0, 197) + "...";
+          }
+          LOGGER.debug("exec message received on channel {}: {}", name, message);
+        }
+        webSocket.request();
+      }
+    }
+  }
 
-    @Override
-    public void close() {
-      close(1000, "Closing...");
+  static final Logger LOGGER = LoggerFactory.getLogger(ExecWebSocketListener.class);
+  private static final String HEIGHT = "Height";
+  private static final String WIDTH = "Width";
+
+  private final InputStream in;
+  private final OutputStream input;
+
+  private final ListenerStream out;
+  private final ListenerStream error;
+  private final ListenerStream errorChannel;
+
+  private final boolean terminateOnError;
+  private final ExecListener listener;
+
+  private final AtomicReference<WebSocket> webSocketRef = new AtomicReference<>();
+  private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+  private final SerialExecutor serialExecutor;
+  private final AtomicBoolean closed = new AtomicBoolean(false);
+  private final CompletableFuture<Integer> exitCode = new CompletableFuture<>();
+  private KubernetesSerialization serialization;
+
+  public static String toString(ByteBuffer buffer) {
+    return StandardCharsets.UTF_8.decode(buffer).toString();
+  }
+
+  public ExecWebSocketListener(PodOperationContext context, Executor executor, KubernetesSerialization serialization) {
+    this.serialization = serialization;
+    this.listener = context.getExecListener();
+
+    Integer bufferSize = context.getBufferSize();
+    if (context.isRedirectingIn()) {
+      this.input = InputStreamPumper.writableOutputStream(this::sendWithErrorChecking, bufferSize);
+      this.in = null;
+    } else {
+      this.input = null;
+      this.in = context.getIn();
     }
 
-    public void close(int code, String reason) {
-      explicitlyClosed.set(true);
-      closeWebSocketOnce(code, reason);
-      onClosed(code, reason);
+    this.terminateOnError = context.isTerminateOnError();
+    this.out = createStream("stdOut", context.getOutput());
+    this.error = createStream("stdErr", context.getError());
+    this.errorChannel = createStream("errorChannel", context.getErrorChannel());
+    this.serialExecutor = new SerialExecutor(executor);
+  }
+
+  private ListenerStream createStream(String name, StreamContext streamContext) {
+    ListenerStream stream = new ListenerStream(name);
+    if (streamContext == null) {
+      return stream;
     }
+    OutputStream os = streamContext.getOutputStream();
+    if (os == null) {
+      // redirecting
+      stream.inputStream = new ExecWatchInputStream(() -> this.webSocketRef.get().request());
+      this.exitCode.whenComplete(stream.inputStream::onExit);
+      stream.handler = b -> stream.inputStream.consume(Arrays.asList(b));
+    } else {
+      WritableByteChannel channel = Channels.newChannel(os);
+      stream.handler = b -> asyncWrite(channel, b);
+    }
+    return stream;
+  }
+
+  private void asyncWrite(WritableByteChannel channel, ByteBuffer b) {
+    CompletableFuture.runAsync(() -> {
+      try {
+        channel.write(b);
+      } catch (IOException e) {
+        throw KubernetesClientException.launderThrowable(e);
+      }
+    }, serialExecutor).whenComplete((v, t) -> {
+      webSocketRef.get().request();
+      if (t != null) {
+        if (closed.get()) {
+          LOGGER.debug("Stream write failed after close", t);
+        } else {
+          // This could happen if the user simply closes their stream prior to completion
+          LOGGER.warn("Stream write failed", t);
+        }
+      }
+    });
+  }
+
+  @Override
+  public void close() {
+    if (closed.get()) {
+      return;
+    }
+    // simply sends a close, which will shut down the output
+    // it's expected that the server will respond with a close, but if not the input will be shutdown implicitly
+    closeWebSocketOnce(1000, "Closing...");
+  }
 
   /**
    * Performs the cleanup tasks:
    * 1. cancels the InputStream pumper
-   * 2. closes all internally managed closeables (piped streams).
-   *
-   * The order of these tasks can't change or its likely that the pumper will throw errors,
-   * if the stream it uses closes before the pumper it self.
+   * 2. closes all pending message work
    */
   private void cleanUpOnce() {
-   if (!cleaned.compareAndSet(false, true)) {
-        return;
-   }
-
-   executorService.shutdownNow();
-   closeQuietly(toClose);
+    executorService.shutdownNow();
+    serialExecutor.shutdownNow();
   }
 
-    private void closeWebSocketOnce(int code, String reason) {
-      if (closed.get()) {
-        return;
+  private void closeWebSocketOnce(int code, String reason) {
+    try {
+      WebSocket ws = webSocketRef.get();
+      if (ws != null) {
+        ws.sendClose(code, reason);
       }
+    } catch (Throwable t) {
+      LOGGER.debug("Error closing WebSocket.", t);
+    }
+  }
 
-      try {
-        WebSocket ws = webSocketRef.get();
-        if (ws != null) {
-          ws.sendClose(code, reason);
-        }
-      } catch (Throwable t) {
-        LOGGER.debug("Error closing WebSocket.", t);
+  @Override
+  public void onOpen(WebSocket webSocket) {
+    try {
+      // ensure onClose is processed
+      this.exitCode.whenComplete((i, t) -> webSocket.request());
+      webSocketRef.set(webSocket);
+      if (in != null && !executorService.isShutdown()) {
+        // the task will be cancelled via shutdownNow
+        // TODO: this does not work if the inputstream does not support available
+        InputStreamPumper.pump(InputStreamPumper.asInterruptible(in), this::send, executorService);
+      }
+    } finally {
+      if (listener != null) {
+        listener.onOpen();
       }
     }
-
-    @Override
-    public void onOpen(WebSocket webSocket) {
-        try {
-            if (in instanceof PipedInputStream && input != null) {
-                input.connect((PipedInputStream) in);
-            }
-            if (out instanceof PipedOutputStream && output != null) {
-                output.connect((PipedOutputStream) out);
-            }
-            if (err instanceof PipedOutputStream && error != null) {
-                error.connect((PipedOutputStream) err);
-            }
-            if (errChannel instanceof PipedOutputStream && errorChannel != null) {
-                errorChannel.connect((PipedOutputStream) errChannel);
-            }
-
-            webSocketRef.set(webSocket);
-            if (in != null && !executorService.isShutdown()) {
-              // the task will be cancelled via shutdownNow
-              InputStreamPumper.pump(InputStreamPumper.asInterruptible(in), this::send, executorService);
-            }
-        } catch (IOException e) {
-          onError(webSocket, e);
-        } finally {
-            if (listener != null) {
-                listener.onOpen();
-            }
-        }
-    }
+  }
 
   @Override
   public void onError(WebSocket webSocket, Throwable t) {
+    closed.set(true);
+    HttpResponse<?> response = null;
 
-      //If we already called onClosed() or onFailed() before, we need to abort.
-      if (explicitlyClosed.get() || closed.get() || !failed.compareAndSet(false, true) ) {
-        //We are not going to notify the listener, sicne we've already called onClose(), so let's log a debug/warning.
-        if (LOGGER.isWarnEnabled()) {
-          LOGGER.warn("Received [{}], with message:[{}] after ExecWebSocketListener is closed, Ignoring.",t.getClass().getCanonicalName(),t.getMessage());
+    try {
+      if (t instanceof WebSocketHandshakeException) {
+        response = ((WebSocketHandshakeException) t).getResponse();
+        if (response != null) {
+          Status status = OperationSupport.createStatus(response, serialization);
+          status.setMessage(t.getMessage());
+          t = new KubernetesClientException(status).initCause(t);
         }
-        return;
       }
-
-      HttpResponse<?> response = null;
-      try {
-        if (t instanceof WebSocketHandshakeException) {
-          response = ((WebSocketHandshakeException)t).getResponse();
-        }
-        Status status = OperationSupport.createStatus(response);
-        status.setMessage(t.getMessage());
-        LOGGER.error("Exec Failure", t);
-        cleanUpOnce();
-      } finally {
-        if (listener != null) {
-          ExecListener.Response execResponse = null;
-          if (response != null) {
-            execResponse = new SimpleResponse(response);
+      cleanUpOnce();
+    } finally {
+      if (exitCode.isDone()) {
+        LOGGER.debug("Exec failure after done", t);
+      } else {
+        try {
+          if (listener != null) {
+            ExecListener.Response execResponse = null;
+            if (response != null) {
+              execResponse = new SimpleResponse(response);
+            }
+            listener.onFailure(t, execResponse);
+          } else {
+            LOGGER.error("Exec Failure", t);
           }
-          listener.onFailure(t, execResponse);
+        } finally {
+          exitCode.completeExceptionally(t);
         }
       }
     }
+  }
+
+  @Override
+  public void onMessage(WebSocket webSocket, String text) {
+    LOGGER.debug("Exec Web Socket: onMessage(String)");
+    onMessage(webSocket, ByteBuffer.wrap(text.getBytes(StandardCharsets.UTF_8)));
+  }
 
   @Override
   public void onMessage(WebSocket webSocket, ByteBuffer bytes) {
-        try {
-            byte streamID = bytes.get(0);
-            bytes.position(1);
-            ByteBuffer byteString = bytes.slice();
-            if (byteString.remaining() > 0) {
-                switch (streamID) {
-                    case 1:
-                        if (out != null) {
-                          Channels.newChannel(out).write(byteString);
-                          out.flush();
-                        }
-                        break;
-                    case 2:
-                        if (err != null) {
-                          Channels.newChannel(err).write(byteString);
-                        }
-                        break;
-                    case 3:
-                        if (errChannel != null) {
-                          Channels.newChannel(errChannel).write(byteString);
-                        }
-                        break;
-                    default:
-                        throw new IOException("Unknown stream ID " + streamID);
-                }
-            }
-        } catch (IOException e) {
-            throw KubernetesClientException.launderThrowable(e);
-        }
+    boolean close = false;
+    try {
+      byte streamID = bytes.get(0);
+      bytes.position(1);
+      ByteBuffer byteString = bytes.slice();
+      if (byteString.remaining() == 0) {
+        webSocket.request();
+        return;
+      }
+      switch (streamID) {
+        case 1:
+          out.handle(byteString, webSocket);
+          break;
+        case 2:
+          if (terminateOnError) {
+            String stringValue = toString(bytes);
+            exitCode.completeExceptionally(new KubernetesClientException(stringValue));
+            close = true;
+          } else {
+            error.handle(byteString, webSocket);
+          }
+          break;
+        case 3:
+          close = true;
+          try {
+            errorChannel.handle(bytes, webSocket);
+          } finally {
+            handleExitStatus(byteString);
+          }
+          break;
+        default:
+          throw new IOException("Unknown stream ID " + streamID);
+      }
+    } catch (IOException e) {
+      throw KubernetesClientException.launderThrowable(e);
+    } finally {
+      if (close) {
+        this.close();
+      }
     }
+  }
+
+  private void handleExitStatus(ByteBuffer bytes) {
+    Status status = null;
+    int code = -1;
+    try {
+      String stringValue = toString(bytes);
+      status = serialization.unmarshal(stringValue, Status.class);
+      if (status != null) {
+        code = parseExitCode(status);
+      }
+    } catch (Exception e) {
+      LOGGER.warn("Could not determine exit code", e);
+    }
+    try {
+      if (this.listener != null) {
+        this.listener.onExit(code, status);
+      }
+    } finally {
+      this.exitCode.complete(code);
+    }
+  }
 
   @Override
   public void onClose(WebSocket webSocket, int code, String reason) {
-    ExecWebSocketListener.this.close(code, reason);
+    //If we already called onClosed() or onFailed() before, we need to abort.
+    if (!closed.compareAndSet(false, true)) {
+      return;
+    }
+    closeWebSocketOnce(code, reason);
+    LOGGER.debug("Exec Web Socket: On Close with code:[{}], due to: [{}]", code, reason);
+    serialExecutor.execute(() -> {
+      try {
+        if (exitCode.complete(null)) {
+          // this is expected for processes that don't terminate - uploads for example
+          LOGGER.debug("Exec Web Socket: completed with a null exit code - no status was received prior to onClose");
+        }
+        cleanUpOnce();
+      } finally {
+        if (listener != null) {
+          listener.onClose(code, reason);
+        }
+      }
+    });
   }
 
-    private void onClosed(int code, String reason) {
-       //If we already called onClosed() or onFailed() before, we need to abort.
-       if (!closed.compareAndSet(false, true) || failed.get()) {
-         return;
-       }
-       LOGGER.debug("Exec Web Socket: On Close with code:[{}], due to: [{}]", code, reason);
-        try {
-            if (explicitlyClosed.get()) {
-              cleanUpOnce();
-            }
-        } finally {
-            if (listener != null) {
-              listener.onClose(code, reason);
-            }
-        }
-    }
+  @Override
+  public OutputStream getInput() {
+    return input;
+  }
 
-    @Override
-    public OutputStream getInput() {
-        return input;
-    }
+  @Override
+  public InputStream getOutput() {
+    return out.inputStream;
+  }
 
-    @Override
-    public InputStream getOutput() {
-        return output;
-    }
+  @Override
+  public InputStream getError() {
+    return error.inputStream;
+  }
 
-    @Override
-    public InputStream getError() {
-        return error;
-    }
+  @Override
+  public InputStream getErrorChannel() {
+    return errorChannel.inputStream;
+  }
 
-    @Override
-    public InputStream getErrorChannel() {
-        return errorChannel;
+  @Override
+  public void resize(int cols, int rows) {
+    if (cols < 0 || rows < 0) {
+      return;
     }
+    try {
+      Map<String, Integer> map = new HashMap<>(4);
+      map.put(HEIGHT, rows);
+      map.put(WIDTH, cols);
+      byte[] bytes = serialization.asJson(map).getBytes(StandardCharsets.UTF_8);
+      send(bytes, 0, bytes.length, (byte) 4);
+    } catch (Exception e) {
+      throw KubernetesClientException.launderThrowable(e);
+    }
+  }
 
-    @Override
-    public void resize(int cols, int rows) {
-      if (cols < 0 || rows < 0) {
-        return;
+  private void send(byte[] bytes, int offset, int length, byte flag) {
+    if (length > 0) {
+      waitForQueue(length);
+      WebSocket ws = webSocketRef.get();
+      byte[] toSend = new byte[length + 1];
+      toSend[0] = flag;
+      System.arraycopy(bytes, offset, toSend, 1, length);
+      if (!ws.send(ByteBuffer.wrap(toSend))) {
+        this.exitCode.completeExceptionally(new IOException("could not send"));
       }
+    }
+  }
+
+  private void send(byte[] bytes, int offset, int length) {
+    send(bytes, offset, length, (byte) 0);
+  }
+
+  void sendWithErrorChecking(byte[] bytes, int offset, int length) {
+    checkError();
+    send(bytes, offset, length);
+    checkError();
+  }
+
+  public static int parseExitCode(Status status) {
+    if (STATUS_SUCCESS.equals(status.getStatus())) {
+      return 0;
+    }
+    if (REASON_NON_ZERO_EXIT_CODE.equals(status.getReason())) {
+      if (status.getDetails() == null) {
+        return -1;
+      }
+      List<StatusCause> causes = status.getDetails().getCauses();
+      if (causes == null) {
+        return -1;
+      }
+      return causes.stream()
+          .filter(c -> CAUSE_REASON_EXIT_CODE.equals(c.getReason()))
+          .map(StatusCause::getMessage)
+          .map(Integer::valueOf)
+          .findFirst()
+          .orElse(-1);
+    }
+    return -1;
+  }
+
+  @Override
+  public CompletableFuture<Integer> exitCode() {
+    return exitCode;
+  }
+
+  final void waitForQueue(int length) {
+    try {
+      while (webSocketRef.get().queueSize() + length > MAX_QUEUE_SIZE && !Thread.interrupted()) {
+        checkError();
+        Thread.sleep(50L);
+      }
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  final void checkError() {
+    if (exitCode.isDone()) {
       try {
-        Map<String, Integer> map = new HashMap<>(4);
-        map.put(HEIGHT, rows);
-        map.put(WIDTH, cols);
-        byte[] bytes = objectMapper.writeValueAsBytes(map);
-        send(bytes, 0, bytes.length, (byte) 4);
-      } catch (Exception e) {
-        throw KubernetesClientException.launderThrowable(e);
+        exitCode.getNow(null);
+      } catch (CompletionException e) {
+        throw KubernetesClientException.launderThrowable(e.getCause());
       }
     }
+  }
 
-    private void send(byte[] bytes, int offset, int length, byte flag) {
-        if (length > 0) {
-            WebSocket ws = webSocketRef.get();
-            if (ws != null) {
-                byte[] toSend = new byte[length + 1];
-                toSend[0] = flag;
-                System.arraycopy(bytes, offset, toSend, 1, length);
-                ws.send(ByteBuffer.wrap(toSend));
-            }
-        }
-    }
-
-    private void send(byte[] bytes, int offset, int length) {
-       send(bytes, offset, length, (byte)0);
-    }
-
-
-    private static InputStream inputStreamOrPipe(InputStream stream, PipedOutputStream out, Set<Closeable> toClose, Integer bufferSize) {
-        if (stream != null) {
-            return stream;
-        } else if (out != null) {
-            PipedInputStream pis = bufferSize == null ? new PipedInputStream() : new PipedInputStream(bufferSize.intValue());
-            toClose.add(pis);
-            return pis;
-        } else {
-            return null;
-        }
-    }
-
-    private static OutputStream outputStreamOrPipe(OutputStream stream, PipedInputStream in, Set<Closeable> toClose) {
-        if (stream != null) {
-            return stream;
-        } else if (in != null) {
-            PipedOutputStream pos = new PipedOutputStream();
-            toClose.add(pos);
-            return pos;
-        } else {
-            return null;
-        }
-    }
- }
+}

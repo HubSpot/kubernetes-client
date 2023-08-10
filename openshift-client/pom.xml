@@ -21,7 +21,7 @@
   <parent>
     <groupId>io.fabric8</groupId>
     <artifactId>kubernetes-client-project</artifactId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>openshift-client</artifactId>
@@ -33,6 +33,11 @@
       osgi.extender;
       filter:="(osgi.extender=osgi.serviceloader.registrar)"
     </osgi.require-capability>
+    <osgi.provide-capability>
+      osgi.serviceloader;
+      osgi.serviceloader=io.fabric8.kubernetes.client.extension.ExtensionAdapter,
+      io.fabric8.kubernetes.client.ServiceToURLProvider
+    </osgi.provide-capability>
     <osgi.import>
       !org.junit*,
       *
@@ -52,61 +57,15 @@
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-client</artifactId>
     </dependency>
-   <dependency>
-     <groupId>io.fabric8</groupId>
-     <artifactId>openshift-model</artifactId>
-   </dependency>
-   <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-clusterautoscaling</artifactId>
-    </dependency>
-   <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-operator</artifactId>
-    </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-operatorhub</artifactId>
+      <artifactId>openshift-client-api</artifactId>
     </dependency>
+
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-machine</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-whereabouts</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-monitoring</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-storageversionmigrator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-tuned</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-console</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-machineconfig</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-miscellaneous</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-hive</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-model-installer</artifactId>
+      <groupId>com.github.mifmif</groupId>
+      <artifactId>generex</artifactId>
+      <version>${generex.version}</version>
     </dependency>
 
     <!-- Compile Only Dependencies -->
@@ -118,6 +77,11 @@
     <dependency>
       <groupId>io.sundr</groupId>
       <artifactId>transform-annotations</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
 
     <dependency>
@@ -137,6 +101,14 @@
       <scope>test</scope>
     </dependency>
 
+     <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client-api</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>mockwebserver</artifactId>
@@ -146,7 +118,6 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -157,14 +128,13 @@
    </dependency>
 
    <dependency>
-     <groupId>org.junit.jupiter</groupId>
-     <artifactId>junit-jupiter-migrationsupport</artifactId>
-     <scope>test</scope>
-   </dependency>
-
-   <dependency>
      <groupId>org.mockito</groupId>
      <artifactId>mockito-core</artifactId>
+     <scope>test</scope>
+   </dependency>
+   <dependency>
+     <groupId>org.assertj</groupId>
+     <artifactId>assertj-core</artifactId>
      <scope>test</scope>
    </dependency>
  </dependencies>
@@ -258,7 +228,7 @@
                 <Export-Service>${osgi.export.service}</Export-Service>
                 <Include-Resource>
                   /META-INF/services/io.fabric8.kubernetes.client.ServiceToURLProvider=target/classes/META-INF/services/io.fabric8.kubernetes.client.ServiceToURLProvider,
-                  /META-INF/services/io.fabric8.kubernetes.client.ExtensionAdapter=target/classes/META-INF/services/io.fabric8.kubernetes.client.ExtensionAdapter
+                  /META-INF/services/io.fabric8.kubernetes.client.extension.ExtensionAdapter=target/classes/META-INF/services/io.fabric8.kubernetes.client.extension.ExtensionAdapter
                 </Include-Resource>
               </instructions>
               <classifier>bundle</classifier>

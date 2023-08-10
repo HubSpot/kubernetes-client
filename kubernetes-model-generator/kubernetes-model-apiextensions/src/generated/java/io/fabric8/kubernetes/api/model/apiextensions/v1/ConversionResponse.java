@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.apiextensions.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -24,6 +25,7 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.runtime.RawExtension;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -57,19 +59,23 @@ import lombok.experimental.Accessors;
     @BuildableReference(IntOrString.class),
     @BuildableReference(ObjectReference.class),
     @BuildableReference(LocalObjectReference.class),
-    @BuildableReference(PersistentVolumeClaim.class)
+    @BuildableReference(PersistentVolumeClaim.class),
+    @BuildableReference(GenericKubernetesResource.class),
+    @BuildableReference(RawExtension.class)
 })
+@Generated("jsonschema2pojo")
 public class ConversionResponse implements KubernetesResource
 {
 
     @JsonProperty("convertedObjects")
-    private List<HasMetadata> convertedObjects = new ArrayList<HasMetadata>();
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<KubernetesResource> convertedObjects = new ArrayList<KubernetesResource>();
     @JsonProperty("result")
     private Status result;
     @JsonProperty("uid")
     private String uid;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -78,13 +84,7 @@ public class ConversionResponse implements KubernetesResource
     public ConversionResponse() {
     }
 
-    /**
-     * 
-     * @param result
-     * @param uid
-     * @param convertedObjects
-     */
-    public ConversionResponse(List<HasMetadata> convertedObjects, Status result, String uid) {
+    public ConversionResponse(List<KubernetesResource> convertedObjects, Status result, String uid) {
         super();
         this.convertedObjects = convertedObjects;
         this.result = result;
@@ -92,12 +92,12 @@ public class ConversionResponse implements KubernetesResource
     }
 
     @JsonProperty("convertedObjects")
-    public List<HasMetadata> getConvertedObjects() {
+    public List<KubernetesResource> getConvertedObjects() {
         return convertedObjects;
     }
 
     @JsonProperty("convertedObjects")
-    public void setConvertedObjects(List<HasMetadata> convertedObjects) {
+    public void setConvertedObjects(List<KubernetesResource> convertedObjects) {
         this.convertedObjects = convertedObjects;
     }
 

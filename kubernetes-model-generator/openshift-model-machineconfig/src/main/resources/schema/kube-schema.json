@@ -1,6 +1,6 @@
 {
   "id": "http://fabric8.io/fabric8/v2/Schema#",
-  "$schema": "http://json-schema.org/draft-05/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "$module": "machineconfig",
   "definitions": {
     "kubernetes_apimachinery_APIGroup": {
@@ -170,7 +170,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.kubernetes.api.model.BaseKubernetesList",
+      "existingJavaType": "io.fabric8.kubernetes.api.model.KubernetesList",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource",
         "io.fabric8.kubernetes.api.model.KubernetesResourceList\u003cjava.util.Map\u003cString, Object\u003e\u003e"
@@ -241,9 +241,6 @@
             "type": "string"
           },
           "existingJavaType": "java.util.Map\u003cString, String\u003e"
-        },
-        "clusterName": {
-          "type": "string"
         },
         "creationTimestamp": {
           "$ref": "#/definitions/kubernetes_apimachinery_Time",
@@ -491,14 +488,6 @@
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
     },
-    "kubernetes_apimachinery_pkg_runtime_ImageRawExtension": {
-      "type": "object",
-      "additionalProperties": true,
-      "javaType": "io.fabric8.kubernetes.api.model.runtime.RawExtension",
-      "javaInterfaces": [
-        "io.fabric8.kubernetes.api.model.KubernetesResource"
-      ]
-    },
     "kubernetes_apimachinery_pkg_runtime_RawExtension": {
       "type": "object",
       "additionalProperties": true,
@@ -608,6 +597,19 @@
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
     },
+    "os_config_v1_AWSDNSSpec": {
+      "type": "object",
+      "properties": {
+        "privateZoneIAMRole": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSDNSSpec",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
     "os_config_v1_AWSPlatformSpec": {
       "type": "object",
       "properties": {
@@ -616,12 +618,12 @@
           "javaOmitEmpty": true,
           "items": {
             "$ref": "#/definitions/os_config_v1_AWSServiceEndpoint",
-            "existingJavaType": "io.fabric8.openshift.api.model.AWSServiceEndpoint"
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSServiceEndpoint"
           }
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AWSPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -637,7 +639,7 @@
           "javaOmitEmpty": true,
           "items": {
             "$ref": "#/definitions/os_config_v1_AWSResourceTag",
-            "existingJavaType": "io.fabric8.openshift.api.model.AWSResourceTag"
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSResourceTag"
           }
         },
         "serviceEndpoints": {
@@ -645,12 +647,12 @@
           "javaOmitEmpty": true,
           "items": {
             "$ref": "#/definitions/os_config_v1_AWSServiceEndpoint",
-            "existingJavaType": "io.fabric8.openshift.api.model.AWSServiceEndpoint"
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSServiceEndpoint"
           }
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AWSPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -666,7 +668,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AWSResourceTag",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSResourceTag",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -682,7 +684,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AWSServiceEndpoint",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSServiceEndpoint",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -690,7 +692,7 @@
     "os_config_v1_AlibabaCloudPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AlibabaCloudPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AlibabaCloudPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -709,12 +711,12 @@
           "javaOmitEmpty": true,
           "items": {
             "$ref": "#/definitions/os_config_v1_AlibabaCloudResourceTag",
-            "existingJavaType": "io.fabric8.openshift.api.model.AlibabaCloudResourceTag"
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AlibabaCloudResourceTag"
           }
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AlibabaCloudPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AlibabaCloudPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -730,7 +732,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AlibabaCloudResourceTag",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AlibabaCloudResourceTag",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -738,7 +740,7 @@
     "os_config_v1_AzurePlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AzurePlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AzurePlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -757,10 +759,47 @@
         },
         "resourceGroupName": {
           "type": "string"
+        },
+        "resourceTags": {
+          "type": "array",
+          "javaOmitEmpty": true,
+          "items": {
+            "$ref": "#/definitions/os_config_v1_AzureResourceTag",
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AzureResourceTag"
+          }
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.AzurePlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AzurePlatformStatus",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_AzureResourceTag": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AzureResourceTag",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_BareMetalPlatformLoadBalancer": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.BareMetalPlatformLoadBalancer",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -768,7 +807,7 @@
     "os_config_v1_BareMetalPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.BareMetalPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.BareMetalPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -779,15 +818,44 @@
         "apiServerInternalIP": {
           "type": "string"
         },
+        "apiServerInternalIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "ingressIP": {
           "type": "string"
+        },
+        "ingressIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadBalancer": {
+          "$ref": "#/definitions/os_config_v1_BareMetalPlatformLoadBalancer",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.BareMetalPlatformLoadBalancer"
         },
         "nodeDNSIP": {
           "type": "string"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.BareMetalPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.BareMetalPlatformStatus",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_CloudControllerManagerStatus": {
+      "type": "object",
+      "properties": {
+        "state": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.CloudControllerManagerStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -803,7 +871,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.ConfigMapFileReference",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ConfigMapFileReference",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -822,7 +890,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.CustomTLSProfile",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.CustomTLSProfile",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -846,17 +914,34 @@
         },
         "spec": {
           "$ref": "#/definitions/os_config_v1_DNSSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.DNSSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSSpec"
         },
         "status": {
           "$ref": "#/definitions/os_config_v1_DNSStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.DNSStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSStatus"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.DNS",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNS",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.HasMetadata"
+      ]
+    },
+    "os_config_v1_DNSPlatformSpec": {
+      "type": "object",
+      "properties": {
+        "aws": {
+          "$ref": "#/definitions/os_config_v1_AWSDNSSpec",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSDNSSpec"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSPlatformSpec",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
     },
     "os_config_v1_DNSSpec": {
@@ -865,17 +950,21 @@
         "baseDomain": {
           "type": "string"
         },
+        "platform": {
+          "$ref": "#/definitions/os_config_v1_DNSPlatformSpec",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSPlatformSpec"
+        },
         "privateZone": {
           "$ref": "#/definitions/os_config_v1_DNSZone",
-          "existingJavaType": "io.fabric8.openshift.api.model.DNSZone"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSZone"
         },
         "publicZone": {
           "$ref": "#/definitions/os_config_v1_DNSZone",
-          "existingJavaType": "io.fabric8.openshift.api.model.DNSZone"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSZone"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.DNSSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -883,7 +972,7 @@
     "os_config_v1_DNSStatus": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.DNSStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -903,7 +992,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.DNSZone",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNSZone",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -911,7 +1000,7 @@
     "os_config_v1_EquinixMetalPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.EquinixMetalPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.EquinixMetalPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -927,7 +1016,34 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.EquinixMetalPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.EquinixMetalPlatformStatus",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_ExternalPlatformSpec": {
+      "type": "object",
+      "properties": {
+        "platformName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ExternalPlatformSpec",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_ExternalPlatformStatus": {
+      "type": "object",
+      "properties": {
+        "cloudControllerManager": {
+          "$ref": "#/definitions/os_config_v1_CloudControllerManagerStatus",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.CloudControllerManagerStatus"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ExternalPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -935,7 +1051,7 @@
     "os_config_v1_GCPPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.GCPPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.GCPPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -951,7 +1067,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.GCPPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.GCPPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -959,7 +1075,7 @@
     "os_config_v1_IBMCloudPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.IBMCloudPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.IBMCloudPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -968,6 +1084,9 @@
       "type": "object",
       "properties": {
         "cisInstanceCRN": {
+          "type": "string"
+        },
+        "dnsInstanceCRN": {
           "type": "string"
         },
         "location": {
@@ -981,7 +1100,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.IBMCloudPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.IBMCloudPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1005,15 +1124,15 @@
         },
         "spec": {
           "$ref": "#/definitions/os_config_v1_InfrastructureSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.InfrastructureSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.InfrastructureSpec"
         },
         "status": {
           "$ref": "#/definitions/os_config_v1_InfrastructureStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.InfrastructureStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.InfrastructureStatus"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.Infrastructure",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.Infrastructure",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.HasMetadata"
       ]
@@ -1023,15 +1142,15 @@
       "properties": {
         "cloudConfig": {
           "$ref": "#/definitions/os_config_v1_ConfigMapFileReference",
-          "existingJavaType": "io.fabric8.openshift.api.model.ConfigMapFileReference"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ConfigMapFileReference"
         },
         "platformSpec": {
           "$ref": "#/definitions/os_config_v1_PlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.PlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PlatformSpec"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.InfrastructureSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.InfrastructureSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1048,6 +1167,9 @@
         "controlPlaneTopology": {
           "type": "string"
         },
+        "cpuPartitioning": {
+          "type": "string"
+        },
         "etcdDiscoveryDomain": {
           "type": "string"
         },
@@ -1062,11 +1184,11 @@
         },
         "platformStatus": {
           "$ref": "#/definitions/os_config_v1_PlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.PlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PlatformStatus"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.InfrastructureStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.InfrastructureStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1074,7 +1196,7 @@
     "os_config_v1_IntermediateTLSProfile": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.IntermediateTLSProfile",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.IntermediateTLSProfile",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1082,7 +1204,7 @@
     "os_config_v1_KubevirtPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.KubevirtPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.KubevirtPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1098,7 +1220,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.KubevirtPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.KubevirtPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1106,7 +1228,106 @@
     "os_config_v1_ModernTLSProfile": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.ModernTLSProfile",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ModernTLSProfile",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_NutanixPlatformLoadBalancer": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPlatformLoadBalancer",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_NutanixPlatformSpec": {
+      "type": "object",
+      "properties": {
+        "prismCentral": {
+          "$ref": "#/definitions/os_config_v1_NutanixPrismEndpoint",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPrismEndpoint"
+        },
+        "prismElements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/os_config_v1_NutanixPrismElementEndpoint",
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPrismElementEndpoint"
+          }
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPlatformSpec",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_NutanixPlatformStatus": {
+      "type": "object",
+      "properties": {
+        "apiServerInternalIP": {
+          "type": "string"
+        },
+        "apiServerInternalIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ingressIP": {
+          "type": "string"
+        },
+        "ingressIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadBalancer": {
+          "$ref": "#/definitions/os_config_v1_NutanixPlatformLoadBalancer",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPlatformLoadBalancer"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPlatformStatus",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_NutanixPrismElementEndpoint": {
+      "type": "object",
+      "properties": {
+        "endpoint": {
+          "$ref": "#/definitions/os_config_v1_NutanixPrismEndpoint",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPrismEndpoint"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPrismElementEndpoint",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_NutanixPrismEndpoint": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "port": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPrismEndpoint",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1114,7 +1335,20 @@
     "os_config_v1_OldTLSProfile": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.OldTLSProfile",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OldTLSProfile",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_OpenStackPlatformLoadBalancer": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OpenStackPlatformLoadBalancer",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1122,7 +1356,7 @@
     "os_config_v1_OpenStackPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.OpenStackPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OpenStackPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1133,18 +1367,47 @@
         "apiServerInternalIP": {
           "type": "string"
         },
+        "apiServerInternalIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "cloudName": {
           "type": "string"
         },
         "ingressIP": {
           "type": "string"
         },
+        "ingressIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadBalancer": {
+          "$ref": "#/definitions/os_config_v1_OpenStackPlatformLoadBalancer",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OpenStackPlatformLoadBalancer"
+        },
         "nodeDNSIP": {
           "type": "string"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.OpenStackPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OpenStackPlatformStatus",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_OvirtPlatformLoadBalancer": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OvirtPlatformLoadBalancer",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1152,7 +1415,7 @@
     "os_config_v1_OvirtPlatformSpec": {
       "type": "object",
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.OvirtPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OvirtPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1163,15 +1426,31 @@
         "apiServerInternalIP": {
           "type": "string"
         },
+        "apiServerInternalIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "ingressIP": {
           "type": "string"
+        },
+        "ingressIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadBalancer": {
+          "$ref": "#/definitions/os_config_v1_OvirtPlatformLoadBalancer",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OvirtPlatformLoadBalancer"
         },
         "nodeDNSIP": {
           "type": "string"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.OvirtPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OvirtPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1181,58 +1460,66 @@
       "properties": {
         "alibabaCloud": {
           "$ref": "#/definitions/os_config_v1_AlibabaCloudPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.AlibabaCloudPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AlibabaCloudPlatformSpec"
         },
         "aws": {
           "$ref": "#/definitions/os_config_v1_AWSPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.AWSPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSPlatformSpec"
         },
         "azure": {
           "$ref": "#/definitions/os_config_v1_AzurePlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.AzurePlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AzurePlatformSpec"
         },
         "baremetal": {
           "$ref": "#/definitions/os_config_v1_BareMetalPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.BareMetalPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.BareMetalPlatformSpec"
         },
         "equinixMetal": {
           "$ref": "#/definitions/os_config_v1_EquinixMetalPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.EquinixMetalPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.EquinixMetalPlatformSpec"
+        },
+        "external": {
+          "$ref": "#/definitions/os_config_v1_ExternalPlatformSpec",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ExternalPlatformSpec"
         },
         "gcp": {
           "$ref": "#/definitions/os_config_v1_GCPPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.GCPPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.GCPPlatformSpec"
         },
         "ibmcloud": {
           "$ref": "#/definitions/os_config_v1_IBMCloudPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.IBMCloudPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.IBMCloudPlatformSpec"
         },
         "kubevirt": {
           "$ref": "#/definitions/os_config_v1_KubevirtPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.KubevirtPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.KubevirtPlatformSpec"
+        },
+        "nutanix": {
+          "$ref": "#/definitions/os_config_v1_NutanixPlatformSpec",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPlatformSpec"
         },
         "openstack": {
           "$ref": "#/definitions/os_config_v1_OpenStackPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.OpenStackPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OpenStackPlatformSpec"
         },
         "ovirt": {
           "$ref": "#/definitions/os_config_v1_OvirtPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.OvirtPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OvirtPlatformSpec"
         },
         "powervs": {
           "$ref": "#/definitions/os_config_v1_PowerVSPlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.PowerVSPlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSPlatformSpec"
         },
         "type": {
           "type": "string"
         },
         "vsphere": {
           "$ref": "#/definitions/os_config_v1_VSpherePlatformSpec",
-          "existingJavaType": "io.fabric8.openshift.api.model.VSpherePlatformSpec"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformSpec"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.PlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1242,58 +1529,66 @@
       "properties": {
         "alibabaCloud": {
           "$ref": "#/definitions/os_config_v1_AlibabaCloudPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.AlibabaCloudPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AlibabaCloudPlatformStatus"
         },
         "aws": {
           "$ref": "#/definitions/os_config_v1_AWSPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.AWSPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AWSPlatformStatus"
         },
         "azure": {
           "$ref": "#/definitions/os_config_v1_AzurePlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.AzurePlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.AzurePlatformStatus"
         },
         "baremetal": {
           "$ref": "#/definitions/os_config_v1_BareMetalPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.BareMetalPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.BareMetalPlatformStatus"
         },
         "equinixMetal": {
           "$ref": "#/definitions/os_config_v1_EquinixMetalPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.EquinixMetalPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.EquinixMetalPlatformStatus"
+        },
+        "external": {
+          "$ref": "#/definitions/os_config_v1_ExternalPlatformStatus",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ExternalPlatformStatus"
         },
         "gcp": {
           "$ref": "#/definitions/os_config_v1_GCPPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.GCPPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.GCPPlatformStatus"
         },
         "ibmcloud": {
           "$ref": "#/definitions/os_config_v1_IBMCloudPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.IBMCloudPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.IBMCloudPlatformStatus"
         },
         "kubevirt": {
           "$ref": "#/definitions/os_config_v1_KubevirtPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.KubevirtPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.KubevirtPlatformStatus"
+        },
+        "nutanix": {
+          "$ref": "#/definitions/os_config_v1_NutanixPlatformStatus",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.NutanixPlatformStatus"
         },
         "openstack": {
           "$ref": "#/definitions/os_config_v1_OpenStackPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.OpenStackPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OpenStackPlatformStatus"
         },
         "ovirt": {
           "$ref": "#/definitions/os_config_v1_OvirtPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.OvirtPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OvirtPlatformStatus"
         },
         "powervs": {
           "$ref": "#/definitions/os_config_v1_PowerVSPlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.PowerVSPlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSPlatformStatus"
         },
         "type": {
           "type": "string"
         },
         "vsphere": {
           "$ref": "#/definitions/os_config_v1_VSpherePlatformStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.VSpherePlatformStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformStatus"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.PlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1306,12 +1601,12 @@
           "javaOmitEmpty": true,
           "items": {
             "$ref": "#/definitions/os_config_v1_PowerVSServiceEndpoint",
-            "existingJavaType": "io.fabric8.openshift.api.model.PowerVSServiceEndpoint"
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSServiceEndpoint"
           }
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.PowerVSPlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSPlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1322,7 +1617,13 @@
         "cisInstanceCRN": {
           "type": "string"
         },
+        "dnsInstanceCRN": {
+          "type": "string"
+        },
         "region": {
+          "type": "string"
+        },
+        "resourceGroup": {
           "type": "string"
         },
         "serviceEndpoints": {
@@ -1330,7 +1631,7 @@
           "javaOmitEmpty": true,
           "items": {
             "$ref": "#/definitions/os_config_v1_PowerVSServiceEndpoint",
-            "existingJavaType": "io.fabric8.openshift.api.model.PowerVSServiceEndpoint"
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSServiceEndpoint"
           }
         },
         "zone": {
@@ -1338,7 +1639,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.PowerVSPlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSPlatformStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1354,7 +1655,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.PowerVSServiceEndpoint",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.PowerVSServiceEndpoint",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1373,7 +1674,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.ProxyStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ProxyStatus",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1392,7 +1693,7 @@
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.TLSProfileSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.TLSProfileSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1402,34 +1703,140 @@
       "properties": {
         "custom": {
           "$ref": "#/definitions/os_config_v1_CustomTLSProfile",
-          "existingJavaType": "io.fabric8.openshift.api.model.CustomTLSProfile"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.CustomTLSProfile"
         },
         "intermediate": {
           "$ref": "#/definitions/os_config_v1_IntermediateTLSProfile",
-          "existingJavaType": "io.fabric8.openshift.api.model.IntermediateTLSProfile"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.IntermediateTLSProfile"
         },
         "modern": {
           "$ref": "#/definitions/os_config_v1_ModernTLSProfile",
-          "existingJavaType": "io.fabric8.openshift.api.model.ModernTLSProfile"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ModernTLSProfile"
         },
         "old": {
           "$ref": "#/definitions/os_config_v1_OldTLSProfile",
-          "existingJavaType": "io.fabric8.openshift.api.model.OldTLSProfile"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.OldTLSProfile"
         },
         "type": {
           "type": "string"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.TLSSecurityProfile",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.TLSSecurityProfile",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_VSpherePlatformFailureDomainSpec": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "server": {
+          "type": "string"
+        },
+        "topology": {
+          "$ref": "#/definitions/os_config_v1_VSpherePlatformTopology",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformTopology"
+        },
+        "zone": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformFailureDomainSpec",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_VSpherePlatformLoadBalancer": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformLoadBalancer",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_VSpherePlatformNodeNetworking": {
+      "type": "object",
+      "properties": {
+        "external": {
+          "$ref": "#/definitions/os_config_v1_VSpherePlatformNodeNetworkingSpec",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformNodeNetworkingSpec"
+        },
+        "internal": {
+          "$ref": "#/definitions/os_config_v1_VSpherePlatformNodeNetworkingSpec",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformNodeNetworkingSpec"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformNodeNetworking",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_VSpherePlatformNodeNetworkingSpec": {
+      "type": "object",
+      "properties": {
+        "excludeNetworkSubnetCidr": {
+          "type": "array",
+          "javaOmitEmpty": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "network": {
+          "type": "string"
+        },
+        "networkSubnetCidr": {
+          "type": "array",
+          "javaOmitEmpty": true,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformNodeNetworkingSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
     },
     "os_config_v1_VSpherePlatformSpec": {
       "type": "object",
+      "properties": {
+        "failureDomains": {
+          "type": "array",
+          "javaOmitEmpty": true,
+          "items": {
+            "$ref": "#/definitions/os_config_v1_VSpherePlatformFailureDomainSpec",
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformFailureDomainSpec"
+          }
+        },
+        "nodeNetworking": {
+          "$ref": "#/definitions/os_config_v1_VSpherePlatformNodeNetworking",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformNodeNetworking"
+        },
+        "vcenters": {
+          "type": "array",
+          "javaOmitEmpty": true,
+          "items": {
+            "$ref": "#/definitions/os_config_v1_VSpherePlatformVCenterSpec",
+            "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformVCenterSpec"
+          }
+        }
+      },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.VSpherePlatformSpec",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1440,15 +1847,84 @@
         "apiServerInternalIP": {
           "type": "string"
         },
+        "apiServerInternalIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "ingressIP": {
           "type": "string"
+        },
+        "ingressIPs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "loadBalancer": {
+          "$ref": "#/definitions/os_config_v1_VSpherePlatformLoadBalancer",
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformLoadBalancer"
         },
         "nodeDNSIP": {
           "type": "string"
         }
       },
       "additionalProperties": true,
-      "existingJavaType": "io.fabric8.openshift.api.model.VSpherePlatformStatus",
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformStatus",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_VSpherePlatformTopology": {
+      "type": "object",
+      "properties": {
+        "computeCluster": {
+          "type": "string"
+        },
+        "datacenter": {
+          "type": "string"
+        },
+        "datastore": {
+          "type": "string"
+        },
+        "folder": {
+          "type": "string"
+        },
+        "networks": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resourcePool": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformTopology",
+      "javaInterfaces": [
+        "io.fabric8.kubernetes.api.model.KubernetesResource"
+      ]
+    },
+    "os_config_v1_VSpherePlatformVCenterSpec": {
+      "type": "object",
+      "properties": {
+        "datacenters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "port": {
+          "type": "integer"
+        },
+        "server": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "existingJavaType": "io.fabric8.openshift.api.model.config.v1.VSpherePlatformVCenterSpec",
       "javaInterfaces": [
         "io.fabric8.kubernetes.api.model.KubernetesResource"
       ]
@@ -1688,7 +2164,7 @@
         },
         "dns": {
           "$ref": "#/definitions/os_config_v1_DNS",
-          "existingJavaType": "io.fabric8.openshift.api.model.DNS"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.DNS"
         },
         "etcdDiscoveryDomain": {
           "type": "string"
@@ -1702,7 +2178,7 @@
         },
         "infra": {
           "$ref": "#/definitions/os_config_v1_Infrastructure",
-          "existingJavaType": "io.fabric8.openshift.api.model.Infrastructure"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.Infrastructure"
         },
         "ipFamilies": {
           "type": "string"
@@ -1721,7 +2197,7 @@
         },
         "proxy": {
           "$ref": "#/definitions/os_config_v1_ProxyStatus",
-          "existingJavaType": "io.fabric8.openshift.api.model.ProxyStatus"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.ProxyStatus"
         },
         "pullSecret": {
           "$ref": "#/definitions/kubernetes_core_ObjectReference",
@@ -1896,7 +2372,7 @@
         },
         "tlsSecurityProfile": {
           "$ref": "#/definitions/os_config_v1_TLSSecurityProfile",
-          "existingJavaType": "io.fabric8.openshift.api.model.TLSSecurityProfile"
+          "existingJavaType": "io.fabric8.openshift.api.model.config.v1.TLSSecurityProfile"
         }
       },
       "additionalProperties": true,
@@ -2236,7 +2712,7 @@
     },
     "BaseKubernetesList": {
       "$ref": "#/definitions/kubernetes_apimachinery_List",
-      "existingJavaType": "io.fabric8.kubernetes.api.model.BaseKubernetesList"
+      "existingJavaType": "io.fabric8.kubernetes.api.model.KubernetesList"
     },
     "ContainerRuntimeConfig": {
       "$ref": "#/definitions/os_machineconfig_v1_ContainerRuntimeConfig",

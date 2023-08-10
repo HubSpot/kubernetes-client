@@ -16,19 +16,22 @@
 package io.fabric8.knative.test.crud;
 
 import io.fabric8.knative.client.KnativeClient;
-import io.fabric8.knative.mock.EnableKnativeMockClient;
 import io.fabric8.knative.serving.v1.Service;
 import io.fabric8.knative.serving.v1.ServiceBuilder;
 import io.fabric8.knative.serving.v1.ServiceList;
 import io.fabric8.knative.serving.v1.ServiceStatusBuilder;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@EnableKnativeMockClient(crud = true)
+@EnableKubernetesMockClient(crud = true)
 class ServiceCrudTest {
 
-KnativeClient client;
+  KnativeClient client;
+
   @Test
   void shouldReturnEmptyList() {
 
@@ -51,13 +54,12 @@ KnativeClient client;
     assertEquals("service2", service.getMetadata().getName());
   }
 
-
   @Test
   void shouldIncludeServiceStatus() {
 
     Service service = new ServiceBuilder()
-      .withNewMetadata().withName("service").endMetadata()
-      .build();
+        .withNewMetadata().withName("service").endMetadata()
+        .build();
 
     Service created = client.services().inNamespace("ns2").create(service);
 
@@ -65,7 +67,7 @@ KnativeClient client;
     assertNotNull(serviceList);
     assertEquals(1, serviceList.getItems().size());
 
-    created.setStatus(new ServiceStatusBuilder().withNewAddress("http://my-service").build());
+    created.setStatus(new ServiceStatusBuilder().withNewAddress().withUrl("http://my-service").endAddress().build());
 
     assertNotNull(client.services().inNamespace("ns2").withName("service").updateStatus(created).getStatus());
   }
@@ -76,7 +78,7 @@ KnativeClient client;
     Service service3 = new ServiceBuilder().withNewMetadata().withName("service3").endMetadata().build();
 
     client.services().inNamespace("ns3").create(service3);
-    Boolean deleted = client.services().inNamespace("ns3").withName("service3").delete();
+    boolean deleted = client.services().inNamespace("ns3").withName("service3").delete().size() == 1;
     assertTrue(deleted);
   }
 }

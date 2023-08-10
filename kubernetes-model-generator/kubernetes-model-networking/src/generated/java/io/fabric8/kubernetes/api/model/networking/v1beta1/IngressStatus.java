@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.networking.v1beta1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,7 +15,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.LoadBalancerStatus;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectReference;
@@ -54,13 +54,14 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class IngressStatus implements KubernetesResource
 {
 
     @JsonProperty("loadBalancer")
-    private LoadBalancerStatus loadBalancer;
+    private IngressLoadBalancerStatus loadBalancer;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -69,22 +70,18 @@ public class IngressStatus implements KubernetesResource
     public IngressStatus() {
     }
 
-    /**
-     * 
-     * @param loadBalancer
-     */
-    public IngressStatus(LoadBalancerStatus loadBalancer) {
+    public IngressStatus(IngressLoadBalancerStatus loadBalancer) {
         super();
         this.loadBalancer = loadBalancer;
     }
 
     @JsonProperty("loadBalancer")
-    public LoadBalancerStatus getLoadBalancer() {
+    public IngressLoadBalancerStatus getLoadBalancer() {
         return loadBalancer;
     }
 
     @JsonProperty("loadBalancer")
-    public void setLoadBalancer(LoadBalancerStatus loadBalancer) {
+    public void setLoadBalancer(IngressLoadBalancerStatus loadBalancer) {
         this.loadBalancer = loadBalancer;
     }
 

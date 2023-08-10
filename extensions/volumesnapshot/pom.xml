@@ -22,17 +22,20 @@
   <parent>
     <artifactId>kubernetes-extensions</artifactId>
     <groupId>io.fabric8</groupId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>volumesnapshot</artifactId>
   <packaging>pom</packaging>
   <name>Fabric8 :: Volume Snapshot :: Extension</name>
 
+  <properties>
+    <jsonschema2pojo.targetPackage>io.fabric8.volumesnapshot.api.model</jsonschema2pojo.targetPackage>
+  </properties>
+
   <modules>
     <module>model</module>
     <module>client</module>
-    <module>mock</module>
     <module>examples</module>
     <module>tests</module>
   </modules>

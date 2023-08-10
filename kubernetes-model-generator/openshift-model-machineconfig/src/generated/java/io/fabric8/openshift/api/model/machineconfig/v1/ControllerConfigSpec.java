@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.machineconfig.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,9 +20,9 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.openshift.api.model.DNS;
-import io.fabric8.openshift.api.model.Infrastructure;
-import io.fabric8.openshift.api.model.ProxyStatus;
+import io.fabric8.openshift.api.model.config.v1.DNS;
+import io.fabric8.openshift.api.model.config.v1.Infrastructure;
+import io.fabric8.openshift.api.model.config.v1.ProxyStatus;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -71,6 +72,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ControllerConfigSpec implements KubernetesResource
 {
 
@@ -87,7 +89,8 @@ public class ControllerConfigSpec implements KubernetesResource
     @JsonProperty("etcdDiscoveryDomain")
     private java.lang.String etcdDiscoveryDomain;
     @JsonProperty("images")
-    private Map<String, String> images;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> images = new LinkedHashMap<String, String>();
     @JsonProperty("infra")
     private Infrastructure infra;
     @JsonProperty("ipFamilies")
@@ -109,7 +112,7 @@ public class ControllerConfigSpec implements KubernetesResource
     @JsonProperty("rootCAData")
     private java.lang.String rootCAData;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -118,26 +121,6 @@ public class ControllerConfigSpec implements KubernetesResource
     public ControllerConfigSpec() {
     }
 
-    /**
-     * 
-     * @param images
-     * @param cloudProviderConfig
-     * @param etcdDiscoveryDomain
-     * @param dns
-     * @param infra
-     * @param osImageURL
-     * @param platform
-     * @param clusterDNSIP
-     * @param ipFamilies
-     * @param proxy
-     * @param rootCAData
-     * @param releaseImage
-     * @param kubeAPIServerServingCAData
-     * @param additionalTrustBundle
-     * @param networkType
-     * @param pullSecret
-     * @param cloudProviderCAData
-     */
     public ControllerConfigSpec(java.lang.String additionalTrustBundle, java.lang.String cloudProviderCAData, java.lang.String cloudProviderConfig, java.lang.String clusterDNSIP, DNS dns, java.lang.String etcdDiscoveryDomain, Map<String, String> images, Infrastructure infra, java.lang.String ipFamilies, java.lang.String kubeAPIServerServingCAData, java.lang.String networkType, java.lang.String osImageURL, java.lang.String platform, ProxyStatus proxy, io.fabric8.kubernetes.api.model.ObjectReference pullSecret, java.lang.String releaseImage, java.lang.String rootCAData) {
         super();
         this.additionalTrustBundle = additionalTrustBundle;

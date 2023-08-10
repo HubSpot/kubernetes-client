@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @EnableKubernetesMockClient
@@ -37,11 +38,11 @@ class VolumeAttachmentTest {
 
   @Test
   void load() {
-    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-volumeattachment.yml")).get();
+    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-volumeattachment.yml")).items();
     assertThat(items).isNotNull();
     assertThat(items.get(0))
-      .isInstanceOf(VolumeAttachment.class)
-      .hasFieldOrPropertyWithValue("metadata.name", "test-volumeattachment");
+        .isInstanceOf(VolumeAttachment.class)
+        .hasFieldOrPropertyWithValue("metadata.name", "test-volumeattachment");
   }
 
   @Test
@@ -49,24 +50,25 @@ class VolumeAttachmentTest {
     // Given
     VolumeAttachment volumeAttachment = createNewVolumeAttachment("volumeattachment1");
     server.expect().post().withPath("/apis/storage.k8s.io/v1/volumeattachments")
-      .andReturn(HttpURLConnection.HTTP_CREATED, volumeAttachment)
-      .once();
+        .andReturn(HttpURLConnection.HTTP_CREATED, volumeAttachment)
+        .once();
 
     // When
     VolumeAttachment createdCsiDriver = client.storage().volumeAttachments().create(volumeAttachment);
 
     // Then
     assertThat(createdCsiDriver)
-      .isNotNull()
-      .hasFieldOrPropertyWithValue("metadata.name", "volumeattachment1");
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("metadata.name", "volumeattachment1");
   }
 
   @Test
   void list() {
     // Given
     server.expect().get().withPath("/apis/storage.k8s.io/v1/volumeattachments")
-      .andReturn(HttpURLConnection.HTTP_OK, new VolumeAttachmentListBuilder().addToItems(createNewVolumeAttachment("va1")).build())
-      .once();
+        .andReturn(HttpURLConnection.HTTP_OK,
+            new VolumeAttachmentListBuilder().addToItems(createNewVolumeAttachment("va1")).build())
+        .once();
 
     // When
     VolumeAttachmentList volumeAttachmentList = client.storage().volumeAttachments().list();
@@ -80,26 +82,26 @@ class VolumeAttachmentTest {
   void delete() {
     // Given
     server.expect().delete().withPath("/apis/storage.k8s.io/v1/volumeattachments/va1")
-      .andReturn(HttpURLConnection.HTTP_CREATED, createNewVolumeAttachment("va1"))
-      .once();
+        .andReturn(HttpURLConnection.HTTP_CREATED, createNewVolumeAttachment("va1"))
+        .once();
 
     // When
-    Boolean isDeleted = client.storage().volumeAttachments().withName("va1").delete();
+    boolean isDeleted = client.storage().volumeAttachments().withName("va1").delete().size() == 1;
 
     // Then
     assertThat(isDeleted).isTrue();
   }
 
-  private VolumeAttachment createNewVolumeAttachment(String name){
+  private VolumeAttachment createNewVolumeAttachment(String name) {
     return new VolumeAttachmentBuilder()
-      .withNewMetadata().withName(name).endMetadata()
-      .withNewSpec()
-      .withAttacher("volumedriver1")
-      .withNodeName("minikube")
-      .withNewSource()
-      .withPersistentVolumeName("pv1")
-      .endSource()
-      .endSpec()
-      .build();
+        .withNewMetadata().withName(name).endMetadata()
+        .withNewSpec()
+        .withAttacher("volumedriver1")
+        .withNodeName("minikube")
+        .withNewSource()
+        .withPersistentVolumeName("pv1")
+        .endSource()
+        .endSpec()
+        .build();
   }
 }

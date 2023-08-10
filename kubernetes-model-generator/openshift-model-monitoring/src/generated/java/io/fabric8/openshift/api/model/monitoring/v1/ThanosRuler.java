@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.monitoring.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,11 +59,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("monitoring.coreos.com")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "monitoring.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class ThanosRuler implements HasMetadata, Namespaced
 {
 
@@ -87,7 +89,7 @@ public class ThanosRuler implements HasMetadata, Namespaced
     @JsonProperty("status")
     private ThanosRulerStatus status;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -96,14 +98,6 @@ public class ThanosRuler implements HasMetadata, Namespaced
     public ThanosRuler() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param spec
-     * @param status
-     */
     public ThanosRuler(String apiVersion, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, ThanosRulerSpec spec, ThanosRulerStatus status) {
         super();
         this.apiVersion = apiVersion;

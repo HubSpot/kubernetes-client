@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.operator.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,8 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "policy",
+    "protocolStrategy",
+    "transportConfig",
     "upstreams"
 })
 @ToString
@@ -56,15 +59,21 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ForwardPlugin implements KubernetesResource
 {
 
     @JsonProperty("policy")
     private String policy;
+    @JsonProperty("protocolStrategy")
+    private String protocolStrategy;
+    @JsonProperty("transportConfig")
+    private DNSTransportConfig transportConfig;
     @JsonProperty("upstreams")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> upstreams = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -73,14 +82,11 @@ public class ForwardPlugin implements KubernetesResource
     public ForwardPlugin() {
     }
 
-    /**
-     * 
-     * @param upstreams
-     * @param policy
-     */
-    public ForwardPlugin(String policy, List<String> upstreams) {
+    public ForwardPlugin(String policy, String protocolStrategy, DNSTransportConfig transportConfig, List<String> upstreams) {
         super();
         this.policy = policy;
+        this.protocolStrategy = protocolStrategy;
+        this.transportConfig = transportConfig;
         this.upstreams = upstreams;
     }
 
@@ -92,6 +98,26 @@ public class ForwardPlugin implements KubernetesResource
     @JsonProperty("policy")
     public void setPolicy(String policy) {
         this.policy = policy;
+    }
+
+    @JsonProperty("protocolStrategy")
+    public String getProtocolStrategy() {
+        return protocolStrategy;
+    }
+
+    @JsonProperty("protocolStrategy")
+    public void setProtocolStrategy(String protocolStrategy) {
+        this.protocolStrategy = protocolStrategy;
+    }
+
+    @JsonProperty("transportConfig")
+    public DNSTransportConfig getTransportConfig() {
+        return transportConfig;
+    }
+
+    @JsonProperty("transportConfig")
+    public void setTransportConfig(DNSTransportConfig transportConfig) {
+        this.transportConfig = transportConfig;
     }
 
     @JsonProperty("upstreams")

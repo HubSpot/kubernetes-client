@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.ovirt.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,6 +23,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.openshift.api.model.config.v1.OvirtPlatformLoadBalancer;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -37,8 +39,11 @@ import lombok.experimental.Accessors;
     "metadata",
     "affinityGroups",
     "api_vip",
+    "api_vips",
     "defaultMachinePlatform",
     "ingress_vip",
+    "ingress_vips",
+    "loadBalancer",
     "ovirt_cluster_id",
     "ovirt_network_name",
     "ovirt_storage_domain_id",
@@ -62,17 +67,27 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Platform implements KubernetesResource
 {
 
     @JsonProperty("affinityGroups")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<AffinityGroup> affinityGroups = new ArrayList<AffinityGroup>();
     @JsonProperty("api_vip")
     private String apiVip;
+    @JsonProperty("api_vips")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<String> apiVips = new ArrayList<String>();
     @JsonProperty("defaultMachinePlatform")
     private MachinePool defaultMachinePlatform;
     @JsonProperty("ingress_vip")
     private String ingressVip;
+    @JsonProperty("ingress_vips")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<String> ingressVips = new ArrayList<String>();
+    @JsonProperty("loadBalancer")
+    private OvirtPlatformLoadBalancer loadBalancer;
     @JsonProperty("ovirt_cluster_id")
     private String ovirtClusterId;
     @JsonProperty("ovirt_network_name")
@@ -82,7 +97,7 @@ public class Platform implements KubernetesResource
     @JsonProperty("vnicProfileID")
     private String vnicProfileID;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -91,23 +106,15 @@ public class Platform implements KubernetesResource
     public Platform() {
     }
 
-    /**
-     * 
-     * @param ovirtStorageDomainId
-     * @param vnicProfileID
-     * @param apiVip
-     * @param ingressVip
-     * @param defaultMachinePlatform
-     * @param ovirtNetworkName
-     * @param ovirtClusterId
-     * @param affinityGroups
-     */
-    public Platform(List<AffinityGroup> affinityGroups, String apiVip, MachinePool defaultMachinePlatform, String ingressVip, String ovirtClusterId, String ovirtNetworkName, String ovirtStorageDomainId, String vnicProfileID) {
+    public Platform(List<AffinityGroup> affinityGroups, String apiVip, List<String> apiVips, MachinePool defaultMachinePlatform, String ingressVip, List<String> ingressVips, OvirtPlatformLoadBalancer loadBalancer, String ovirtClusterId, String ovirtNetworkName, String ovirtStorageDomainId, String vnicProfileID) {
         super();
         this.affinityGroups = affinityGroups;
         this.apiVip = apiVip;
+        this.apiVips = apiVips;
         this.defaultMachinePlatform = defaultMachinePlatform;
         this.ingressVip = ingressVip;
+        this.ingressVips = ingressVips;
+        this.loadBalancer = loadBalancer;
         this.ovirtClusterId = ovirtClusterId;
         this.ovirtNetworkName = ovirtNetworkName;
         this.ovirtStorageDomainId = ovirtStorageDomainId;
@@ -134,6 +141,16 @@ public class Platform implements KubernetesResource
         this.apiVip = apiVip;
     }
 
+    @JsonProperty("api_vips")
+    public List<String> getApiVips() {
+        return apiVips;
+    }
+
+    @JsonProperty("api_vips")
+    public void setApiVips(List<String> apiVips) {
+        this.apiVips = apiVips;
+    }
+
     @JsonProperty("defaultMachinePlatform")
     public MachinePool getDefaultMachinePlatform() {
         return defaultMachinePlatform;
@@ -152,6 +169,26 @@ public class Platform implements KubernetesResource
     @JsonProperty("ingress_vip")
     public void setIngressVip(String ingressVip) {
         this.ingressVip = ingressVip;
+    }
+
+    @JsonProperty("ingress_vips")
+    public List<String> getIngressVips() {
+        return ingressVips;
+    }
+
+    @JsonProperty("ingress_vips")
+    public void setIngressVips(List<String> ingressVips) {
+        this.ingressVips = ingressVips;
+    }
+
+    @JsonProperty("loadBalancer")
+    public OvirtPlatformLoadBalancer getLoadBalancer() {
+        return loadBalancer;
+    }
+
+    @JsonProperty("loadBalancer")
+    public void setLoadBalancer(OvirtPlatformLoadBalancer loadBalancer) {
+        this.loadBalancer = loadBalancer;
     }
 
     @JsonProperty("ovirt_cluster_id")

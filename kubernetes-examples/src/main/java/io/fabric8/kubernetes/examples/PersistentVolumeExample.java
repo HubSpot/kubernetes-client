@@ -21,8 +21,8 @@ import io.fabric8.kubernetes.api.model.PersistentVolume;
 import io.fabric8.kubernetes.api.model.PersistentVolumeBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,34 +38,33 @@ public class PersistentVolumeExample {
       configBuilder.withMasterUrl(args[0]);
       logger.info("Using master with URL: {}", args[0]);
     }
-    try (KubernetesClient client = new DefaultKubernetesClient(configBuilder.build())) {
+    try (KubernetesClient client = new KubernetesClientBuilder().withConfig(configBuilder.build()).build()) {
       logger.info("Creating persistent volume object");
       PersistentVolume pv = new PersistentVolumeBuilder()
-        .withNewMetadata().withName("example-local-pv").endMetadata()
-        .withNewSpec()
-        .addToCapacity(Collections.singletonMap("storage", new Quantity("500Gi")))
-        .withAccessModes("ReadWriteOnce")
-        .withPersistentVolumeReclaimPolicy("Retain")
-        .withStorageClassName("local-storage")
-        .withNewLocal()
-        .withPath("/mnt/disks/vol1")
-        .endLocal()
-        .withNewNodeAffinity()
-        .withNewRequired()
-        .addNewNodeSelectorTerm()
-        .withMatchExpressions(Collections.singletonList(new NodeSelectorRequirementBuilder()
-          .withKey("kubernetes.io/hostname")
-          .withOperator("In")
-          .withValues("my-node")
-          .build()
-          ))
-        .endNodeSelectorTerm()
-        .endRequired()
-        .endNodeAffinity()
-        .endSpec()
-        .build();
+          .withNewMetadata().withName("example-local-pv").endMetadata()
+          .withNewSpec()
+          .addToCapacity(Collections.singletonMap("storage", new Quantity("500Gi")))
+          .withAccessModes("ReadWriteOnce")
+          .withPersistentVolumeReclaimPolicy("Retain")
+          .withStorageClassName("local-storage")
+          .withNewLocal()
+          .withPath("/mnt/disks/vol1")
+          .endLocal()
+          .withNewNodeAffinity()
+          .withNewRequired()
+          .addNewNodeSelectorTerm()
+          .withMatchExpressions(Collections.singletonList(new NodeSelectorRequirementBuilder()
+              .withKey("kubernetes.io/hostname")
+              .withOperator("In")
+              .withValues("my-node")
+              .build()))
+          .endNodeSelectorTerm()
+          .endRequired()
+          .endNodeAffinity()
+          .endSpec()
+          .build();
 
-      client.persistentVolumes().create(pv);
+      client.persistentVolumes().resource(pv).create();
       logger.info("Successfully created Persistent Volume object");
     } catch (KubernetesClientException e) {
       logger.error("Could not create resource: {}", e.getMessage(), e);

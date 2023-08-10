@@ -16,11 +16,11 @@
 
 package io.fabric8.openshift.examples;
 
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigList;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftAPIGroups;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.openshift.client.dsl.DeployableScalableResource;
@@ -43,10 +43,8 @@ public class DeploymentConfigScale {
       System.out.println("Could not parse integer " + replicaText + " due to: " + e);
       return;
     }
-    try {
+    try (OpenShiftClient client = new KubernetesClientBuilder().build().adapt(OpenShiftClient.class)) {
       Integer oldReplicas = 0;
-
-      OpenShiftClient client = new DefaultOpenShiftClient();
       if (!client.supportsOpenShiftAPIGroup(OpenShiftAPIGroups.APPS)) {
         System.out.println("WARNING this cluster does not support the API Group " + OpenShiftAPIGroups.APPS);
         return;
@@ -62,18 +60,18 @@ public class DeploymentConfigScale {
         oldReplicas = spec.getReplicas();
         spec.setReplicas(replicas);
         DeploymentConfig updated = resource.patch(deploymentConfig);
-        System.out.println("Updated the DeploymentConfig " + name + " version: " + deploymentConfig.getApiVersion() + " with replicas: " + replicas + " to resourceVersion: " + updated.getMetadata().getResourceVersion());
+        System.out.println("Updated the DeploymentConfig " + name + " version: " + deploymentConfig.getApiVersion()
+            + " with replicas: " + replicas + " to resourceVersion: " + updated.getMetadata().getResourceVersion());
       } catch (Exception e) {
         System.out.println("Failed to update the DeploymentConfig " + name + " with replicas: " + replicas);
         e.printStackTrace();
       }
 
-
       // now lets find the DC via list
       DeploymentConfigList list = Objects.requireNonNull(client.deploymentConfigs().list(),
-        "No DeploymentConfigList returned");
+          "No DeploymentConfigList returned");
       List<DeploymentConfig> items = Objects.requireNonNull(list.getItems(),
-        "No DeploymentConfigList.getItems() returned");
+          "No DeploymentConfigList.getItems() returned");
 
       DeploymentConfig found = null;
       for (DeploymentConfig item : items) {
@@ -87,7 +85,8 @@ public class DeploymentConfigScale {
 
       try {
         DeploymentConfig updated = resource.patch(found);
-        System.out.println("Updated the list.item DeploymentConfig " + name + " version: " + found.getApiVersion() + " with replicas: " + oldReplicas + " to resourceVersion: " + updated.getMetadata().getResourceVersion());
+        System.out.println("Updated the list.item DeploymentConfig " + name + " version: " + found.getApiVersion()
+            + " with replicas: " + oldReplicas + " to resourceVersion: " + updated.getMetadata().getResourceVersion());
       } catch (Exception e) {
         System.out.println("Failed to update the list.item DeploymentConfig " + name + " with replicas: " + oldReplicas);
         e.printStackTrace();

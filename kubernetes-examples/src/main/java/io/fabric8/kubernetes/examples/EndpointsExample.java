@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,27 +37,30 @@ public class EndpointsExample {
   private static final String NAMESPACE = "endpoints-example";
 
   public static void main(String[] args) {
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
-      Namespace ns = new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).addToLabels("this", "rocks").endMetadata().build();
-      logger.info("Created namespace: {}", client.namespaces().createOrReplace(ns));
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
+      Namespace ns = new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).addToLabels("this", "rocks").endMetadata()
+          .build();
+      logger.info("Created namespace: {}", client.namespaces().resource(ns).createOrReplace());
       try {
         logger.info("Namespace: {}", ns);
-        Deployment deployment = client.apps().deployments().inNamespace(NAMESPACE).load(EndpointsExample.class.getResourceAsStream("/endpoints-deployment.yml")).get();
+        Deployment deployment = client.apps().deployments().inNamespace(NAMESPACE)
+            .load(EndpointsExample.class.getResourceAsStream("/endpoints-deployment.yml")).item();
         logger.info("Deployment created");
-        client.apps().deployments().inNamespace(NAMESPACE).create(deployment);
+        client.apps().deployments().inNamespace(NAMESPACE).resource(deployment).create();
 
-        Service service = client.services().inNamespace(NAMESPACE).load(EndpointsExample.class.getResourceAsStream("/endpoints-service.yml")).get();
+        Service service = client.services().inNamespace(NAMESPACE)
+            .load(EndpointsExample.class.getResourceAsStream("/endpoints-service.yml")).item();
         logger.info("Service created");
-        client.services().inNamespace(NAMESPACE).create(service);
+        client.services().inNamespace(NAMESPACE).resource(service).create();
 
         Endpoints endpoints = new EndpointsBuilder()
-          .withNewMetadata().withName("external-web").withNamespace(NAMESPACE).endMetadata()
-          .withSubsets().addNewSubset().addNewAddress().withIp("10.10.50.53").endAddress()
-          .addNewPort().withPort(80).withName("apache").endPort()
-          .endSubset()
-          .build();
+            .withNewMetadata().withName("external-web").withNamespace(NAMESPACE).endMetadata()
+            .withSubsets().addNewSubset().addNewAddress().withIp("10.10.50.53").endAddress()
+            .addNewPort().withPort(80).withName("apache").endPort()
+            .endSubset()
+            .build();
         logger.info("Endpoint created");
-        client.endpoints().inNamespace(NAMESPACE).create(endpoints);
+        client.endpoints().inNamespace(NAMESPACE).resource(endpoints).create();
         logger.info("Endpoint url");
         endpoints = client.endpoints().inNamespace(NAMESPACE).withName("external-web").get();
         logger.info("Endpoint Port {}", endpoints.getSubsets().get(0).getPorts().get(0).getName());

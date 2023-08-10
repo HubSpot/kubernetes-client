@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.scheduling.v1beta1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -59,11 +60,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1beta1")
 @Group("scheduling.k8s.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "scheduling.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class PriorityClass implements HasMetadata
 {
 
@@ -92,7 +94,7 @@ public class PriorityClass implements HasMetadata
     @JsonProperty("value")
     private Integer value;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -101,16 +103,6 @@ public class PriorityClass implements HasMetadata
     public PriorityClass() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param globalDefault
-     * @param description
-     * @param value
-     * @param preemptionPolicy
-     */
     public PriorityClass(String apiVersion, String description, Boolean globalDefault, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, String preemptionPolicy, Integer value) {
         super();
         this.apiVersion = apiVersion;

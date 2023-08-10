@@ -16,18 +16,12 @@
 package io.fabric8.verticalpodautoscaler.client;
 
 import io.fabric8.kubernetes.client.Client;
-import io.fabric8.kubernetes.client.ExtensionAdapter;
-import io.fabric8.kubernetes.client.ExtensionAdapterSupport;
+import io.fabric8.kubernetes.client.extension.ExtensionAdapter;
+import io.fabric8.verticalpodautoscaler.client.dsl.V1APIGroupDSL;
 
-import java.net.URL;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+public class VerticalPodAutoscalerExtensionAdapter implements ExtensionAdapter<VerticalPodAutoscalerClient> {
 
-public class VerticalPodAutoscalerExtensionAdapter extends ExtensionAdapterSupport implements ExtensionAdapter<VerticalPodAutoscalerClient> {
-
-  static final ConcurrentMap<URL, Boolean> IS_VOLUME_SNAPSHOT = new ConcurrentHashMap<>();
-  static final ConcurrentMap<URL, Boolean> USES_VOLUME_SNAPSHOT_APIGROUPS = new ConcurrentHashMap<>();
-  public static final String API_GROUP = "cert-manager.io";
+  public static final String API_GROUP = "autoscaling.k8s.io";
 
   @Override
   public Class<VerticalPodAutoscalerClient> getExtensionType() {
@@ -35,12 +29,13 @@ public class VerticalPodAutoscalerExtensionAdapter extends ExtensionAdapterSuppo
   }
 
   @Override
-  public Boolean isAdaptable(Client client) {
-    return isAdaptable(client, IS_VOLUME_SNAPSHOT, USES_VOLUME_SNAPSHOT_APIGROUPS, API_GROUP);
-  }
-
-  @Override
   public VerticalPodAutoscalerClient adapt(Client client) {
     return new DefaultVerticalPodAutoscalerClient(client);
   }
+
+  @Override
+  public void registerClients(ClientFactory factory) {
+    factory.register(V1APIGroupDSL.class, new V1APIGroupClient());
+  }
+
 }

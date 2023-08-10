@@ -20,11 +20,11 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.impl.BaseClient;
 import io.fabric8.kubernetes.client.mock.crd.EntandoBundleRelease;
 import io.fabric8.kubernetes.client.mock.crd.EntandoBundleReleaseList;
 import io.fabric8.kubernetes.client.mock.crd.EntandoBundleReleaseSpec;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -33,15 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @EnableKubernetesMockClient(crud = true)
 class CustomResourceCrudWithCRDContextTest {
 
-
   KubernetesClient client;
 
   @Test
   void testCreateAndGet() {
     // Given
-    KubernetesDeserializer.registerCustomKind("demo.fabric8.io/v1alpha1", "EntandoBundleRelease", EntandoBundleRelease.class);
+    client.getKubernetesSerialization().registerKubernetesResource("demo.fabric8.io/v1alpha1",
+        "EntandoBundleRelease", EntandoBundleRelease.class);
     MixedOperation<EntandoBundleRelease, EntandoBundleReleaseList, Resource<EntandoBundleRelease>> ebrClient = client
-      .customResources(EntandoBundleRelease.class, EntandoBundleReleaseList.class);
+        .resources(EntandoBundleRelease.class, EntandoBundleReleaseList.class);
 
     // When
     ebrClient.inNamespace("ns1").create(getMockedEntandoBundleRelease());
@@ -55,8 +55,10 @@ class CustomResourceCrudWithCRDContextTest {
   @Test
   void testCreateAndGetWithInferredContext() {
     // Given
-    KubernetesDeserializer.registerCustomKind("demo.fabric8.io/v1alpha1", "EntandoBundleRelease", EntandoBundleRelease.class);
-    MixedOperation<EntandoBundleRelease, KubernetesResourceList<EntandoBundleRelease>, Resource<EntandoBundleRelease>> ebrClient = client.customResources(EntandoBundleRelease.class);
+    client.adapt(BaseClient.class).getKubernetesSerialization().registerKubernetesResource("demo.fabric8.io/v1alpha1",
+        "EntandoBundleRelease", EntandoBundleRelease.class);
+    MixedOperation<EntandoBundleRelease, KubernetesResourceList<EntandoBundleRelease>, Resource<EntandoBundleRelease>> ebrClient = client
+        .resources(EntandoBundleRelease.class);
 
     // When
     ebrClient.inNamespace("ns1").create(getMockedEntandoBundleRelease());
@@ -67,14 +69,13 @@ class CustomResourceCrudWithCRDContextTest {
     assertEquals("ebr1", ebr1.getMetadata().getName());
   }
 
-
   private EntandoBundleRelease getMockedEntandoBundleRelease() {
     EntandoBundleReleaseSpec entandoBundleReleaseSpec = new EntandoBundleReleaseSpec();
     entandoBundleReleaseSpec.setDatabaseType("MySQL");
     EntandoBundleRelease entandoBundleRelease = new EntandoBundleRelease();
     entandoBundleRelease.setMetadata(new ObjectMetaBuilder()
-      .withName("ebr1")
-      .build());
+        .withName("ebr1")
+        .build());
     entandoBundleRelease.setSpec(entandoBundleReleaseSpec);
     return entandoBundleRelease;
   }

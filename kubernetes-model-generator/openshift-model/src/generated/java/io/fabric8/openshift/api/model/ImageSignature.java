@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,6 +26,8 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import io.sundr.transform.annotations.TemplateTransformation;
+import io.sundr.transform.annotations.TemplateTransformations;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -63,8 +66,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("image.openshift.io")
+@Generated("jsonschema2pojo")
 public class ImageSignature implements HasMetadata
 {
 
@@ -98,11 +105,12 @@ public class ImageSignature implements HasMetadata
     @JsonProperty("metadata")
     private io.fabric8.kubernetes.api.model.ObjectMeta metadata;
     @JsonProperty("signedClaims")
-    private Map<String, String> signedClaims;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> signedClaims = new LinkedHashMap<String, String>();
     @JsonProperty("type")
     private java.lang.String type;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -111,20 +119,6 @@ public class ImageSignature implements HasMetadata
     public ImageSignature() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param issuedTo
-     * @param created
-     * @param kind
-     * @param issuedBy
-     * @param signedClaims
-     * @param conditions
-     * @param type
-     * @param content
-     * @param imageIdentity
-     */
     public ImageSignature(java.lang.String apiVersion, List<SignatureCondition> conditions, java.lang.String content, String created, java.lang.String imageIdentity, SignatureIssuer issuedBy, SignatureSubject issuedTo, java.lang.String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, Map<String, String> signedClaims, java.lang.String type) {
         super();
         this.apiVersion = apiVersion;

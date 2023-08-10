@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,7 @@ import lombok.experimental.Accessors;
     "podIPs",
     "qosClass",
     "reason",
+    "resize",
     "startTime"
 })
 @ToString
@@ -46,6 +48,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class PodStatus implements KubernetesResource
 {
 
@@ -78,10 +81,12 @@ public class PodStatus implements KubernetesResource
     private java.lang.String qosClass;
     @JsonProperty("reason")
     private java.lang.String reason;
+    @JsonProperty("resize")
+    private java.lang.String resize;
     @JsonProperty("startTime")
     private String startTime;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -90,23 +95,7 @@ public class PodStatus implements KubernetesResource
     public PodStatus() {
     }
 
-    /**
-     * 
-     * @param phase
-     * @param reason
-     * @param containerStatuses
-     * @param hostIP
-     * @param nominatedNodeName
-     * @param message
-     * @param podIPs
-     * @param podIP
-     * @param ephemeralContainerStatuses
-     * @param startTime
-     * @param qosClass
-     * @param conditions
-     * @param initContainerStatuses
-     */
-    public PodStatus(List<PodCondition> conditions, List<ContainerStatus> containerStatuses, List<ContainerStatus> ephemeralContainerStatuses, java.lang.String hostIP, List<ContainerStatus> initContainerStatuses, java.lang.String message, java.lang.String nominatedNodeName, java.lang.String phase, java.lang.String podIP, List<PodIP> podIPs, java.lang.String qosClass, java.lang.String reason, String startTime) {
+    public PodStatus(List<PodCondition> conditions, List<ContainerStatus> containerStatuses, List<ContainerStatus> ephemeralContainerStatuses, java.lang.String hostIP, List<ContainerStatus> initContainerStatuses, java.lang.String message, java.lang.String nominatedNodeName, java.lang.String phase, java.lang.String podIP, List<PodIP> podIPs, java.lang.String qosClass, java.lang.String reason, java.lang.String resize, String startTime) {
         super();
         this.conditions = conditions;
         this.containerStatuses = containerStatuses;
@@ -120,6 +109,7 @@ public class PodStatus implements KubernetesResource
         this.podIPs = podIPs;
         this.qosClass = qosClass;
         this.reason = reason;
+        this.resize = resize;
         this.startTime = startTime;
     }
 
@@ -241,6 +231,16 @@ public class PodStatus implements KubernetesResource
     @JsonProperty("reason")
     public void setReason(java.lang.String reason) {
         this.reason = reason;
+    }
+
+    @JsonProperty("resize")
+    public java.lang.String getResize() {
+        return resize;
+    }
+
+    @JsonProperty("resize")
+    public void setResize(java.lang.String resize) {
+        this.resize = resize;
     }
 
     @JsonProperty("startTime")

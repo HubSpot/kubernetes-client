@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.machineconfig.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,7 +20,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.openshift.api.model.TLSSecurityProfile;
+import io.fabric8.openshift.api.model.config.v1.TLSSecurityProfile;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -57,13 +58,15 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class KubeletConfigSpec implements KubernetesResource
 {
 
     @JsonProperty("autoSizingReserved")
     private Boolean autoSizingReserved;
     @JsonProperty("kubeletConfig")
-    private Map<String, Object> kubeletConfig;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Object> kubeletConfig = new LinkedHashMap<String, Object>();
     @JsonProperty("logLevel")
     private Integer logLevel;
     @JsonProperty("machineConfigPoolSelector")
@@ -71,7 +74,7 @@ public class KubeletConfigSpec implements KubernetesResource
     @JsonProperty("tlsSecurityProfile")
     private TLSSecurityProfile tlsSecurityProfile;
     @JsonIgnore
-    private Map<java.lang.String, java.lang.Object> additionalProperties = new HashMap<java.lang.String, java.lang.Object>();
+    private Map<java.lang.String, java.lang.Object> additionalProperties = new LinkedHashMap<java.lang.String, java.lang.Object>();
 
     /**
      * No args constructor for use in serialization
@@ -80,14 +83,6 @@ public class KubeletConfigSpec implements KubernetesResource
     public KubeletConfigSpec() {
     }
 
-    /**
-     * 
-     * @param logLevel
-     * @param autoSizingReserved
-     * @param kubeletConfig
-     * @param tlsSecurityProfile
-     * @param machineConfigPoolSelector
-     */
     public KubeletConfigSpec(Boolean autoSizingReserved, Map<String, Object> kubeletConfig, Integer logLevel, io.fabric8.kubernetes.api.model.LabelSelector machineConfigPoolSelector, TLSSecurityProfile tlsSecurityProfile) {
         super();
         this.autoSizingReserved = autoSizingReserved;

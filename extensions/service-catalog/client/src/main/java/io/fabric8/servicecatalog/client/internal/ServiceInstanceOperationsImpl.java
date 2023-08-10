@@ -15,50 +15,35 @@
  */
 package io.fabric8.servicecatalog.client.internal;
 
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
-import io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
-import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
+import io.fabric8.kubernetes.client.extension.ExtensibleResourceAdapter;
 import io.fabric8.servicecatalog.api.model.ServiceBinding;
 import io.fabric8.servicecatalog.api.model.ServiceBindingBuilder;
 import io.fabric8.servicecatalog.api.model.ServiceInstance;
-import io.fabric8.servicecatalog.api.model.ServiceInstanceList;
+import io.fabric8.servicecatalog.client.ServiceCatalogClient;
+import io.fabric8.servicecatalog.client.dsl.ServiceInstanceResource;
 
-public class ServiceInstanceOperationsImpl extends HasMetadataOperation<ServiceInstance, ServiceInstanceList, ServiceInstanceResource> implements ServiceInstanceResource {
+public class ServiceInstanceOperationsImpl extends ExtensibleResourceAdapter<ServiceInstance>
+    implements ServiceInstanceResource {
 
-    public ServiceInstanceOperationsImpl(ClientContext clientContext) {
-        this(HasMetadataOperationsImpl.defaultContext(clientContext));
-    }
+  @Override
+  public ExtensibleResourceAdapter<ServiceInstance> newInstance() {
+    return new ServiceInstanceOperationsImpl();
+  }
 
-    public ServiceInstanceOperationsImpl(OperationContext ctx) {
-        super(ctx.withApiGroupName("servicecatalog.k8s.io").withApiGroupVersion("v1beta1").withPlural("serviceinstances"),
-                ServiceInstance.class, ServiceInstanceList.class);
-    }
-
-    @Override
-    public BaseOperation<ServiceInstance, ServiceInstanceList, ServiceInstanceResource> newInstance(OperationContext context) {
-        return new ServiceInstanceOperationsImpl(context);
-    }
-
-    @Override
-    public boolean isResourceNamespaced() {
-        return true;
-    }
-
-    @Override
-    public ServiceBinding bind(String secretName) {
-        ServiceInstance item = get();
-        return new ServiceBindingOperationsImpl(context.withItem(null))
-            .create(new ServiceBindingBuilder()
-                .withNewMetadata()
-                    .withName(item.getMetadata().getName())
-                .endMetadata()
-                .withNewSpec()
-                    .withSecretName(secretName)
-                    .withNewInstanceRef(item.getMetadata().getName())
-                .endSpec()
-                    .build());
-    }
+  @Override
+  public ServiceBinding bind(String secretName) {
+    ServiceInstance item = get();
+    return client.adapt(ServiceCatalogClient.class)
+        .serviceBindings().create(new ServiceBindingBuilder()
+            .withNewMetadata()
+            .withName(item.getMetadata().getName())
+            .withNamespace(item.getMetadata().getNamespace())
+            .endMetadata()
+            .withNewSpec()
+            .withSecretName(secretName)
+            .withNewInstanceRef(item.getMetadata().getName())
+            .endSpec()
+            .build());
+  }
 
 }

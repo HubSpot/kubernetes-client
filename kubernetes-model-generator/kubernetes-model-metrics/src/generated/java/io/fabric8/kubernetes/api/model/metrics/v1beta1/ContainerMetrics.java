@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.metrics.v1beta1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -55,15 +56,17 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ContainerMetrics implements KubernetesResource
 {
 
     @JsonProperty("name")
     private java.lang.String name;
     @JsonProperty("usage")
-    private Map<String, Quantity> usage;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Quantity> usage = new LinkedHashMap<String, Quantity>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -72,11 +75,6 @@ public class ContainerMetrics implements KubernetesResource
     public ContainerMetrics() {
     }
 
-    /**
-     * 
-     * @param usage
-     * @param name
-     */
     public ContainerMetrics(java.lang.String name, Map<String, Quantity> usage) {
         super();
         this.name = name;

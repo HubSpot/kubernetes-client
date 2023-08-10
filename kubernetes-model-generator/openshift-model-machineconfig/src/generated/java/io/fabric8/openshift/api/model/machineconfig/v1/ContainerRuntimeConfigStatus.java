@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.machineconfig.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,15 +57,17 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ContainerRuntimeConfigStatus implements KubernetesResource
 {
 
     @JsonProperty("conditions")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<ContainerRuntimeConfigCondition> conditions = new ArrayList<ContainerRuntimeConfigCondition>();
     @JsonProperty("observedGeneration")
     private Long observedGeneration;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -73,11 +76,6 @@ public class ContainerRuntimeConfigStatus implements KubernetesResource
     public ContainerRuntimeConfigStatus() {
     }
 
-    /**
-     * 
-     * @param conditions
-     * @param observedGeneration
-     */
     public ContainerRuntimeConfigStatus(List<ContainerRuntimeConfigCondition> conditions, Long observedGeneration) {
         super();
         this.conditions = conditions;

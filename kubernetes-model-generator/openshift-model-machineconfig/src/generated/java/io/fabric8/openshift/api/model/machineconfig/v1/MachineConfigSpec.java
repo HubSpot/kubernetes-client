@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.machineconfig.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,23 +61,27 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class MachineConfigSpec implements KubernetesResource
 {
 
     @JsonProperty("config")
-    private Map<String, Object> config;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Object> config = new LinkedHashMap<String, Object>();
     @JsonProperty("extensions")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> extensions = new ArrayList<java.lang.String>();
     @JsonProperty("fips")
     private Boolean fips;
     @JsonProperty("kernelArguments")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> kernelArguments = new ArrayList<java.lang.String>();
     @JsonProperty("kernelType")
     private java.lang.String kernelType;
     @JsonProperty("osImageURL")
     private java.lang.String osImageURL;
     @JsonIgnore
-    private Map<java.lang.String, java.lang.Object> additionalProperties = new HashMap<java.lang.String, java.lang.Object>();
+    private Map<java.lang.String, java.lang.Object> additionalProperties = new LinkedHashMap<java.lang.String, java.lang.Object>();
 
     /**
      * No args constructor for use in serialization
@@ -85,15 +90,6 @@ public class MachineConfigSpec implements KubernetesResource
     public MachineConfigSpec() {
     }
 
-    /**
-     * 
-     * @param kernelArguments
-     * @param extensions
-     * @param fips
-     * @param osImageURL
-     * @param config
-     * @param kernelType
-     */
     public MachineConfigSpec(Map<String, Object> config, List<java.lang.String> extensions, Boolean fips, List<java.lang.String> kernelArguments, java.lang.String kernelType, java.lang.String osImageURL) {
         super();
         this.config = config;

@@ -1,4 +1,4 @@
-  /**
+/**
  * Copyright (C) 2015 Red Hat, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@ package io.fabric8.kubernetes.api.model;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -39,7 +40,6 @@ import java.math.MathContext;
 import java.util.HashMap;
 import java.util.Map;
 
-
 /**
  * Quantity is fixed point representation of a number.
  * It provides convenient marshalling/unmarshalling in JSON or YAML,
@@ -53,12 +53,11 @@ import java.util.Map;
     "_",
     ""
 })
-@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage=true, builderPackage = "io.fabric8.kubernetes.api.builder")
-public class Quantity  implements Serializable {
-
-  private static final String AT_LEAST_ONE_DIGIT_REGEX = ".*\\d+.*";
+@Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, builderPackage = "io.fabric8.kubernetes.api.builder")
+public class Quantity implements Serializable {
   private String amount;
   private String format = "";
+  @JsonIgnore
   private Map<String, Object> additionalProperties = new HashMap<>();
 
   /**
@@ -108,6 +107,27 @@ public class Quantity  implements Serializable {
     this.format = format;
   }
 
+  /**
+   * If this is a memory Quantity, the result will represent bytes.<br>
+   * If this is a cpu Quantity, the result will represent cores.
+   *
+   * @return the formatted amount as a number
+   * @throws ArithmeticException
+   */
+  @JsonIgnore
+  public BigDecimal getNumericalAmount() throws ArithmeticException {
+    return getAmountInBytes(this);
+  }
+
+  /**
+   * If the quantity is a memory Quantity, the result will represent bytes.<br>
+   * If the quantity is a cpu Quantity, the result will represent cores.
+   *
+   * @see #getNumericalAmount()
+   * @param quantity
+   * @return a BigDecimal of the bytes
+   * @throws ArithmeticException
+   */
   public static BigDecimal getAmountInBytes(Quantity quantity) throws ArithmeticException {
     String value = "";
     if (quantity.getAmount() != null && quantity.getFormat() != null) {
@@ -121,18 +141,44 @@ public class Quantity  implements Serializable {
     }
     // Append Extra zeroes if starting with decimal
     if (!Character.isDigit(value.indexOf(0)) && value.startsWith(".")) {
-        value = "0" + value;
+      value = "0" + value;
     }
 
     Quantity amountFormatPair = parse(value);
     String formatStr = amountFormatPair.getFormat();
-    // Handle Decimal exponent case
-    if ((formatStr.matches(AT_LEAST_ONE_DIGIT_REGEX)) && formatStr.length() > 1) {
-      int exponent = Integer.parseInt(formatStr.substring(1));
-      return new BigDecimal("10").pow(exponent, MathContext.DECIMAL64).multiply(new BigDecimal(amountFormatPair.getAmount()));
-    }
 
     BigDecimal digit = new BigDecimal(amountFormatPair.getAmount());
+    BigDecimal multiple = getMultiple(formatStr);
+
+    return digit.multiply(multiple);
+  }
+
+  /**
+   * Constructs a new Quantity from the provided amountInBytes. This amount is converted
+   * to a value with the unit provided in desiredFormat.
+   * 
+   * @param amountInBytes
+   * @param desiredFormat
+   * @see #getNumericalAmount()
+   * @return a new Quantity with the value of amountInBytes with units desiredFormat
+   */
+  public static Quantity fromNumericalAmount(BigDecimal amountInBytes, String desiredFormat) {
+    if (desiredFormat == null || desiredFormat.isEmpty()) {
+      return new Quantity(amountInBytes.stripTrailingZeros().toPlainString());
+    }
+
+    BigDecimal scaledToDesiredFormat = amountInBytes.divide(getMultiple(desiredFormat), MathContext.DECIMAL64);
+
+    return new Quantity(scaledToDesiredFormat.stripTrailingZeros().toPlainString(), desiredFormat);
+  }
+
+  private static BigDecimal getMultiple(String formatStr) {
+    // Handle Decimal exponent case
+    if (containsAtLeastOneDigit(formatStr) && formatStr.length() > 1) {
+      int exponent = Integer.parseInt(formatStr.substring(1));
+      return new BigDecimal("10").pow(exponent, MathContext.DECIMAL64);
+    }
+
     BigDecimal multiple = new BigDecimal("1");
     BigDecimal binaryFactor = new BigDecimal("2");
     BigDecimal decimalFactor = new BigDecimal("10");
@@ -188,8 +234,20 @@ public class Quantity  implements Serializable {
       default:
         throw new IllegalArgumentException("Invalid quantity format passed to parse");
     }
+    return multiple;
+  }
 
-    return digit.multiply(multiple);
+  /**
+   * @param value
+   * @return true if the specified value contains at least one digit, otherwise false
+   */
+  static boolean containsAtLeastOneDigit(String value) {
+    for (int i = 0; i < value.length(); i++) {
+      if (Character.isDigit(value.charAt(i))) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -204,7 +262,7 @@ public class Quantity  implements Serializable {
 
     Quantity quantity = (Quantity) o;
     return getAmountInBytes(this)
-      .compareTo(getAmountInBytes(quantity)) == 0;
+        .compareTo(getAmountInBytes(quantity)) == 0;
   }
 
   @Override
@@ -228,15 +286,45 @@ public class Quantity  implements Serializable {
     if (quantityAsString == null || quantityAsString.isEmpty()) {
       throw new IllegalArgumentException("Invalid quantity string format passed.");
     }
-    String[] quantityComponents = quantityAsString.split("[eEinumkKMGTP]+");
-    String amountStr = quantityComponents[0];
-    String formatStr = quantityAsString.substring(quantityComponents[0].length());
+
+    int unitIndex = indexOfUnit(quantityAsString);
+    String amountStr = quantityAsString.substring(0, unitIndex);
+    String formatStr = quantityAsString.substring(unitIndex);
     // For cases like 4e9 or 129e-6, formatStr would be e9 and e-6 respectively
     // we need to check whether this is valid too. It must not end with character.
-    if (formatStr.matches(AT_LEAST_ONE_DIGIT_REGEX) && Character.isAlphabetic(formatStr.charAt(formatStr.length() - 1))) {
+    if (containsAtLeastOneDigit(formatStr) && Character.isAlphabetic(formatStr.charAt(formatStr.length() - 1))) {
       throw new IllegalArgumentException("Invalid quantity string format passed");
     }
     return new Quantity(amountStr, formatStr);
+  }
+
+  /**
+   * @param quantityAsString quantity as a string
+   * @return the first index containing a unit character, or the length of the string if no element provided
+   */
+  static int indexOfUnit(String quantityAsString) {
+    for (int i = 0; i < quantityAsString.length(); i++) {
+      char ch = quantityAsString.charAt(i);
+      switch (ch) {
+        case 'e':
+        case 'E':
+        case 'i':
+        case 'n':
+        case 'u':
+        case 'm':
+        case 'k':
+        case 'K':
+        case 'M':
+        case 'G':
+        case 'T':
+        case 'P':
+          return i;
+        default:
+          //noinspection UnnecessaryContinue - satisfy Sonar
+          continue;
+      }
+    }
+    return quantityAsString.length();
   }
 
   @JsonAnyGetter
@@ -252,7 +340,8 @@ public class Quantity  implements Serializable {
   public static class Serializer extends JsonSerializer<Quantity> {
 
     @Override
-    public void serialize(Quantity value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+    public void serialize(Quantity value, JsonGenerator jgen, SerializerProvider provider)
+        throws IOException, JsonProcessingException {
       if (value != null) {
         StringBuilder objAsStringBuilder = new StringBuilder();
         if (value.getAmount() != null) {
@@ -271,7 +360,8 @@ public class Quantity  implements Serializable {
   public static class Deserializer extends JsonDeserializer<Quantity> {
 
     @Override
-    public Quantity deserialize(JsonParser jsonParser, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public Quantity deserialize(JsonParser jsonParser, DeserializationContext ctxt)
+        throws IOException, JsonProcessingException {
       ObjectCodec oc = jsonParser.getCodec();
       JsonNode node = oc.readTree(jsonParser);
       Quantity quantity = null;

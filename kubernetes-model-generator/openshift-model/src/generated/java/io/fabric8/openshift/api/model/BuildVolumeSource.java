@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -10,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import io.fabric8.kubernetes.api.model.CSIVolumeSource;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSource;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -36,6 +38,7 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "configMap",
+    "csi",
     "secret",
     "type"
 })
@@ -57,17 +60,20 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class BuildVolumeSource implements KubernetesResource
 {
 
     @JsonProperty("configMap")
     private ConfigMapVolumeSource configMap;
+    @JsonProperty("csi")
+    private CSIVolumeSource csi;
     @JsonProperty("secret")
     private SecretVolumeSource secret;
     @JsonProperty("type")
     private String type;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -76,15 +82,10 @@ public class BuildVolumeSource implements KubernetesResource
     public BuildVolumeSource() {
     }
 
-    /**
-     * 
-     * @param configMap
-     * @param secret
-     * @param type
-     */
-    public BuildVolumeSource(ConfigMapVolumeSource configMap, SecretVolumeSource secret, String type) {
+    public BuildVolumeSource(ConfigMapVolumeSource configMap, CSIVolumeSource csi, SecretVolumeSource secret, String type) {
         super();
         this.configMap = configMap;
+        this.csi = csi;
         this.secret = secret;
         this.type = type;
     }
@@ -97,6 +98,16 @@ public class BuildVolumeSource implements KubernetesResource
     @JsonProperty("configMap")
     public void setConfigMap(ConfigMapVolumeSource configMap) {
         this.configMap = configMap;
+    }
+
+    @JsonProperty("csi")
+    public CSIVolumeSource getCsi() {
+        return csi;
+    }
+
+    @JsonProperty("csi")
+    public void setCsi(CSIVolumeSource csi) {
+        this.csi = csi;
     }
 
     @JsonProperty("secret")

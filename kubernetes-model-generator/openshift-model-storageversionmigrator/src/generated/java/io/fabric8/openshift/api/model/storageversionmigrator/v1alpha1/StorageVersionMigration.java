@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.storageversionmigrator.v1alpha1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,11 +58,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1alpha1")
 @Group("migration.k8s.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "storageversionmigrator.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class StorageVersionMigration implements HasMetadata
 {
 
@@ -86,7 +88,7 @@ public class StorageVersionMigration implements HasMetadata
     @JsonProperty("status")
     private StorageVersionMigrationStatus status;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -95,14 +97,6 @@ public class StorageVersionMigration implements HasMetadata
     public StorageVersionMigration() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param spec
-     * @param status
-     */
     public StorageVersionMigration(String apiVersion, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, StorageVersionMigrationSpec spec, StorageVersionMigrationStatus status) {
         super();
         this.apiVersion = apiVersion;

@@ -15,8 +15,8 @@
  */
 package io.fabric8.kubernetes.examples;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.InputStreamPumper;
@@ -48,7 +48,7 @@ public class ExecLoopExample {
     }
 
     ScheduledExecutorService executorService = Executors.newScheduledThreadPool(20);
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       for (int i = 0; i < 10; System.out.println("i=" + i), i++) {
         ExecWatch watch = null;
         CompletableFuture<?> pump = null;
@@ -70,7 +70,7 @@ public class ExecLoopExample {
           }
         }).exec("date");
         pump = InputStreamPumper.pump(watch.getOutput(), (b, o, l) -> System.out.print(new String(b, o, l)),
-                executorService);
+            executorService);
         executorService.scheduleAtFixedRate(new FutureChecker("Pump " + (i + 1), pump), 0, 2, TimeUnit.SECONDS);
 
         latch.await(5, TimeUnit.SECONDS);
@@ -94,7 +94,7 @@ public class ExecLoopExample {
 
     @Override
     public void run() {
-      if(!future.isDone()) {
+      if (!future.isDone()) {
         System.out.println("Future:[" + name + "] is not done yet");
       }
     }

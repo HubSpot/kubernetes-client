@@ -1,8 +1,11 @@
 
 package io.fabric8.openshift.api.model;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,6 +38,7 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "image",
+    "manifests",
     "status",
     "tag"
 })
@@ -56,17 +60,21 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ImageImportStatus implements KubernetesResource
 {
 
     @JsonProperty("image")
     private Image image;
+    @JsonProperty("manifests")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<Image> manifests = new ArrayList<Image>();
     @JsonProperty("status")
     private Status status;
     @JsonProperty("tag")
     private String tag;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -75,15 +83,10 @@ public class ImageImportStatus implements KubernetesResource
     public ImageImportStatus() {
     }
 
-    /**
-     * 
-     * @param image
-     * @param tag
-     * @param status
-     */
-    public ImageImportStatus(Image image, Status status, String tag) {
+    public ImageImportStatus(Image image, List<Image> manifests, Status status, String tag) {
         super();
         this.image = image;
+        this.manifests = manifests;
         this.status = status;
         this.tag = tag;
     }
@@ -96,6 +99,16 @@ public class ImageImportStatus implements KubernetesResource
     @JsonProperty("image")
     public void setImage(Image image) {
         this.image = image;
+    }
+
+    @JsonProperty("manifests")
+    public List<Image> getManifests() {
+        return manifests;
+    }
+
+    @JsonProperty("manifests")
+    public void setManifests(List<Image> manifests) {
+        this.manifests = manifests;
     }
 
     @JsonProperty("status")

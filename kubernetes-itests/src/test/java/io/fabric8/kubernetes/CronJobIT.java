@@ -16,83 +16,57 @@
 
 package io.fabric8.kubernetes;
 
-import io.fabric8.commons.ClusterEntity;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJob;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1beta1.CronJobList;
+import io.fabric8.junit.jupiter.api.LoadKubernetesManifests;
+import io.fabric8.junit.jupiter.api.RequireK8sSupport;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJobBuilder;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJobList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.arquillian.cube.kubernetes.api.Session;
-import org.arquillian.cube.kubernetes.impl.requirement.RequiresKubernetes;
-import org.arquillian.cube.requirement.ArquillianConditionalRunner;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(ArquillianConditionalRunner.class)
-@RequiresKubernetes
-public class CronJobIT {
-  @ArquillianResource
+@LoadKubernetesManifests("/cronjob-it.yml")
+@RequireK8sSupport(CronJob.class)
+class CronJobIT {
+
   KubernetesClient client;
 
-  @ArquillianResource
-  Session session;
-
-  private String currentNamespace;
-
-  @BeforeClass
-  public static void init() {
-    ClusterEntity.apply(CronJobIT.class.getResourceAsStream("/cronjob-it.yml"));
-  }
-
   @Test
-  public void load() {
-    CronJob aCronJob = client.batch().cronjobs().load(getClass().getResourceAsStream("/test-cronjob.yml")).get();
+  void load() {
+    CronJob aCronJob = client.batch().v1().cronjobs().load(getClass().getResourceAsStream("/test-cronjob.yml")).item();
     assertNotNull(aCronJob);
     assertEquals("hello", aCronJob.getMetadata().getName());
   }
 
   @Test
-  public void get() {
-    currentNamespace = session.getNamespace();
-    CronJob cronJob1 = client.batch().cronjobs().inNamespace(currentNamespace).withName("hello-get").get();
+  void get() {
+    CronJob cronJob1 = client.batch().v1().cronjobs().withName("hello-get").get();
     assertThat(cronJob1).isNotNull();
   }
 
   @Test
-  public void list() {
-    currentNamespace = session.getNamespace();
-    CronJobList cronJobList = client.batch().cronjobs().inNamespace(currentNamespace).list();
+  void list() {
+    CronJobList cronJobList = client.batch().v1().cronjobs().list();
     assertNotNull(cronJobList);
     assertTrue(cronJobList.getItems().size() >= 1);
   }
 
   @Test
-  public void update() {
-    currentNamespace = session.getNamespace();
-    CronJob cronJob1 = client.batch().cronjobs().inNamespace(currentNamespace).withName("hello-update")
-      .edit(c -> new CronJobBuilder(c)
-      .editSpec()
-      .withSchedule("*/1 * * * *")
-      .endSpec()
-      .build());
+  void update() {
+    CronJob cronJob1 = client.batch().v1().cronjobs().withName("hello-update")
+        .edit(c -> new CronJobBuilder(c)
+            .editMetadata().withResourceVersion(null).endMetadata()
+            .editSpec().withSchedule("*/1 * * * *").endSpec()
+            .build());
     assertEquals("*/1 * * * *", cronJob1.getSpec().getSchedule());
   }
 
   @Test
-  public void delete() {
-    currentNamespace = session.getNamespace();
-    assertTrue(client.batch().cronjobs().inNamespace(currentNamespace).withName("hello-delete").delete());
-  }
-
-  @AfterClass
-  public static void cleanup() {
-    ClusterEntity.remove(CronJobIT.class.getResourceAsStream("/cronjob-it.yml"));
+  void delete() {
+    assertTrue(client.batch().v1().cronjobs().withName("hello-delete").delete().size() == 1);
   }
 }

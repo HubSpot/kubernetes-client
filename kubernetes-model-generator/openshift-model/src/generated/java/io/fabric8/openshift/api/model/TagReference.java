@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,11 +59,13 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class TagReference implements KubernetesResource
 {
 
     @JsonProperty("annotations")
-    private Map<String, String> annotations;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> annotations = new LinkedHashMap<String, String>();
     @JsonProperty("from")
     private io.fabric8.kubernetes.api.model.ObjectReference from;
     @JsonProperty("generation")
@@ -76,7 +79,7 @@ public class TagReference implements KubernetesResource
     @JsonProperty("referencePolicy")
     private TagReferencePolicy referencePolicy;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -85,16 +88,6 @@ public class TagReference implements KubernetesResource
     public TagReference() {
     }
 
-    /**
-     * 
-     * @param generation
-     * @param reference
-     * @param importPolicy
-     * @param name
-     * @param referencePolicy
-     * @param annotations
-     * @param from
-     */
     public TagReference(Map<String, String> annotations, io.fabric8.kubernetes.api.model.ObjectReference from, Long generation, TagImportPolicy importPolicy, java.lang.String name, Boolean reference, TagReferencePolicy referencePolicy) {
         super();
         this.annotations = annotations;

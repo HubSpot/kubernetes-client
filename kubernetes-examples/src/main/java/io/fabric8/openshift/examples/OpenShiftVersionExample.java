@@ -17,8 +17,8 @@
 package io.fabric8.openshift.examples;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.VersionInfo;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +31,9 @@ public class OpenShiftVersionExample {
     if (args.length > 0) {
       configBuilder.withMasterUrl(args[0]);
     }
-    try(OpenShiftClient client = new DefaultOpenShiftClient(configBuilder.build())) {
-      VersionInfo openShiftVersionInfo = client.getVersion();
+    try (OpenShiftClient client = new KubernetesClientBuilder()
+        .withConfig(configBuilder.build()).build().adapt(OpenShiftClient.class)) {
+      VersionInfo openShiftVersionInfo = client.getOpenShiftV3Version();
 
       logger.info("Version details of this OpenShift cluster :-");
       logger.info("Major        : {}", openShiftVersionInfo.getMajor());

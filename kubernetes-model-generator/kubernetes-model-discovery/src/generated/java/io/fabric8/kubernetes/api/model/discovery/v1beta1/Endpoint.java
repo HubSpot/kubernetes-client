@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.discovery.v1beta1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,10 +61,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Endpoint implements KubernetesResource
 {
 
     @JsonProperty("addresses")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> addresses = new ArrayList<java.lang.String>();
     @JsonProperty("conditions")
     private EndpointConditions conditions;
@@ -76,9 +79,10 @@ public class Endpoint implements KubernetesResource
     @JsonProperty("targetRef")
     private io.fabric8.kubernetes.api.model.ObjectReference targetRef;
     @JsonProperty("topology")
-    private Map<String, String> topology;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> topology = new LinkedHashMap<String, String>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -87,16 +91,6 @@ public class Endpoint implements KubernetesResource
     public Endpoint() {
     }
 
-    /**
-     * 
-     * @param nodeName
-     * @param targetRef
-     * @param addresses
-     * @param hostname
-     * @param hints
-     * @param topology
-     * @param conditions
-     */
     public Endpoint(List<java.lang.String> addresses, EndpointConditions conditions, EndpointHints hints, java.lang.String hostname, java.lang.String nodeName, io.fabric8.kubernetes.api.model.ObjectReference targetRef, Map<String, String> topology) {
         super();
         this.addresses = addresses;

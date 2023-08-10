@@ -17,8 +17,8 @@ package io.fabric8.kubernetes.examples;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,25 +33,25 @@ public class WaitUntilReadyExample {
 
   @SuppressWarnings("java:S106")
   public static void main(String[] args) throws InterruptedException {
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       final String namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
-      final Pod pod = client.pods().inNamespace(namespace).create(
-        new PodBuilder()
-          .withNewMetadata().withName("myapp-pod").withLabels(Collections.singletonMap("app", "myapp-pod")).endMetadata()
-          .withNewSpec()
-          .addNewContainer()
-          .withName("myapp-container")
-          .withImage("busybox:1.28")
-          .withCommand("sh", "-c", "echo 'The app is running!'; sleep 10")
-          .endContainer()
-          .addNewInitContainer()
-          .withName("init-myservice")
-          .withImage("busybox:1.28")
-          .withCommand("sh", "-c", "echo 'inititalizing...'; sleep 5")
-          .endInitContainer()
-          .endSpec()
-          .build()
-      );
+      final Pod pod = client.pods().inNamespace(namespace).resource(
+          new PodBuilder()
+              .withNewMetadata().withName("myapp-pod").withLabels(Collections.singletonMap("app", "myapp-pod")).endMetadata()
+              .withNewSpec()
+              .addNewContainer()
+              .withName("myapp-container")
+              .withImage("busybox:1.28")
+              .withCommand("sh", "-c", "echo 'The app is running!'; sleep 10")
+              .endContainer()
+              .addNewInitContainer()
+              .withName("init-myservice")
+              .withImage("busybox:1.28")
+              .withCommand("sh", "-c", "echo 'initializing...'; sleep 5")
+              .endInitContainer()
+              .endSpec()
+              .build())
+          .create();
       logger.info("Pod created, waiting for it to get ready...");
       client.resource(pod).inNamespace(namespace).waitUntilReady(10, TimeUnit.SECONDS);
       logger.info("Pod is ready now");

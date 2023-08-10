@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.authentication;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,11 +59,13 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class UserInfo implements KubernetesResource
 {
 
     @JsonProperty("extra")
-    private Map<String, ArrayList<String>> extra;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, ArrayList<String>> extra = new LinkedHashMap<String, ArrayList<String>>();
     @JsonProperty("groups")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> groups = new ArrayList<java.lang.String>();
@@ -71,7 +74,7 @@ public class UserInfo implements KubernetesResource
     @JsonProperty("username")
     private java.lang.String username;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -80,13 +83,6 @@ public class UserInfo implements KubernetesResource
     public UserInfo() {
     }
 
-    /**
-     * 
-     * @param uid
-     * @param extra
-     * @param groups
-     * @param username
-     */
     public UserInfo(Map<String, ArrayList<String>> extra, List<java.lang.String> groups, java.lang.String uid, java.lang.String username) {
         super();
         this.extra = extra;

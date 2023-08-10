@@ -1,8 +1,11 @@
 
 package io.fabric8.openshift.api.model.operator.v1;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +36,8 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "allowedSourceRanges",
+    "dnsManagementPolicy",
     "providerParameters",
     "scope"
 })
@@ -54,15 +59,21 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class LoadBalancerStrategy implements KubernetesResource
 {
 
+    @JsonProperty("allowedSourceRanges")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<String> allowedSourceRanges = new ArrayList<String>();
+    @JsonProperty("dnsManagementPolicy")
+    private String dnsManagementPolicy;
     @JsonProperty("providerParameters")
     private ProviderLoadBalancerParameters providerParameters;
     @JsonProperty("scope")
     private String scope;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,15 +82,32 @@ public class LoadBalancerStrategy implements KubernetesResource
     public LoadBalancerStrategy() {
     }
 
-    /**
-     * 
-     * @param scope
-     * @param providerParameters
-     */
-    public LoadBalancerStrategy(ProviderLoadBalancerParameters providerParameters, String scope) {
+    public LoadBalancerStrategy(List<String> allowedSourceRanges, String dnsManagementPolicy, ProviderLoadBalancerParameters providerParameters, String scope) {
         super();
+        this.allowedSourceRanges = allowedSourceRanges;
+        this.dnsManagementPolicy = dnsManagementPolicy;
         this.providerParameters = providerParameters;
         this.scope = scope;
+    }
+
+    @JsonProperty("allowedSourceRanges")
+    public List<String> getAllowedSourceRanges() {
+        return allowedSourceRanges;
+    }
+
+    @JsonProperty("allowedSourceRanges")
+    public void setAllowedSourceRanges(List<String> allowedSourceRanges) {
+        this.allowedSourceRanges = allowedSourceRanges;
+    }
+
+    @JsonProperty("dnsManagementPolicy")
+    public String getDnsManagementPolicy() {
+        return dnsManagementPolicy;
+    }
+
+    @JsonProperty("dnsManagementPolicy")
+    public void setDnsManagementPolicy(String dnsManagementPolicy) {
+        this.dnsManagementPolicy = dnsManagementPolicy;
     }
 
     @JsonProperty("providerParameters")

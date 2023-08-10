@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.hive.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,7 +22,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
-import io.fabric8.openshift.api.model.IdentityProvider;
+import io.fabric8.openshift.api.model.config.v1.IdentityProvider;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -56,15 +57,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(io.fabric8.kubernetes.api.model.LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class SyncIdentityProviderSpec implements KubernetesResource
 {
 
     @JsonProperty("clusterDeploymentRefs")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.kubernetes.api.model.LocalObjectReference> clusterDeploymentRefs = new ArrayList<io.fabric8.kubernetes.api.model.LocalObjectReference>();
     @JsonProperty("identityProviders")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<IdentityProvider> identityProviders = new ArrayList<IdentityProvider>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -73,11 +77,6 @@ public class SyncIdentityProviderSpec implements KubernetesResource
     public SyncIdentityProviderSpec() {
     }
 
-    /**
-     * 
-     * @param identityProviders
-     * @param clusterDeploymentRefs
-     */
     public SyncIdentityProviderSpec(List<io.fabric8.kubernetes.api.model.LocalObjectReference> clusterDeploymentRefs, List<IdentityProvider> identityProviders) {
         super();
         this.clusterDeploymentRefs = clusterDeploymentRefs;

@@ -15,241 +15,172 @@
  */
 package io.fabric8.kubernetes.client.dsl.internal;
 
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
+import io.fabric8.kubernetes.client.utils.URLUtils.URLBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
 public class PodOperationContext {
 
-    private String containerId;
-    private InputStream in;
-    private OutputStream out;
-    private OutputStream err;
-    private OutputStream errChannel;
+  @Getter
+  public static final class StreamContext {
+    private OutputStream outputStream;
 
-    private PipedOutputStream inPipe;
-    private PipedInputStream outPipe;
-    private PipedInputStream errPipe;
-    private PipedInputStream errChannelPipe;
-    private boolean tty;
-    private boolean terminatedStatus;
-    private boolean timestamps;
-    private String sinceTimestamp;
-    private Integer sinceSeconds;
-    private Integer tailingLines;
-    private Integer logWaitTimeout;
-    private boolean prettyOutput;
-    private ExecListener execListener;
-    private Integer limitBytes;
-    private Integer bufferSize;
-    private String file;
-    private String dir;
+    public StreamContext(OutputStream outputStream) {
+      this.outputStream = outputStream;
+    }
 
-  public PodOperationContext() {
+    public StreamContext() {
+    }
   }
 
-  public PodOperationContext(String containerId, InputStream in, OutputStream out, OutputStream err, OutputStream errChannel, PipedOutputStream inPipe, PipedInputStream outPipe, PipedInputStream errPipe, PipedInputStream errChannelPipe, Boolean tty, Boolean terminatedStatus, Boolean timestampes, String sinceTimestamp, Integer sinceSeconds, Integer tailingLines, Boolean prettyOutput, Integer limitBytes, Integer bufferSize, ExecListener execListener, String file, String dir, Integer logWaitTimeout) {
-    this.containerId = containerId;
-    this.in = in;
-    this.out = out;
-    this.err = err;
-    this.errChannel = errChannel;
-    this.inPipe = inPipe;
-    this.outPipe = outPipe;
-    this.errPipe = errPipe;
-    this.errChannelPipe = errChannelPipe;
-    this.tty = tty;
-    this.terminatedStatus = terminatedStatus;
-    this.timestamps = timestampes;
-    this.sinceTimestamp = sinceTimestamp;
-    this.sinceSeconds = sinceSeconds;
-    this.tailingLines = tailingLines;
-    this.prettyOutput = prettyOutput;
-    this.execListener = execListener;
-    this.limitBytes = limitBytes;
-    this.bufferSize = bufferSize;
-    this.file = file;
-    this.dir = dir;
-    this.logWaitTimeout = logWaitTimeout;
-  }
+  private String containerId;
 
-  public String getContainerId() {
-    return containerId;
-  }
+  private StreamContext output;
+  private StreamContext error;
+  private StreamContext errorChannel;
 
-  public InputStream getIn() {
-    return in;
-  }
+  private boolean redirectingIn;
+  private InputStream in;
 
-  public OutputStream getOut() {
-    return out;
-  }
+  private boolean tty;
+  private boolean terminatedStatus;
+  private boolean timestamps;
+  private String sinceTimestamp;
+  private Integer sinceSeconds;
+  private Integer tailingLines;
+  private Integer readyWaitTimeout;
+  private boolean prettyOutput;
+  private ExecListener execListener;
+  private Integer limitBytes;
+  private Integer bufferSize;
+  private String file;
+  private String dir;
+  private boolean terminateOnError;
 
-  public OutputStream getErr() {
-    return err;
-  }
-
-  public OutputStream getErrChannel() {
-    return errChannel;
-  }
-
-  public PipedOutputStream getInPipe() {
-    return inPipe;
-  }
-
-  public PipedInputStream getOutPipe() {
-    return outPipe;
-  }
-
-  public PipedInputStream getErrPipe() {
-    return errPipe;
-  }
-
-  public PipedInputStream getErrChannelPipe() {
-    return errChannelPipe;
-  }
-
-  public boolean isTty() {
-    return tty;
-  }
-
-  public boolean isTerminatedStatus() {
-    return terminatedStatus;
-  }
-
-  public boolean isTimestamps() {
-    return timestamps;
-  }
-
-  public String getSinceTimestamp() {
-    return sinceTimestamp;
-  }
-
-  public Integer getSinceSeconds() {
-    return sinceSeconds;
-  }
-
-  public Integer getTailingLines() {
-    return tailingLines;
-  }
-
-  public boolean isPrettyOutput() {
-    return prettyOutput;
-  }
-
-  public ExecListener getExecListener() {
-    return execListener;
-  }
-
-  public Integer getLimitBytes() {
-    return limitBytes;
-  }
-
-  public Integer getBufferSize() {
-    return bufferSize;
-  }
-
-  public String getFile() {
-    return file;
-  }
-
-  public String getDir() {
-    return dir;
-  }
-
-  public Integer getLogWaitTimeout() {
-    return logWaitTimeout;
-  }
+  private boolean rolling;
 
   public PodOperationContext withContainerId(String containerId) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().containerId(containerId).build();
   }
 
   public PodOperationContext withIn(InputStream in) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withOut(OutputStream out) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withErr(OutputStream err) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withErrChannel(OutputStream errChannel) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withInPipe(PipedOutputStream inPipe) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withOutPipe(PipedInputStream outPipe) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withErrPipe(PipedInputStream errPipe) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
-  }
-
-  public PodOperationContext withErrChannelPipe(PipedInputStream errChannelPipe) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().in(in).build();
   }
 
   public PodOperationContext withTty(boolean tty) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().tty(tty).build();
   }
 
   public PodOperationContext withTerminatedStatus(boolean terminatedStatus) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().terminatedStatus(terminatedStatus).build();
   }
 
   public PodOperationContext withTimestamps(boolean timestamps) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().timestamps(timestamps).build();
   }
 
   public PodOperationContext withSinceTimestamp(String sinceTimestamp) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().sinceTimestamp(sinceTimestamp).build();
   }
 
   public PodOperationContext withSinceSeconds(Integer sinceSeconds) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().sinceSeconds(sinceSeconds).build();
   }
 
   public PodOperationContext withTailingLines(Integer tailingLines) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().tailingLines(tailingLines).build();
   }
 
   public PodOperationContext withPrettyOutput(boolean prettyOutput) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().prettyOutput(prettyOutput).build();
   }
 
   public PodOperationContext withExecListener(ExecListener execListener) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().execListener(execListener).build();
   }
 
   public PodOperationContext withLimitBytes(Integer limitBytes) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().limitBytes(limitBytes).build();
   }
 
   public PodOperationContext withBufferSize(Integer bufferSize) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().bufferSize(bufferSize).build();
   }
 
   public PodOperationContext withFile(String file) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().file(file).build();
   }
 
   public PodOperationContext withDir(String dir) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+    return this.toBuilder().dir(dir).build();
   }
 
-  public PodOperationContext withLogWaitTimeout(Integer logWaitTimeout) {
-    return new PodOperationContext(containerId, in, out, err, errChannel, inPipe, outPipe, errPipe,errChannelPipe, tty, terminatedStatus, timestamps, sinceTimestamp, sinceSeconds, tailingLines, prettyOutput, limitBytes, bufferSize, execListener, file, dir, logWaitTimeout);
+  public PodOperationContext withReadyWaitTimeout(Integer logWaitTimeout) {
+    return this.toBuilder().readyWaitTimeout(logWaitTimeout).build();
+  }
+
+  public String getLogParameters() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("log?pretty=").append(prettyOutput);
+
+    if (containerId != null && !containerId.isEmpty()) {
+      sb.append("&container=").append(containerId);
+    }
+    if (terminatedStatus) {
+      sb.append("&previous=true");
+    }
+    if (sinceSeconds != null) {
+      sb.append("&sinceSeconds=").append(sinceSeconds);
+    } else if (sinceTimestamp != null) {
+      sb.append("&sinceTime=").append(sinceTimestamp);
+    }
+    if (tailingLines != null) {
+      sb.append("&tailLines=").append(tailingLines);
+    }
+    if (limitBytes != null) {
+      sb.append("&limitBytes=").append(limitBytes);
+    }
+    if (timestamps) {
+      sb.append("&timestamps=true");
+    }
+    return sb.toString();
+  }
+
+  public void addQueryParameters(URLBuilder httpUrlBuilder) {
+    if (containerId != null && !containerId.isEmpty()) {
+      httpUrlBuilder.addQueryParameter("container", containerId);
+    }
+    if (tty) {
+      httpUrlBuilder.addQueryParameter("tty", "true");
+    }
+    boolean usingStream = false;
+    if (in != null || redirectingIn) {
+      httpUrlBuilder.addQueryParameter("stdin", "true");
+      usingStream = true;
+    }
+    boolean debug = ExecWebSocketListener.LOGGER.isDebugEnabled();
+    if (output != null || debug) {
+      httpUrlBuilder.addQueryParameter("stdout", "true");
+      usingStream = true;
+    }
+    if (error != null || terminateOnError || debug) {
+      httpUrlBuilder.addQueryParameter("stderr", "true");
+      usingStream = true;
+    }
+    if (!usingStream) {
+      throw new KubernetesClientException("Pod operation is not valid unless an in, out, or error stream is used.");
+    }
   }
 
 }

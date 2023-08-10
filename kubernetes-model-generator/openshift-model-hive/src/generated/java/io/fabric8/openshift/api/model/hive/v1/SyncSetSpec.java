@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.hive.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -59,12 +60,14 @@ import lombok.experimental.Accessors;
     @BuildableReference(io.fabric8.kubernetes.api.model.LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class SyncSetSpec implements KubernetesResource
 {
 
     @JsonProperty("applyBehavior")
     private java.lang.String applyBehavior;
     @JsonProperty("clusterDeploymentRefs")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.kubernetes.api.model.LocalObjectReference> clusterDeploymentRefs = new ArrayList<io.fabric8.kubernetes.api.model.LocalObjectReference>();
     @JsonProperty("patches")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -78,7 +81,7 @@ public class SyncSetSpec implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<SecretMapping> secretMappings = new ArrayList<SecretMapping>();
     @JsonIgnore
-    private Map<java.lang.String, java.lang.Object> additionalProperties = new HashMap<java.lang.String, java.lang.Object>();
+    private Map<java.lang.String, java.lang.Object> additionalProperties = new LinkedHashMap<java.lang.String, java.lang.Object>();
 
     /**
      * No args constructor for use in serialization
@@ -87,15 +90,6 @@ public class SyncSetSpec implements KubernetesResource
     public SyncSetSpec() {
     }
 
-    /**
-     * 
-     * @param patches
-     * @param resourceApplyMode
-     * @param applyBehavior
-     * @param resources
-     * @param clusterDeploymentRefs
-     * @param secretMappings
-     */
     public SyncSetSpec(java.lang.String applyBehavior, List<io.fabric8.kubernetes.api.model.LocalObjectReference> clusterDeploymentRefs, List<SyncObjectPatch> patches, java.lang.String resourceApplyMode, List<Map<String, Object>> resources, List<SecretMapping> secretMappings) {
         super();
         this.applyBehavior = applyBehavior;

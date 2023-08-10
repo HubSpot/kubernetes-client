@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class CSIVolumeSource implements KubernetesResource
 {
 
@@ -48,9 +50,10 @@ public class CSIVolumeSource implements KubernetesResource
     @JsonProperty("readOnly")
     private Boolean readOnly;
     @JsonProperty("volumeAttributes")
-    private Map<String, String> volumeAttributes;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> volumeAttributes = new LinkedHashMap<String, String>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -59,14 +62,6 @@ public class CSIVolumeSource implements KubernetesResource
     public CSIVolumeSource() {
     }
 
-    /**
-     * 
-     * @param driver
-     * @param nodePublishSecretRef
-     * @param readOnly
-     * @param fsType
-     * @param volumeAttributes
-     */
     public CSIVolumeSource(java.lang.String driver, java.lang.String fsType, LocalObjectReference nodePublishSecretRef, Boolean readOnly, Map<String, String> volumeAttributes) {
         super();
         this.driver = driver;

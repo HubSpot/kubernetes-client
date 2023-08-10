@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -17,7 +18,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
-import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -61,12 +61,13 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("user.openshift.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "openshift.properties", gather = true)
-})
-public class User implements HasMetadata, Namespaced
+@Generated("jsonschema2pojo")
+public class User implements HasMetadata
 {
 
     /**
@@ -79,6 +80,7 @@ public class User implements HasMetadata, Namespaced
     @JsonProperty("fullName")
     private String fullName;
     @JsonProperty("groups")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> groups = new ArrayList<String>();
     @JsonProperty("identities")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -93,7 +95,7 @@ public class User implements HasMetadata, Namespaced
     @JsonProperty("metadata")
     private io.fabric8.kubernetes.api.model.ObjectMeta metadata;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -102,15 +104,6 @@ public class User implements HasMetadata, Namespaced
     public User() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param identities
-     * @param kind
-     * @param fullName
-     * @param groups
-     */
     public User(String apiVersion, String fullName, List<String> groups, List<String> identities, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata) {
         super();
         this.apiVersion = apiVersion;

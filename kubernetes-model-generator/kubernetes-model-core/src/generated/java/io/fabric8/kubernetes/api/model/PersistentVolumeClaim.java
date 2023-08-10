@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,11 +38,12 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "core.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class PersistentVolumeClaim implements HasMetadata, Namespaced
 {
 
@@ -66,7 +68,7 @@ public class PersistentVolumeClaim implements HasMetadata, Namespaced
     @JsonProperty("status")
     private PersistentVolumeClaimStatus status;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -75,14 +77,6 @@ public class PersistentVolumeClaim implements HasMetadata, Namespaced
     public PersistentVolumeClaim() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param spec
-     * @param status
-     */
     public PersistentVolumeClaim(String apiVersion, String kind, ObjectMeta metadata, PersistentVolumeClaimSpec spec, PersistentVolumeClaimStatus status) {
         super();
         this.apiVersion = apiVersion;

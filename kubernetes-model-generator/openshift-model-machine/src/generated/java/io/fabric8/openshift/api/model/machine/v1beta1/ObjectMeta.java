@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.machine.v1beta1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,15 +61,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ObjectMeta implements KubernetesResource
 {
 
     @JsonProperty("annotations")
-    private Map<String, String> annotations;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> annotations = new LinkedHashMap<String, String>();
     @JsonProperty("generateName")
     private java.lang.String generateName;
     @JsonProperty("labels")
-    private Map<String, String> labels;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> labels = new LinkedHashMap<String, String>();
     @JsonProperty("name")
     private java.lang.String name;
     @JsonProperty("namespace")
@@ -77,7 +81,7 @@ public class ObjectMeta implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<OwnerReference> ownerReferences = new ArrayList<OwnerReference>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -86,15 +90,6 @@ public class ObjectMeta implements KubernetesResource
     public ObjectMeta() {
     }
 
-    /**
-     * 
-     * @param name
-     * @param namespace
-     * @param annotations
-     * @param generateName
-     * @param labels
-     * @param ownerReferences
-     */
     public ObjectMeta(Map<String, String> annotations, java.lang.String generateName, Map<String, String> labels, java.lang.String name, java.lang.String namespace, List<OwnerReference> ownerReferences) {
         super();
         this.annotations = annotations;

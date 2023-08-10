@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,6 +16,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.sundr.builder.annotations.Buildable;
+import io.sundr.transform.annotations.TemplateTransformation;
+import io.sundr.transform.annotations.TemplateTransformations;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,8 +39,12 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("")
+@Generated("jsonschema2pojo")
 public class ReplicationControllerList implements KubernetesResource, KubernetesResourceList<io.fabric8.kubernetes.api.model.ReplicationController>
 {
 
@@ -49,6 +56,7 @@ public class ReplicationControllerList implements KubernetesResource, Kubernetes
     @JsonProperty("apiVersion")
     private String apiVersion = "v1";
     @JsonProperty("items")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.kubernetes.api.model.ReplicationController> items = new ArrayList<io.fabric8.kubernetes.api.model.ReplicationController>();
     /**
      * 
@@ -60,7 +68,7 @@ public class ReplicationControllerList implements KubernetesResource, Kubernetes
     @JsonProperty("metadata")
     private ListMeta metadata;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -69,13 +77,6 @@ public class ReplicationControllerList implements KubernetesResource, Kubernetes
     public ReplicationControllerList() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param items
-     */
     public ReplicationControllerList(String apiVersion, List<io.fabric8.kubernetes.api.model.ReplicationController> items, String kind, ListMeta metadata) {
         super();
         this.apiVersion = apiVersion;

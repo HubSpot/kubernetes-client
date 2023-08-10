@@ -16,8 +16,8 @@
 package io.fabric8.kubernetes.client.mock;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.storage.CSIDriverBuilder;
 import io.fabric8.kubernetes.api.model.storage.CSIDriver;
+import io.fabric8.kubernetes.api.model.storage.CSIDriverBuilder;
 import io.fabric8.kubernetes.api.model.storage.CSIDriverList;
 import io.fabric8.kubernetes.api.model.storage.CSIDriverListBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @EnableKubernetesMockClient
@@ -37,11 +38,11 @@ class CSIDriverTest {
 
   @Test
   void load() {
-    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-csidriver.yml")).get();
+    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-csidriver.yml")).items();
     assertThat(items).isNotNull();
     assertThat(items.get(0))
-      .isInstanceOf(CSIDriver.class)
-      .hasFieldOrPropertyWithValue("metadata.name", "mycsidriver.example.com");
+        .isInstanceOf(CSIDriver.class)
+        .hasFieldOrPropertyWithValue("metadata.name", "mycsidriver.example.com");
   }
 
   @Test
@@ -49,24 +50,24 @@ class CSIDriverTest {
     // Given
     CSIDriver csiDriver = createNewCSIDriver("csidriver1");
     server.expect().post().withPath("/apis/storage.k8s.io/v1/csidrivers")
-      .andReturn(HttpURLConnection.HTTP_CREATED, csiDriver)
-      .once();
+        .andReturn(HttpURLConnection.HTTP_CREATED, csiDriver)
+        .once();
 
     // When
     CSIDriver createdCsiDriver = client.storage().csiDrivers().create(csiDriver);
 
     // Then
     assertThat(createdCsiDriver)
-      .isNotNull()
-      .hasFieldOrPropertyWithValue("metadata.name", "csidriver1");
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("metadata.name", "csidriver1");
   }
 
   @Test
   void list() {
     // Given
     server.expect().get().withPath("/apis/storage.k8s.io/v1/csidrivers")
-      .andReturn(HttpURLConnection.HTTP_OK, new CSIDriverListBuilder().addToItems(createNewCSIDriver("c1")).build())
-      .once();
+        .andReturn(HttpURLConnection.HTTP_OK, new CSIDriverListBuilder().addToItems(createNewCSIDriver("c1")).build())
+        .once();
 
     // When
     CSIDriverList csiDriverList = client.storage().csiDrivers().list();
@@ -80,30 +81,29 @@ class CSIDriverTest {
   void delete() {
     // Given
     server.expect().delete().withPath("/apis/storage.k8s.io/v1/csidrivers/c1")
-      .andReturn(HttpURLConnection.HTTP_CREATED, createNewCSIDriver("c1"))
-      .once();
+        .andReturn(HttpURLConnection.HTTP_CREATED, createNewCSIDriver("c1"))
+        .once();
 
     // When
-    Boolean isDeleted = client.storage().csiDrivers().withName("c1").delete();
+    boolean isDeleted = client.storage().csiDrivers().withName("c1").delete().size() == 1;
 
     // Then
     assertThat(isDeleted).isTrue();
   }
 
-  private CSIDriver createNewCSIDriver(String name){
+  private CSIDriver createNewCSIDriver(String name) {
     return new CSIDriverBuilder()
-      .withNewMetadata().withName(name).endMetadata()
-      .withNewSpec()
-      .withAttachRequired(true)
-      .withPodInfoOnMount(true)
-      .withFsGroupPolicy("File")
-      .addNewVolumeLifecycleMode("Persistent")
-      .addNewVolumeLifecycleMode("Ephermal")
-      .addNewTokenRequest()
-      .withAudience("gcp")
-      .endTokenRequest()
-      .withRequiresRepublish(true)
-      .endSpec()
-      .build();
+        .withNewMetadata().withName(name).endMetadata()
+        .withNewSpec()
+        .withAttachRequired(true)
+        .withPodInfoOnMount(true)
+        .withFsGroupPolicy("File")
+        .addToVolumeLifecycleModes("Persistent", "Ephermal")
+        .addNewTokenRequest()
+        .withAudience("gcp")
+        .endTokenRequest()
+        .withRequiresRepublish(true)
+        .endSpec()
+        .build();
   }
 }

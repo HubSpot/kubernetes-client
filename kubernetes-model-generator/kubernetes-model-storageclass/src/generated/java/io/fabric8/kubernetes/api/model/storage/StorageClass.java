@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.storage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -65,11 +66,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("storage.k8s.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "storage.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class StorageClass implements HasMetadata
 {
 
@@ -98,7 +100,8 @@ public class StorageClass implements HasMetadata
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> mountOptions = new ArrayList<java.lang.String>();
     @JsonProperty("parameters")
-    private Map<String, String> parameters;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> parameters = new LinkedHashMap<String, String>();
     @JsonProperty("provisioner")
     private java.lang.String provisioner;
     @JsonProperty("reclaimPolicy")
@@ -106,7 +109,7 @@ public class StorageClass implements HasMetadata
     @JsonProperty("volumeBindingMode")
     private java.lang.String volumeBindingMode;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -115,19 +118,6 @@ public class StorageClass implements HasMetadata
     public StorageClass() {
     }
 
-    /**
-     * 
-     * @param volumeBindingMode
-     * @param metadata
-     * @param provisioner
-     * @param apiVersion
-     * @param allowVolumeExpansion
-     * @param reclaimPolicy
-     * @param kind
-     * @param mountOptions
-     * @param parameters
-     * @param allowedTopologies
-     */
     public StorageClass(Boolean allowVolumeExpansion, List<TopologySelectorTerm> allowedTopologies, java.lang.String apiVersion, java.lang.String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, List<java.lang.String> mountOptions, Map<String, String> parameters, java.lang.String provisioner, java.lang.String reclaimPolicy, java.lang.String volumeBindingMode) {
         super();
         this.allowVolumeExpansion = allowVolumeExpansion;

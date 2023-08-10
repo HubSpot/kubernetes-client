@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.installer.gcp.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,7 +35,7 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "DiskSizeGB",
-    "DiskType",
+    "diskType",
     "encryptionKey"
 })
 @ToString
@@ -55,17 +56,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class OSDisk implements KubernetesResource
 {
 
     @JsonProperty("DiskSizeGB")
     private Long diskSizeGB;
-    @JsonProperty("DiskType")
+    @JsonProperty("diskType")
     private String diskType;
     @JsonProperty("encryptionKey")
     private EncryptionKeyReference encryptionKey;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -74,12 +76,6 @@ public class OSDisk implements KubernetesResource
     public OSDisk() {
     }
 
-    /**
-     * 
-     * @param diskType
-     * @param encryptionKey
-     * @param diskSizeGB
-     */
     public OSDisk(Long diskSizeGB, String diskType, EncryptionKeyReference encryptionKey) {
         super();
         this.diskSizeGB = diskSizeGB;
@@ -97,12 +93,12 @@ public class OSDisk implements KubernetesResource
         this.diskSizeGB = diskSizeGB;
     }
 
-    @JsonProperty("DiskType")
+    @JsonProperty("diskType")
     public String getDiskType() {
         return diskType;
     }
 
-    @JsonProperty("DiskType")
+    @JsonProperty("diskType")
     public void setDiskType(String diskType) {
         this.diskType = diskType;
     }

@@ -23,7 +23,7 @@
 
   <groupId>io.fabric8</groupId>
   <artifactId>kubernetes-client-project</artifactId>
-  <version>5.12.2</version>
+  <version>6.8.0</version>
   <packaging>pom</packaging>
 
   <name>Fabric8 :: Kubernetes :: Project</name>
@@ -75,75 +75,88 @@
     </repository>
   </distributionManagement>
 
+  <repositories>
+    <repository>
+      <id>sonatype-maven-org</id>
+      <name>Sonatype Maven Repository (maven.org)</name>
+      <url>https://repo1.maven.org/maven2/</url>
+      <releases><enabled>true</enabled></releases>
+      <snapshots><enabled>false</enabled></snapshots>
+    </repository>
+  </repositories>
+
   <properties>
     <useIncrementalCompilation>false</useIncrementalCompilation>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <!-- Core versions -->
-    <sundrio.version>0.50.4</sundrio.version>
+    <sundrio.version>0.100.1</sundrio.version>
     <okhttp.version>3.12.12</okhttp.version>
     <okhttp.bundle.version>3.12.1_1</okhttp.bundle.version>
     <okio.version>1.15.0</okio.version>
     <okio.bundle.version>1.15.0_1</okio.bundle.version>
-    <jackson.version>2.13.1</jackson.version>
+    <jackson.version>2.15.2</jackson.version>
+    <jetty.version>11.0.15</jetty.version>
     <mockwebserver.version>0.2.2</mockwebserver.version>
+    <maven-core.version>3.9.3</maven-core.version>
+    <maven-plugin-annotations.version>3.9.0</maven-plugin-annotations.version>
+    <vertx.version>4.4.4</vertx.version>
 
     <!-- API versions -->
     <jsr305.version>3.0.2</jsr305.version>
 
     <!-- Testing versions -->
-    <assertj.core.version>3.22.0</assertj.core.version>
-    <arquillian.core.version>1.2.0.Final</arquillian.core.version>
-    <awaitility.version>4.1.1</awaitility.version>
+    <junit.version>5.9.3</junit.version>
+    <assertj.core.version>3.24.2</assertj.core.version>
+    <awaitility.version>4.2.0</awaitility.version>
+    <approvaltests.version>18.7.1</approvaltests.version>
+    <mockito.version>4.11.0</mockito.version>
 
-    <retrofit.bundle.version>2.5.0_1</retrofit.bundle.version>
-    <conscrypt-openjdk-uber.version>1.4.2</conscrypt-openjdk-uber.version>
     <conscrypt-openjdk-uber.bundle.version>1.4.2_1</conscrypt-openjdk-uber.bundle.version>
     <generex.version>1.0.2</generex.version>
     <generex.bundle.version>1.0.1_1</generex.bundle.version>
-    <automaton.version>1.11-8</automaton.version>
     <automaton.bundle.version>1.11-8_1</automaton.bundle.version>
     <aries-spifly.bundle.version>1.3.0</aries-spifly.bundle.version>
     <asm.bundle.version>8.0.1</asm.bundle.version>
     <jackson.bundle.version>${jackson.version}</jackson.bundle.version>
-    <junit.version>5.8.2</junit.version>
-    <junit.compatible-with-arquillian.version>4.13.2</junit.compatible-with-arquillian.version>
     <zjsonpatch.version>0.3.0</zjsonpatch.version>
-    <arquillian.cube.version>1.18.2</arquillian.cube.version>
-    <slf4j.version>1.7.33</slf4j.version>
-    <mockito.version>4.2.0</mockito.version>
-    <lombok.version>1.18.22</lombok.version>
-    <snakeyaml.version>1.28</snakeyaml.version>
-    <bouncycastle.version>1.70</bouncycastle.version>
-    <commons-compress.version>1.21</commons-compress.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <lombok.version>1.18.28</lombok.version>
+    <snakeyaml.version>2.6</snakeyaml.version>
+    <snakeyaml.bundle.version>2.0</snakeyaml.bundle.version> <!-- Transitive Jackson -->
+    <bouncycastle.version>1.75</bouncycastle.version>
+    <commons-compress.version>1.23.0</commons-compress.version>
     <scr.annotations.version>1.12.0</scr.annotations.version>
-    <jsonschema2pojo.version>1.1.0</jsonschema2pojo.version>
+    <jsonschema2pojo.version>1.2.1</jsonschema2pojo.version>
     <properties.maven.plugin.version>1.0.0</properties.maven.plugin.version>
 
     <!-- Maven plugin versions -->
-    <buildnumber.plugin.version>3.0.0</buildnumber.plugin.version>
-    <maven.compiler.plugin.version>3.9.0</maven.compiler.plugin.version>
-    <maven.bundle.plugin.version>5.1.4</maven.bundle.plugin.version>
-    <maven.buildhelper.plugin.version>3.3.0</maven.buildhelper.plugin.version>
-    <maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
-    <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
+    <buildnumber.plugin.version>3.2.0</buildnumber.plugin.version>
+    <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+    <maven.bundle.plugin.version>5.1.9</maven.bundle.plugin.version>
+    <maven.buildhelper.plugin.version>3.4.0</maven.buildhelper.plugin.version>
+    <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+    <maven.surefire.plugin.version>3.1.2</maven.surefire.plugin.version>
     <maven.scr.plugin.version>1.26.4</maven.scr.plugin.version>
-    <maven.resources.plugin.version>3.2.0</maven.resources.plugin.version>
-    <maven.release.plugin.version>3.0.0-M5</maven.release.plugin.version>
-    <maven.javadoc.plugin.version>3.3.1</maven.javadoc.plugin.version>
-    <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
-    <maven.enforcer.plugin.version>3.0.0</maven.enforcer.plugin.version>
-    <maven.deploy.plugin.version>3.0.0-M2</maven.deploy.plugin.version>
-    <maven.gpg.plugin.version>3.0.1</maven.gpg.plugin.version>
-    <maven.antrun.plugin.version>3.0.0</maven.antrun.plugin.version>
-    <maven.dependency.plugin.version>3.2.0</maven.dependency.plugin.version>
-    <maven.shade.plugin.version>3.2.4</maven.shade.plugin.version>
-    <maven.install.plugin.version>3.0.0-M1</maven.install.plugin.version>
-    <jandex.plugin.version>1.2.2</jandex.plugin.version>
-    <jandex.version>2.4.2.Final</jandex.version>
-    <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+    <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+    <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
+    <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
+    <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
+    <maven.enforcer.plugin.version>3.3.0</maven.enforcer.plugin.version>
+    <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+    <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
+    <maven.antrun.plugin.version>3.1.0</maven.antrun.plugin.version>
+    <maven.dependency.plugin.version>3.6.0</maven.dependency.plugin.version>
+    <maven.shade.plugin.version>3.5.0</maven.shade.plugin.version>
+    <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
+    <maven.invoker.plugin.version>3.6.0</maven.invoker.plugin.version>
+    <maven.plugin.plugin.version>3.9.0</maven.plugin.plugin.version>
+    <jandex.plugin.version>1.2.3</jandex.plugin.version>
+    <jandex.version>2.4.3.Final</jandex.version>
+    <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <sonar-maven-plugin.version>3.9.1.2184</sonar-maven-plugin.version>
-    <nexus-staging-maven-plugin>1.6.8</nexus-staging-maven-plugin>
+    <nexus-staging-maven-plugin>1.6.13</nexus-staging-maven-plugin>
+    <spotless-maven-plugin.version>2.38.0</spotless-maven-plugin.version>
 
     <!-- Other options -->
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -172,27 +185,46 @@
     </osgi.include.resources.default>
     <osgi.include.resources>${osgi.include.resources.default}</osgi.include.resources>
     <karaf.itest.skip>false</karaf.itest.skip>
-    <project.build.outputTimestamp>2020-11-14T12:24:00Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2023-07-24T08:23:10Z</project.build.outputTimestamp>
     <validation-api.version>2.0.1.Final</validation-api.version>
+
+    <jsonschema2pojo.targetPackage>io.fabric8.kubernetes.api.model</jsonschema2pojo.targetPackage>
   </properties>
   <modules>
-    <module>model-annotator</module>
     <module>kubernetes-model-generator</module>
+    <module>kubernetes-client-api</module>
     <module>kubernetes-client</module>
-    <module>kubernetes-server-mock</module>
+    <module>junit/kubernetes-junit-jupiter</module>
+    <module>junit/kubernetes-junit-jupiter-autodetected</module>
+    <module>junit/kubernetes-server-mock</module>
+    <module>openshift-client-api</module>
     <module>openshift-client</module>
     <module>extensions</module>
-    <module>openshift-server-mock</module>
+    <module>junit/openshift-server-mock</module>
     <module>kubernetes-examples</module>
     <module>platforms</module>
     <module>kubernetes-tests</module>
     <module>uberjar</module>
+    <module>generator-annotations</module>
     <module>crd-generator</module>
+    <module>java-generator</module>
+    <module>httpclient-okhttp</module>
+    <module>httpclient-vertx</module>
   </modules>
 
   <dependencyManagement>
     <dependencies>
       <!-- Internal -->
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>generator-annotations</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>java-generator-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>crd-generator-apt</artifactId>
@@ -275,6 +307,11 @@
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-model-gatewayapi</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-model-networking</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -305,7 +342,17 @@
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-model-resource</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
         <artifactId>openshift-model-clusterautoscaling</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>openshift-model-config</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -375,12 +422,64 @@
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client-api</artifactId>
+        <version>${project.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-httpclient-okhttp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp</artifactId>
+        <version>${okhttp.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-httpclient-jdk</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-httpclient-jetty</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-httpclient-vertx</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>openshift-client-api</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-client</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>openshift-client</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-junit-jupiter</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-junit-jupiter-autodetected</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -405,7 +504,7 @@
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
-        <artifactId>knative-server-mock</artifactId>
+        <artifactId>tekton-model-v1</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -420,7 +519,12 @@
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
-        <artifactId>tekton-model-triggers</artifactId>
+        <artifactId>tekton-model-triggers-v1alpha1</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>tekton-model-triggers-v1beta1</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -428,32 +532,7 @@
         <artifactId>tekton-client</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>tekton-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>camel-k-model-v1alpha1</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>camel-k-model-v1</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>camel-k-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>camel-k-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>istio-model-v1alpha3</artifactId>
@@ -469,11 +548,6 @@
         <artifactId>istio-client</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>istio-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>io.fabric8</groupId>
@@ -483,11 +557,6 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>volcano-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>volcano-server-mock</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -540,11 +609,6 @@
         <artifactId>open-cluster-management-client</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>open-cluster-management-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>io.fabric8</groupId>
@@ -571,11 +635,6 @@
         <artifactId>certmanager-client</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>certmanager-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>io.fabric8</groupId>
@@ -585,11 +644,6 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>chaosmesh-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>chaosmesh-server-mock</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -603,11 +657,6 @@
         <artifactId>servicecatalog-client</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>servicecatalog-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
       <dependency>
         <groupId>io.fabric8</groupId>
@@ -617,11 +666,6 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>verticalpodautoscaler-client</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>verticalpodautoscaler-server-mock</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -635,11 +679,6 @@
         <artifactId>volumesnapshot-client</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>volumesnapshot-server-mock</artifactId>
-        <version>${project.version}</version>
-      </dependency>
 
       <!-- Jackson dependencies, imported as a BOM -->
       <dependency>
@@ -648,6 +687,12 @@
         <version>${jackson.version}</version>
         <scope>import</scope>
         <type>pom</type>
+      </dependency>
+
+      <dependency>
+        <groupId>org.snakeyaml</groupId>
+        <artifactId>snakeyaml-engine</artifactId>
+        <version>${snakeyaml.version}</version>
       </dependency>
 
       <!-- Dependencies -->
@@ -676,6 +721,49 @@
         <scope>provided</scope>
       </dependency>
       <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>${commons-compress.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven</groupId>
+        <artifactId>maven-core</artifactId>
+        <version>${maven-core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.plugin-tools</groupId>
+        <artifactId>maven-plugin-annotations</artifactId>
+        <version>${maven-plugin-annotations.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcpkix-jdk18on</artifactId>
+        <version>${bouncycastle.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-client</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.http2</groupId>
+        <artifactId>http2-http-client-transport</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.websocket</groupId>
+        <artifactId>websocket-jetty-client</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
         <version>${lombok.version}</version>
@@ -685,6 +773,22 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-simple</artifactId>
+        <version>${slf4j.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-core</artifactId>
+        <version>${vertx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.vertx</groupId>
+        <artifactId>vertx-web-client</artifactId>
+        <version>${vertx.version}</version>
       </dependency>
 
       <!-- Testing and Mocking -->
@@ -707,13 +811,30 @@
         <scope>test</scope>
       </dependency>
 
-      <!-- JUnit dependencies, imported as a BOM -->
       <dependency>
-        <groupId>org.junit</groupId>
-        <artifactId>junit-bom</artifactId>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-inline</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-api</artifactId>
         <version>${junit.version}</version>
-        <scope>import</scope>
-        <type>pom</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-engine</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter-params</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -731,29 +852,34 @@
       </dependency>
 
       <dependency>
-        <groupId>org.arquillian.cube</groupId>
-        <artifactId>arquillian-cube-requirement</artifactId>
-        <version>${arquillian.cube.version}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
-        <groupId>org.arquillian.cube</groupId>
-        <artifactId>arquillian-cube-openshift-starter</artifactId>
-        <version>${arquillian.cube.version}</version>
-        <scope>test</scope>
-      </dependency>
-
-      <dependency>
         <groupId>javax.validation</groupId>
         <artifactId>validation-api</artifactId>
         <version>${validation-api.version}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>com.approvaltests</groupId>
+        <artifactId>approvaltests</artifactId>
+        <version>${approvaltests.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
 
   <build>
+    <resources>
+      <resource>
+        <directory>target/classes</directory>
+        <!-- allow the BND plugin to include an optionally generated resource -->
+        <includes>
+          <include>META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <pluginManagement>
       <plugins>
         <plugin>
@@ -762,6 +888,7 @@
           <configuration>
             <showDeprecation>true</showDeprecation>
             <showWarnings>true</showWarnings>
+             <compilerArgument>-Xlint:unchecked</compilerArgument>
           </configuration>
         </plugin>
         <plugin>
@@ -845,6 +972,16 @@
           </executions> -->
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${maven.plugin.plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-invoker-plugin</artifactId>
+          <version>${maven.invoker.plugin.version}</version>
+        </plugin>
+        <plugin>
           <groupId>org.jboss.jandex</groupId>
           <artifactId>jandex-maven-plugin</artifactId>
           <version>${jandex.plugin.version}</version>
@@ -874,6 +1011,38 @@
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${sonar-maven-plugin.version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.jsonschema2pojo</groupId>
+          <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+          <version>${jsonschema2pojo.version}</version>
+          <configuration>
+            <customAnnotator>io.fabric8.kubernetes.jsonschema2pojo.KubernetesTypeAnnotator</customAnnotator>
+            <customRuleFactory>io.fabric8.kubernetes.jsonschema2pojo.Fabric8RuleFactory</customRuleFactory>
+            <sourceDirectory>${project.basedir}/src/main/resources/schema</sourceDirectory>
+            <targetPackage>${jsonschema2pojo.targetPackage}</targetPackage>
+            <includeConstructors>true</includeConstructors>
+            <includeJsr303Annotations>false</includeJsr303Annotations>
+            <includeToString>false</includeToString>
+            <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
+            <removeOldOutput>true</removeOldOutput>
+            <outputDirectory>${generate.targetDirectory}</outputDirectory>
+            <annotationStyle>none</annotationStyle>
+          </configuration>
+          <executions>
+            <execution>
+              <goals>
+                <goal>generate</goal>
+              </goals>
+            </execution>
+          </executions>
+          <dependencies>
+            <dependency>
+              <groupId>io.fabric8</groupId>
+              <artifactId>kubernetes-model-jsonschema2pojo</artifactId>
+              <version>${project.version}</version>
+            </dependency>
+          </dependencies>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -918,6 +1087,22 @@
       </plugin>
 
       <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless-maven-plugin.version}</version>
+        <configuration>
+          <java>
+            <eclipse>
+              <file>ide-config/eclipse-format.xml</file>
+            </eclipse>
+            <importOrder>
+              <file>ide-config/eclipse.importorder</file>
+            </importOrder>
+            <removeUnusedImports/>
+          </java>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>3.0</version>
@@ -946,6 +1131,8 @@
             <exclude>kubernetes-client/src/test/resources/**/*</exclude>
             <exclude>kubernetes-client/src/test/resources/mockito-extensions/*</exclude>
             <exclude>**/src/test/resources/ssl/*</exclude>
+            <exclude>**/src/test/resources/io/fabric8/java/generator/approvals/*.*.approved.txt</exclude>
+            <exclude>**/it/**/expected/**/*.expected</exclude>
             <exclude>Jenkinsfile</exclude>
             <exclude>.mvn/**/*</exclude>
             <exclude>mvnw</exclude>
@@ -982,76 +1169,6 @@
             <_reproducible>true</_reproducible>
           </instructions>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>io.sundr</groupId>
-        <artifactId>sundr-maven-plugin</artifactId>
-        <version>${sundrio.version}</version>
-        <!--dependencies>
-          <dependency>
-            <groupId>io.sundr</groupId>
-            <artifactId>sundr-codegen</artifactId>
-            <version>${sundrio.version}</version>
-            <exclusions>
-              <exclusion>
-                <groupId>com.sun</groupId>
-                <artifactId>tools</artifactId>
-              </exclusion>
-            </exclusions>
-          </dependency>
-        </dependencies-->
-        <configuration>
-          <boms>
-            <bom>
-              <artifactId>kubernetes-client-bom</artifactId>
-              <name>Fabric8 :: Kubernetes :: Bom</name>
-              <properties>
-                <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
-                <sonar.skip>true</sonar.skip>
-              </properties>
-            </bom>
-            <bom>
-              <artifactId>kubernetes-client-bom-with-deps</artifactId>
-              <name>Fabric8 :: Kubernetes :: Bom with Dependencies</name>
-              <dependencies>
-                <includes>
-                  <include>com.squareup*:*</include>
-                  <include>com.fasterxml.jackson*:*</include>
-                  <include>io.fabric8:kubernetes-model-core*</include>
-                  <include>io.fabric8:kubernetes-model-rbac*</include>
-                  <include>io.fabric8:kubernetes-model-admissionregistration*</include>
-                  <include>io.fabric8:kubernetes-model-apiextensions*</include>
-                  <include>io.fabric8:kubernetes-model-apps*</include>
-                  <include>io.fabric8:kubernetes-model-autoscaling*</include>
-                  <include>io.fabric8:kubernetes-model-batch*</include>
-                  <include>io.fabric8:kubernetes-model-certificates*</include>
-                  <include>io.fabric8:kubernetes-model-coordination*</include>
-                  <include>io.fabric8:kubernetes-model-discovery*</include>
-                  <include>io.fabric8:kubernetes-model-events*</include>
-                  <include>io.fabric8:kubernetes-model-extensions*</include>
-                  <include>io.fabric8:kubernetes-model-networking*</include>
-                  <include>io.fabric8:kubernetes-model-node*</include>
-                  <include>io.fabric8:kubernetes-model-metrics*</include>
-                  <include>io.fabric8:kubernetes-model-policy*</include>
-                  <include>io.fabric8:kubernetes-model-scheduling*</include>
-                  <include>io.fabric8:kubernetes-model-storageclass*</include>
-                  <include>io.fabric8:openshift-model*</include>
-                </includes>
-              </dependencies>
-              <properties>
-                <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
-                <sonar.skip>true</sonar.skip>
-              </properties>
-            </bom>
-          </boms>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate-bom</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -1171,7 +1288,7 @@
       </build>
     </profile>
     <profile>
-      <id>itests-kubernetes</id>
+      <id>itests</id>
       <modules>
         <module>kubernetes-itests</module>
       </modules>
@@ -1183,37 +1300,6 @@
             <version>${maven.surefire.plugin.version}</version>
             <configuration>
               <skipTests>false</skipTests>
-            </configuration>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${maven.surefire.plugin.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>itests-openshift</id>
-      <modules>
-        <module>kubernetes-itests</module>
-      </modules>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>${maven.surefire.plugin.version}</version>
-            <configuration>
-              <skipTests>true</skipTests>
             </configuration>
           </plugin>
           <plugin>
@@ -1276,6 +1362,97 @@
       <properties>
         <maven.compiler.release>8</maven.compiler.release>
       </properties>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.jsonschema2pojo</groupId>
+              <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+              <dependencies>
+                <dependency>
+                  <groupId>javax.annotation</groupId>
+                  <artifactId>javax.annotation-api</artifactId>
+                  <version>1.3.2</version>
+                </dependency>
+              </dependencies>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+    <profile>
+      <id>java-11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <modules>
+        <module>httpclient-jdk</module>
+        <module>httpclient-jetty</module>
+        <module>httpclient-tests</module>
+      </modules>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>io.sundr</groupId>
+            <artifactId>sundr-maven-plugin</artifactId>
+            <version>${sundrio.version}</version>
+            <configuration>
+              <boms>
+                <bom>
+                  <artifactId>kubernetes-client-bom</artifactId>
+                  <name>Fabric8 :: Kubernetes :: Bom</name>
+                  <properties>
+                    <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
+                    <sonar.skip>true</sonar.skip>
+                  </properties>
+                </bom>
+                <bom>
+                  <artifactId>kubernetes-client-bom-with-deps</artifactId>
+                  <name>Fabric8 :: Kubernetes :: Bom with Dependencies</name>
+                  <dependencies>
+                    <includes>
+                      <include>com.squareup*:*</include>
+                      <include>com.fasterxml.jackson*:*</include>
+                      <include>io.fabric8:kubernetes-model-core*</include>
+                      <include>io.fabric8:kubernetes-model-rbac*</include>
+                      <include>io.fabric8:kubernetes-model-admissionregistration*</include>
+                      <include>io.fabric8:kubernetes-model-apiextensions*</include>
+                      <include>io.fabric8:kubernetes-model-apps*</include>
+                      <include>io.fabric8:kubernetes-model-autoscaling*</include>
+                      <include>io.fabric8:kubernetes-model-batch*</include>
+                      <include>io.fabric8:kubernetes-model-certificates*</include>
+                      <include>io.fabric8:kubernetes-model-coordination*</include>
+                      <include>io.fabric8:kubernetes-model-discovery*</include>
+                      <include>io.fabric8:kubernetes-model-events*</include>
+                      <include>io.fabric8:kubernetes-model-extensions*</include>
+                      <include>io.fabric8:kubernetes-model-gatewayapi*</include>
+                      <include>io.fabric8:kubernetes-model-networking*</include>
+                      <include>io.fabric8:kubernetes-model-node*</include>
+                      <include>io.fabric8:kubernetes-model-metrics*</include>
+                      <include>io.fabric8:kubernetes-model-policy*</include>
+                      <include>io.fabric8:kubernetes-model-scheduling*</include>
+                      <include>io.fabric8:kubernetes-model-storageclass*</include>
+                      <include>io.fabric8:kubernetes-model-resource*</include>
+                      <include>io.fabric8:openshift-model*</include>
+                    </includes>
+                  </dependencies>
+                  <properties>
+                    <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
+                    <sonar.skip>true</sonar.skip>
+                  </properties>
+                </bom>
+              </boms>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>generate-bom</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
     <profile>
       <id>javadoc-test</id>

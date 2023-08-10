@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.apiextensions.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,6 +35,7 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "message",
+    "messageExpression",
     "rule"
 })
 @ToString
@@ -54,15 +56,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ValidationRule implements KubernetesResource
 {
 
     @JsonProperty("message")
     private String message;
+    @JsonProperty("messageExpression")
+    private String messageExpression;
     @JsonProperty("rule")
     private String rule;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,14 +76,10 @@ public class ValidationRule implements KubernetesResource
     public ValidationRule() {
     }
 
-    /**
-     * 
-     * @param rule
-     * @param message
-     */
-    public ValidationRule(String message, String rule) {
+    public ValidationRule(String message, String messageExpression, String rule) {
         super();
         this.message = message;
+        this.messageExpression = messageExpression;
         this.rule = rule;
     }
 
@@ -90,6 +91,16 @@ public class ValidationRule implements KubernetesResource
     @JsonProperty("message")
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    @JsonProperty("messageExpression")
+    public String getMessageExpression() {
+        return messageExpression;
+    }
+
+    @JsonProperty("messageExpression")
+    public void setMessageExpression(String messageExpression) {
+        this.messageExpression = messageExpression;
     }
 
     @JsonProperty("rule")

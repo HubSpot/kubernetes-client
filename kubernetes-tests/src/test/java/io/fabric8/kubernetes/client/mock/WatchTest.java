@@ -19,6 +19,7 @@ package io.fabric8.kubernetes.client.mock;
 import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.api.model.WatchEventBuilder;
@@ -27,9 +28,12 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Watchable;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,14 +41,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.net.HttpURLConnection;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static io.fabric8.kubernetes.client.Watcher.Action.BOOKMARK;
 import static io.fabric8.kubernetes.client.Watcher.Action.DELETED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -59,8 +66,12 @@ class WatchTest {
 
   @BeforeEach
   void setUp() {
-    pod1 = new PodBuilder().withNewMetadata().withNamespace("test").withName("pod1")
-      .withResourceVersion("1").endMetadata().build();
+    pod1 = new PodBuilder().withNewMetadata()
+        .withNamespace("test")
+        .withName("pod1")
+        .withResourceVersion("1")
+        .endMetadata()
+        .build();
   }
 
   @Test
@@ -68,10 +79,16 @@ class WatchTest {
   void testTryWithResourcesConnectsThenReceivesEvent() throws InterruptedException {
     // Given
     server.expect()
-        .withPath("/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
-        .andUpgradeToWebSocket().open()
-        .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1, "DELETED"))
-        .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(outdatedEvent()).done().once();
+        .withPath(
+            "/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "DELETED"))
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(outdatedEvent())
+        .done()
+        .once();
     final CountDownLatch deleteLatch = new CountDownLatch(1);
     final CountDownLatch closeLatch = new CountDownLatch(1);
     final Watcher<Pod> watcher = new Watcher<Pod>() {
@@ -104,8 +121,10 @@ class WatchTest {
     // Given
     final CountDownLatch closeLatch = new CountDownLatch(1);
     server.expect()
-      .withPath("/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
-      .andReturn(410, outdatedEvent()).once();
+        .withPath(
+            "/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+        .andReturn(410, outdatedEvent())
+        .once();
     final Watcher<Pod> watcher = new Watcher<Pod>() {
       @Override
       public void eventReceived(Action action, Pod resource) {
@@ -122,7 +141,7 @@ class WatchTest {
         closeLatch.countDown();
       }
     };
-    final Watchable<Watcher<Pod>> watchable = client.pods().withName("pod1").withResourceVersion("1");
+    final Watchable<Pod> watchable = client.pods().withName("pod1").withResourceVersion("1");
     // When
     final KubernetesClientException result = Assertions.assertThrows(KubernetesClientException.class, () -> {
       try (Watch watch = watchable.watch(watcher)) {
@@ -139,24 +158,31 @@ class WatchTest {
   void testWithTimeoutSecondsShouldAddQueryParam() throws InterruptedException {
     // Given
     server.expect()
-      .withPath("/api/v1/namespaces/test/pods?timeoutSeconds=30&allowWatchBookmarks=true&watch=true")
-      .andUpgradeToWebSocket().open()
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1, "DELETED"))
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(outdatedEvent()).done().once();
-
+        .withPath("/api/v1/namespaces/test/pods?timeoutSeconds=30&allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "DELETED"))
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(outdatedEvent())
+        .done()
+        .once();
 
     // When
     final CountDownLatch eventReceivedLatch = new CountDownLatch(1);
     Watch watch = client.pods().watch(new ListOptionsBuilder().withTimeoutSeconds(30L).build(), new Watcher<Pod>() {
       @Override
-      public void eventReceived(Action action, Pod resource) { eventReceivedLatch.countDown(); }
+      public void eventReceived(Action action, Pod resource) {
+        eventReceivedLatch.countDown();
+      }
 
       @Override
-      public void onClose(WatcherException cause) { }
+      public void onClose(WatcherException cause) {
+      }
     });
 
     // Then
-    assertTrue(eventReceivedLatch.await(3, TimeUnit.SECONDS));
+    assertTrue(eventReceivedLatch.await(10, TimeUnit.SECONDS));
     watch.close();
   }
 
@@ -171,7 +197,11 @@ class WatchTest {
     // accept watch and disconnect
     server.expect().withPath(path).andUpgradeToWebSocket().open().done().once();
     // refuse reconnect attempts 6 times
-    server.expect().withPath(path).andReturn(HttpURLConnection.HTTP_NOT_FOUND, new StatusBuilder().withCode(HttpURLConnection.HTTP_NOT_FOUND).build()).times(6);
+    server.expect()
+        .withPath(path)
+        .andReturn(HttpURLConnection.HTTP_NOT_FOUND,
+            new StatusBuilder().withCode(HttpURLConnection.HTTP_NOT_FOUND).build())
+        .times(6);
     // accept next reconnect and send outdated event to stop the watch
     server.expect().withPath(path).andUpgradeToWebSocket().open(outdatedEvent()).done().once();
     final CountDownLatch closeLatch = new CountDownLatch(1);
@@ -201,9 +231,16 @@ class WatchTest {
     final CountDownLatch closeLatch = new CountDownLatch(1);
 
     server.expect()
-      .withPath("/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
-      .andUpgradeToWebSocket().open().waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1, "MODIFIED")).waitFor(EVENT_WAIT_PERIOD_MS)
-      .andEmit(new WatchEvent(pod1, "MODIFIED")).done().once();
+        .withPath(
+            "/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "MODIFIED"))
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "MODIFIED"))
+        .done()
+        .once();
 
     Watch watch = client.pods().withName("pod1").withResourceVersion("1").watch(new Watcher<Pod>() {
       @Override
@@ -231,30 +268,43 @@ class WatchTest {
   void testReconnectsWithLastResourceVersion() throws InterruptedException {
     final CountDownLatch eventLatch = new CountDownLatch(3);
 
-    final Pod pod1initial = new PodBuilder().withNewMetadata().withNamespace("test").withName("pod1")
-      .withResourceVersion("9").endMetadata().build();
+    final Pod pod1initial = new PodBuilder().withNewMetadata()
+        .withNamespace("test")
+        .withName("pod1")
+        .withResourceVersion("9")
+        .endMetadata()
+        .build();
 
-
-    final Pod pod1update = new PodBuilder().withNewMetadata().withNamespace("test").withName("pod1")
-      .withResourceVersion("10").endMetadata().build();
+    final Pod pod1update = new PodBuilder().withNewMetadata()
+        .withNamespace("test")
+        .withName("pod1")
+        .withResourceVersion("10")
+        .endMetadata()
+        .build();
 
     final String path = "/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true";
 
     server.expect()
-      .withPath(path)
-      .andUpgradeToWebSocket().open()
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1initial, "MODIFIED"))
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1update, "MODIFIED"))
-      .done().once();
+        .withPath(path)
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1initial, "MODIFIED"))
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1update, "MODIFIED"))
+        .done()
+        .once();
 
     final String reconnectPath = "/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=10&allowWatchBookmarks=true&watch=true";
 
     server.expect()
-      .withPath(reconnectPath)
-      .andUpgradeToWebSocket().open()
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1update, "MODIFIED"))
-      .done().once();
-
+        .withPath(reconnectPath)
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1update, "MODIFIED"))
+        .done()
+        .once();
 
     Watch watch = client.pods().withName("pod1").withResourceVersion("1").watch(new Watcher<Pod>() {
       @Override
@@ -272,23 +322,30 @@ class WatchTest {
   }
 
   private static WatchEvent outdatedEvent() {
-    return new WatchEventBuilder().withStatusObject(
-      new StatusBuilder().withCode(HttpURLConnection.HTTP_GONE)
-        .withMessage(
-        "410: The event in requested index is outdated and cleared (the requested history has been cleared [3/1]) [2]")
-      .build()).build();
+    return new WatchEventBuilder().withType(Watcher.Action.ERROR.name())
+        .withObject(
+            new StatusBuilder().withCode(HttpURLConnection.HTTP_GONE)
+                .withMessage(
+                    "410: The event in requested index is outdated and cleared (the requested history has been cleared [3/1]) [2]")
+                .build())
+        .build();
   }
-
 
   @Test
   @DisplayName("TryWithResources, connects and receives event then receives GONE, should receive first event and then close")
   void testTryWithResourcesConnectsThenReceivesEventBookmark() throws InterruptedException {
     // Given
     server.expect()
-      .withPath("/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
-      .andUpgradeToWebSocket().open()
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(new WatchEvent(pod1, "BOOKMARK"))
-      .waitFor(EVENT_WAIT_PERIOD_MS).andEmit(outdatedEvent()).done().once();
+        .withPath(
+            "/api/v1/namespaces/test/pods?fieldSelector=metadata.name%3Dpod1&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "BOOKMARK"))
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(outdatedEvent())
+        .done()
+        .once();
     final CountDownLatch bookmarkLatch = new CountDownLatch(1);
     final CountDownLatch closeLatch = new CountDownLatch(1);
     final Watcher<Pod> watcher = new Watcher<Pod>() {
@@ -307,7 +364,10 @@ class WatchTest {
       }
     };
     // When
-    try (Watch watch = client.pods().withName("pod1").withResourceVersion("1").watch(new ListOptionsBuilder().withAllowWatchBookmarks(true).build(), watcher)) {
+    try (Watch watch = client.pods()
+        .withName("pod1")
+        .withResourceVersion("1")
+        .watch(new ListOptionsBuilder().withAllowWatchBookmarks(true).build(), watcher)) {
       // Then
       assertNotNull(watch);
       assertTrue(bookmarkLatch.await(10, TimeUnit.SECONDS));
@@ -316,12 +376,13 @@ class WatchTest {
   }
 
   @Test
-  void testErrorResponse() throws InterruptedException {
+  void testErrorResponse() {
     // Given
+    client.getConfiguration().setRequestRetryBackoffLimit(0);
     server.expect()
         .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
         .andReturn(503, "may not be a status")
-        .once();
+        .times(2);
 
     client.pods().watch(new Watcher<Pod>() {
 
@@ -332,9 +393,154 @@ class WatchTest {
 
       @Override
       public void onClose(WatcherException cause) {
-      }});
+      }
+    });
 
     // initial failure, then the http retry
     Awaitility.await().atMost(10, TimeUnit.SECONDS).until(() -> server.getRequestCount() == 2);
+  }
+
+  @Test
+  void testWatcherException() throws InterruptedException {
+    // Given
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "MODIFIED"))
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "MODIFIED"))
+        .done()
+        .once();
+
+    CountDownLatch latch = new CountDownLatch(2);
+
+    client.pods().watch(new Watcher<Pod>() {
+
+      @Override
+      public void eventReceived(Action action, Pod resource) {
+        latch.countDown();
+        if (latch.getCount() == 1) {
+          throw new RuntimeException();
+        }
+      }
+
+      @Override
+      public void onClose(WatcherException cause) {
+      }
+    });
+
+    // ensure that the exception does not inhibit further message processing
+    assertTrue(latch.await(10, TimeUnit.SECONDS));
+  }
+
+  @Test
+  void testUnknownResponse() throws InterruptedException {
+    // Given
+
+    // trigger the usage of the http watch
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andReturn(404, "null")
+        .times(2);
+
+    MixedOperation<Pod, PodList, PodResource> pods = client.pods();
+
+    assertThrows(KubernetesClientException.class, () -> pods.watch(new Watcher<Pod>() {
+
+      @Override
+      public void eventReceived(Action action, Pod resource) {
+      }
+
+      @Override
+      public void onClose(WatcherException cause) {
+      }
+    }));
+  }
+
+  @Test
+  void testHttpWatch() throws InterruptedException {
+    // Given
+
+    // trigger the usage of the http watch
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andReturn(200, "")
+        .once();
+
+    String dummyEvent = Serialization.asJson(new WatchEventBuilder().withType("MODIFIED")
+        .withObject(new PodBuilder().withNewMetadata().endMetadata().build())
+        .build()) + "\n";
+
+    // build a response that is large enough to span multiple messages
+    // there's potentially a corner case here with utf multi-byte that is unhandled
+    // if that happens we'll see an exception from the decode
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andReturn(200, Collections.nCopies(200, dummyEvent).stream().collect(Collectors.joining()))
+        .once();
+
+    CountDownLatch latch = new CountDownLatch(200);
+
+    client.pods().watch(new Watcher<Pod>() {
+
+      @Override
+      public void eventReceived(Action action, Pod resource) {
+        latch.countDown();
+      }
+
+      @Override
+      public void onClose(WatcherException cause) {
+      }
+    });
+
+    // ensure that the exception does not inhibit further message processing
+    assertTrue(latch.await(10, TimeUnit.SECONDS));
+  }
+
+  @Test
+  void testErrorAfterReady() throws InterruptedException {
+    // Given
+
+    // make ready
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .done()
+        .once();
+
+    // retry, but get 503
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andReturn(503, "")
+        .once();
+
+    server.expect()
+        .withPath("/api/v1/namespaces/test/pods?allowWatchBookmarks=true&watch=true")
+        .andUpgradeToWebSocket()
+        .open()
+        .waitFor(EVENT_WAIT_PERIOD_MS)
+        .andEmit(new WatchEvent(pod1, "MODIFIED"))
+        .done()
+        .once();
+
+    CountDownLatch latch = new CountDownLatch(1);
+
+    client.pods().watch(new Watcher<Pod>() {
+
+      @Override
+      public void eventReceived(Action action, Pod resource) {
+        latch.countDown();
+      }
+
+      @Override
+      public void onClose(WatcherException cause) {
+      }
+    });
+
+    // ensure that the exception does not inhibit further message processing
+    assertTrue(latch.await(10, TimeUnit.SECONDS));
   }
 }

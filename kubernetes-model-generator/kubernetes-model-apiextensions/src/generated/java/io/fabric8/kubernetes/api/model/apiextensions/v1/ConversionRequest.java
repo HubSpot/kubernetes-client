@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.apiextensions.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -13,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -23,6 +24,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.runtime.RawExtension;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -56,19 +58,23 @@ import lombok.experimental.Accessors;
     @BuildableReference(IntOrString.class),
     @BuildableReference(ObjectReference.class),
     @BuildableReference(LocalObjectReference.class),
-    @BuildableReference(PersistentVolumeClaim.class)
+    @BuildableReference(PersistentVolumeClaim.class),
+    @BuildableReference(GenericKubernetesResource.class),
+    @BuildableReference(RawExtension.class)
 })
+@Generated("jsonschema2pojo")
 public class ConversionRequest implements KubernetesResource
 {
 
     @JsonProperty("desiredAPIVersion")
     private String desiredAPIVersion;
     @JsonProperty("objects")
-    private List<HasMetadata> objects = new ArrayList<HasMetadata>();
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<KubernetesResource> objects = new ArrayList<KubernetesResource>();
     @JsonProperty("uid")
     private String uid;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -77,13 +83,7 @@ public class ConversionRequest implements KubernetesResource
     public ConversionRequest() {
     }
 
-    /**
-     * 
-     * @param uid
-     * @param objects
-     * @param desiredAPIVersion
-     */
-    public ConversionRequest(String desiredAPIVersion, List<HasMetadata> objects, String uid) {
+    public ConversionRequest(String desiredAPIVersion, List<KubernetesResource> objects, String uid) {
         super();
         this.desiredAPIVersion = desiredAPIVersion;
         this.objects = objects;
@@ -101,12 +101,12 @@ public class ConversionRequest implements KubernetesResource
     }
 
     @JsonProperty("objects")
-    public List<HasMetadata> getObjects() {
+    public List<KubernetesResource> getObjects() {
         return objects;
     }
 
     @JsonProperty("objects")
-    public void setObjects(List<HasMetadata> objects) {
+    public void setObjects(List<KubernetesResource> objects) {
         this.objects = objects;
     }
 

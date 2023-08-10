@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.monitoring.v1alpha1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,6 +42,8 @@ import lombok.experimental.Accessors;
     "pagerdutyConfigs",
     "pushoverConfigs",
     "slackConfigs",
+    "snsConfigs",
+    "telegramConfigs",
     "victoropsConfigs",
     "webhookConfigs",
     "wechatConfigs"
@@ -63,6 +66,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Receiver implements KubernetesResource
 {
 
@@ -83,6 +87,12 @@ public class Receiver implements KubernetesResource
     @JsonProperty("slackConfigs")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<SlackConfig> slackConfigs = new ArrayList<SlackConfig>();
+    @JsonProperty("snsConfigs")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<SNSConfig> snsConfigs = new ArrayList<SNSConfig>();
+    @JsonProperty("telegramConfigs")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<TelegramConfig> telegramConfigs = new ArrayList<TelegramConfig>();
     @JsonProperty("victoropsConfigs")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<VictorOpsConfig> victoropsConfigs = new ArrayList<VictorOpsConfig>();
@@ -93,7 +103,7 @@ public class Receiver implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<WeChatConfig> wechatConfigs = new ArrayList<WeChatConfig>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -102,19 +112,7 @@ public class Receiver implements KubernetesResource
     public Receiver() {
     }
 
-    /**
-     * 
-     * @param victoropsConfigs
-     * @param emailConfigs
-     * @param webhookConfigs
-     * @param pagerdutyConfigs
-     * @param pushoverConfigs
-     * @param name
-     * @param slackConfigs
-     * @param opsgenieConfigs
-     * @param wechatConfigs
-     */
-    public Receiver(List<EmailConfig> emailConfigs, String name, List<OpsGenieConfig> opsgenieConfigs, List<PagerDutyConfig> pagerdutyConfigs, List<PushoverConfig> pushoverConfigs, List<SlackConfig> slackConfigs, List<VictorOpsConfig> victoropsConfigs, List<WebhookConfig> webhookConfigs, List<WeChatConfig> wechatConfigs) {
+    public Receiver(List<EmailConfig> emailConfigs, String name, List<OpsGenieConfig> opsgenieConfigs, List<PagerDutyConfig> pagerdutyConfigs, List<PushoverConfig> pushoverConfigs, List<SlackConfig> slackConfigs, List<SNSConfig> snsConfigs, List<TelegramConfig> telegramConfigs, List<VictorOpsConfig> victoropsConfigs, List<WebhookConfig> webhookConfigs, List<WeChatConfig> wechatConfigs) {
         super();
         this.emailConfigs = emailConfigs;
         this.name = name;
@@ -122,6 +120,8 @@ public class Receiver implements KubernetesResource
         this.pagerdutyConfigs = pagerdutyConfigs;
         this.pushoverConfigs = pushoverConfigs;
         this.slackConfigs = slackConfigs;
+        this.snsConfigs = snsConfigs;
+        this.telegramConfigs = telegramConfigs;
         this.victoropsConfigs = victoropsConfigs;
         this.webhookConfigs = webhookConfigs;
         this.wechatConfigs = wechatConfigs;
@@ -185,6 +185,26 @@ public class Receiver implements KubernetesResource
     @JsonProperty("slackConfigs")
     public void setSlackConfigs(List<SlackConfig> slackConfigs) {
         this.slackConfigs = slackConfigs;
+    }
+
+    @JsonProperty("snsConfigs")
+    public List<SNSConfig> getSnsConfigs() {
+        return snsConfigs;
+    }
+
+    @JsonProperty("snsConfigs")
+    public void setSnsConfigs(List<SNSConfig> snsConfigs) {
+        this.snsConfigs = snsConfigs;
+    }
+
+    @JsonProperty("telegramConfigs")
+    public List<TelegramConfig> getTelegramConfigs() {
+        return telegramConfigs;
+    }
+
+    @JsonProperty("telegramConfigs")
+    public void setTelegramConfigs(List<TelegramConfig> telegramConfigs) {
+        this.telegramConfigs = telegramConfigs;
     }
 
     @JsonProperty("victoropsConfigs")

@@ -15,40 +15,16 @@
  */
 package io.fabric8.volumesnapshot.client.internal;
 
-import io.fabric8.kubernetes.api.builder.Visitor;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
-import io.fabric8.kubernetes.client.dsl.base.HasMetadataOperation;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
-import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
+import io.fabric8.kubernetes.client.extension.ExtensibleResourceAdapter;
 import io.fabric8.volumesnapshot.api.model.VolumeSnapshotContent;
-import io.fabric8.volumesnapshot.api.model.VolumeSnapshotContentBuilder;
-import io.fabric8.volumesnapshot.api.model.VolumeSnapshotContentList;
+import io.fabric8.volumesnapshot.client.VolumeSnapshotContentResource;
 
-
-public class VolumeSnapshotContentOperationsImpl extends HasMetadataOperation<VolumeSnapshotContent, VolumeSnapshotContentList, VolumeSnapshotContentResource> implements VolumeSnapshotContentResource {
-
-  public VolumeSnapshotContentOperationsImpl(ClientContext clientContext) {
-    this(HasMetadataOperationsImpl.defaultContext(clientContext));
-  }
-
-  public VolumeSnapshotContentOperationsImpl(OperationContext context) {
-    super(context.withApiGroupName("snapshot.storage.k8s.io").withApiGroupVersion("v1").withPlural("volumesnapshotcontents"),
-            VolumeSnapshotContent.class, VolumeSnapshotContentList.class);
-  }
+public class VolumeSnapshotContentOperationsImpl extends ExtensibleResourceAdapter<VolumeSnapshotContent>
+    implements VolumeSnapshotContentResource {
 
   @Override
-  public BaseOperation<VolumeSnapshotContent, VolumeSnapshotContentList, VolumeSnapshotContentResource> newInstance(OperationContext context) {
-    return new VolumeSnapshotContentOperationsImpl(context);
+  public ExtensibleResourceAdapter<VolumeSnapshotContent> newInstance() {
+    return new VolumeSnapshotContentOperationsImpl();
   }
 
-  @Override
-  public VolumeSnapshotContent edit(Visitor... visitors) {
-    return patch(new VolumeSnapshotContentBuilder(getMandatory()).accept(visitors).build());
-  }
-
-  @Override
-  public boolean isResourceNamespaced() {
-    return false;
-  }
 }

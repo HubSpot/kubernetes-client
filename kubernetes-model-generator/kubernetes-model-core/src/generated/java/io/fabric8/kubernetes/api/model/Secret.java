@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,11 +40,12 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "core.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class Secret implements HasMetadata, Namespaced
 {
 
@@ -55,7 +57,8 @@ public class Secret implements HasMetadata, Namespaced
     @JsonProperty("apiVersion")
     private java.lang.String apiVersion = "v1";
     @JsonProperty("data")
-    private Map<String, String> data;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> data = new LinkedHashMap<String, String>();
     @JsonProperty("immutable")
     private Boolean immutable;
     /**
@@ -68,11 +71,12 @@ public class Secret implements HasMetadata, Namespaced
     @JsonProperty("metadata")
     private ObjectMeta metadata;
     @JsonProperty("stringData")
-    private Map<String, String> stringData;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> stringData = new LinkedHashMap<String, String>();
     @JsonProperty("type")
     private java.lang.String type;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -81,16 +85,6 @@ public class Secret implements HasMetadata, Namespaced
     public Secret() {
     }
 
-    /**
-     * 
-     * @param immutable
-     * @param metadata
-     * @param apiVersion
-     * @param data
-     * @param kind
-     * @param type
-     * @param stringData
-     */
     public Secret(java.lang.String apiVersion, Map<String, String> data, Boolean immutable, java.lang.String kind, ObjectMeta metadata, Map<String, String> stringData, java.lang.String type) {
         super();
         this.apiVersion = apiVersion;

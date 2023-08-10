@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.clusterautoscaling.v1beta1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,11 +59,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1beta1")
 @Group("autoscaling.openshift.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "clusterautoscaling.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class MachineAutoscaler implements HasMetadata, Namespaced
 {
 
@@ -87,7 +89,7 @@ public class MachineAutoscaler implements HasMetadata, Namespaced
     @JsonProperty("status")
     private MachineAutoscalerStatus status;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -96,14 +98,6 @@ public class MachineAutoscaler implements HasMetadata, Namespaced
     public MachineAutoscaler() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param spec
-     * @param status
-     */
     public MachineAutoscaler(String apiVersion, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, MachineAutoscalerSpec spec, MachineAutoscalerStatus status) {
         super();
         this.apiVersion = apiVersion;

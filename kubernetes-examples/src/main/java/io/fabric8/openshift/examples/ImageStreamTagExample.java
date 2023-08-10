@@ -16,9 +16,9 @@
 
 package io.fabric8.openshift.examples;
 
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.openshift.api.model.ImageStreamTag;
 import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,23 +32,24 @@ public class ImageStreamTagExample {
 
   public static void main(String[] args) throws InterruptedException {
 
-    try (OpenShiftClient client = new DefaultOpenShiftClient()) {
+    try (OpenShiftClient client = new KubernetesClientBuilder().build().adapt(OpenShiftClient.class)) {
       final String project = Optional.ofNullable(client.getNamespace()).orElse("myproject");
       final String isTagName = "bar1:1.0.12";
-      final ImageStreamTag isTag = client.imageStreamTags().inNamespace(project).createOrReplace(
-        new ImageStreamTagBuilder().withNewMetadata().withName(isTagName).endMetadata()
-          .withNewTag().withNewFrom().withKind("DockerImage").withName("openshift/wildfly-81-centos7:latest").endFrom().endTag()
-          .build()
-      );
+      final ImageStreamTag isTag = client.imageStreamTags().inNamespace(project).resource(
+          new ImageStreamTagBuilder().withNewMetadata().withName(isTagName).endMetadata()
+              .withNewTag().withNewFrom().withKind("DockerImage").withName("openshift/wildfly-81-centos7:latest").endFrom()
+              .endTag()
+              .build())
+          .createOrReplace();
       logger.info("Created ImageStreamTag: {}", isTag.getMetadata().getName());
       int limit = 0;
-      while (client.imageStreamTags().inNamespace(project).withName(isTagName).fromServer().get() == null && limit++ < 10){
+      while (client.imageStreamTags().inNamespace(project).withName(isTagName).get() == null && limit++ < 10) {
         TimeUnit.SECONDS.sleep(1);
       }
       logger.info("ImageStreamTags in {}:", project);
-      client.imageStreamTags().inNamespace(project).list().getItems().forEach(ist ->
-        logger.info(" - {}", ist.getMetadata().getName()));
-      final boolean deletedIsTag = client.imageStreamTags().withName(isTagName).delete();
+      client.imageStreamTags().inNamespace(project).list().getItems()
+          .forEach(ist -> logger.info(" - {}", ist.getMetadata().getName()));
+      final boolean deletedIsTag = client.imageStreamTags().withName(isTagName).delete().size() == 1;
       logger.info("Deleted ImageStreamTag: {}", deletedIsTag);
     }
   }

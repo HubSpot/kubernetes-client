@@ -19,6 +19,8 @@ import io.fabric8.crd.generator.CRDGenerationInfo;
 import io.fabric8.crd.generator.CRDGenerator;
 import io.fabric8.crd.generator.CRDGenerator.AbstractCRDOutput;
 import io.fabric8.crd.generator.CustomResourceInfo;
+import io.fabric8.crd.generator.annotation.Annotations;
+import io.fabric8.crd.generator.annotation.Labels;
 import io.fabric8.crd.generator.utils.Types;
 import io.fabric8.crd.generator.utils.Types.SpecAndStatus;
 import io.fabric8.kubernetes.api.Pluralize;
@@ -29,6 +31,15 @@ import io.sundr.adapter.apt.AptContext;
 import io.sundr.model.TypeDef;
 import io.sundr.model.repo.DefinitionRepository;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.net.URI;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
 import javax.annotation.processing.*;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Name;
@@ -36,25 +47,26 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import javax.tools.FileObject;
 import javax.tools.StandardLocation;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.URI;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
 
-@SupportedAnnotationTypes({"io.fabric8.kubernetes.model.annotation.Version"})
+@SupportedAnnotationTypes({ "io.fabric8.kubernetes.model.annotation.Version" })
 public class CustomResourceAnnotationProcessor extends AbstractProcessor {
-  
+
+  public static final String PROCESSOR_OPTION_PARALLEL = "io.fabric8.crd.generator.parallel";
   private final CRDGenerator generator = new CRDGenerator();
 
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     if (roundEnv.processingOver()) {
       final Messager messager = processingEnv.getMessager();
-      final CRDGenerationInfo allCRDs = generator.withOutput(new FileObjectCRDOutput(processingEnv)).detailedGenerate();
+      final CRDGenerator crdGenerator = generator
+          .withOutput(new FileObjectCRDOutput(processingEnv));
+      final Map<String, String> options = processingEnv.getOptions();
+      enableParallelGeneration(messager, crdGenerator, options);
+      final CRDGenerationInfo allCRDs = crdGenerator
+          .detailedGenerate();
       allCRDs.getCRDDetailsPerNameAndVersion().forEach((crdName, versionToInfo) -> {
         messager.printMessage(Diagnostic.Kind.NOTE, "Generating CRD " + crdName + ":\n");
-        versionToInfo.forEach((version, info) -> messager.printMessage(Diagnostic.Kind.NOTE, "  - " + version + " -> " + info.getFilePath()));
+        versionToInfo.forEach(
+            (version, info) -> messager.printMessage(Diagnostic.Kind.NOTE, "  - " + version + " -> " + info.getFilePath()));
       });
       return true;
     }
@@ -66,6 +78,15 @@ public class CustomResourceAnnotationProcessor extends AbstractProcessor {
     for (TypeElement annotation : annotations) {
       for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
         if (element instanceof TypeElement) {
+          try {
+            // The annotation is loaded with reflection for compatibility with Java 8
+            Class<Annotation> generatedAnnotation = (Class<Annotation>) Class.forName("javax.annotation.processing.Generated");
+            if (element.getAnnotationsByType(generatedAnnotation).length > 0) {
+              continue;
+            }
+          } catch (ClassNotFoundException e) {
+            // ignore
+          }
           generator.customResources(toCustomResourceInfo((TypeElement) element));
         }
       }
@@ -73,11 +94,21 @@ public class CustomResourceAnnotationProcessor extends AbstractProcessor {
 
     return false;
   }
-  
+
+  private void enableParallelGeneration(Messager messager, CRDGenerator crdGenerator, Map<String, String> options) {
+    if (options.containsKey(PROCESSOR_OPTION_PARALLEL)) {
+      final String rawValue = options.get(PROCESSOR_OPTION_PARALLEL);
+      final boolean parallel = Boolean.parseBoolean(rawValue);
+      messager.printMessage(Diagnostic.Kind.NOTE,
+          String.format("Found option %s set to %s, parallel set to %b ", PROCESSOR_OPTION_PARALLEL, rawValue, parallel));
+      crdGenerator.withParallelGenerationEnabled(parallel);
+    }
+  }
+
   private CustomResourceInfo toCustomResourceInfo(TypeElement customResource) {
     TypeDef definition = Adapters.adaptType(customResource, AptContext.getContext());
     definition = Types.unshallow(definition);
-    
+
     if (CustomResourceInfo.DESCRIBE_TYPE_DEFS) {
       Types.output(definition);
     }
@@ -86,37 +117,48 @@ public class CustomResourceAnnotationProcessor extends AbstractProcessor {
     SpecAndStatus specAndStatus = Types.resolveSpecAndStatusTypes(definition);
     if (specAndStatus.isUnreliable()) {
       System.out.println("Cannot reliably determine status types for  " + crClassName
-        + " because it isn't parameterized with only spec and status types. Status replicas detection will be deactivated.");
+          + " because it isn't parameterized with only spec and status types. Status replicas detection will be deactivated.");
     }
 
     final String group = customResource.getAnnotation(Group.class).value();
     final String version = customResource.getAnnotation(Version.class).value();
 
     final String kind = Optional.ofNullable(customResource.getAnnotation(Kind.class))
-      .map(Kind::value)
-      .orElse(customResource.getSimpleName().toString());
+        .map(Kind::value)
+        .orElse(customResource.getSimpleName().toString());
 
     final String singular = Optional.ofNullable(customResource.getAnnotation(Singular.class))
-      .map(Singular::value)
-      .orElse(kind.toLowerCase(Locale.ROOT));
+        .map(Singular::value)
+        .orElse(kind.toLowerCase(Locale.ROOT));
 
     final String plural = Optional.ofNullable(customResource.getAnnotation(Plural.class))
-      .map(Plural::value)
-      .map(s -> s.toLowerCase(Locale.ROOT))
-      .orElse(Pluralize.toPlural(singular));
+        .map(Plural::value)
+        .map(s -> s.toLowerCase(Locale.ROOT))
+        .orElse(Pluralize.toPlural(singular));
 
     final String[] shortNames = Optional
-      .ofNullable(customResource.getAnnotation(ShortNames.class))
-      .map(ShortNames::value)
-      .orElse(new String[]{});
+        .ofNullable(customResource.getAnnotation(ShortNames.class))
+        .map(ShortNames::value)
+        .orElse(new String[] {});
+
+    final String[] annotations = Optional
+        .ofNullable(customResource.getAnnotation(Annotations.class))
+        .map(Annotations::value)
+        .orElse(new String[] {});
+
+    final String[] labels = Optional
+        .ofNullable(customResource.getAnnotation(Labels.class))
+        .map(Labels::value)
+        .orElse(new String[] {});
 
     final boolean storage = customResource.getAnnotation(Version.class).storage();
     final boolean served = customResource.getAnnotation(Version.class).served();
-    
+
     final Scope scope = Types.isNamespaced(definition) ? Scope.NAMESPACED : Scope.CLUSTER;
 
-    return new CustomResourceInfo(group, version, kind, singular, plural, shortNames, storage, served, scope, definition, crClassName.toString(),
-      specAndStatus.getSpecClassName(), specAndStatus.getStatusClassName());
+    return new CustomResourceInfo(group, version, kind, singular, plural, shortNames, storage, served, scope, definition,
+        crClassName.toString(),
+        specAndStatus.getSpecClassName(), specAndStatus.getStatusClassName(), annotations, labels);
   }
 
   private static class FileObjectOutputStream extends OutputStream {
@@ -170,8 +212,8 @@ public class CustomResourceAnnotationProcessor extends AbstractProcessor {
     @Override
     protected FileObjectOutputStream createStreamFor(String crdName) throws IOException {
       return new FileObjectOutputStream(
-        processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "",
-          "META-INF/fabric8/" + crdName + ".yml"));
+          processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "",
+              "META-INF/fabric8/" + crdName + ".yml"));
     }
 
     @Override
@@ -180,4 +222,3 @@ public class CustomResourceAnnotationProcessor extends AbstractProcessor {
     }
   }
 }
-

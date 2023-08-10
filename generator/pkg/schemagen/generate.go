@@ -329,7 +329,7 @@ func (g *schemaGenerator) generate(schemaId string, crdLists map[reflect.Type]Cr
 
 	s := JSONSchema{
 		ID:     schemaId,
-		Schema: "http://json-schema.org/draft-05/schema#",
+		Schema: "http://json-schema.org/draft-07/schema#",
 		JSONDescriptor: JSONDescriptor{
 			Type: "object",
 		},
@@ -551,10 +551,10 @@ func (g *schemaGenerator) getEnumDescriptor(t reflect.Type) EnumDescriptor {
 
 	// Note that at the moment, this only supports "string" types, for others, it must be
 	// defined in the extensions using the "enumTypes"
-	var index int64
+	var index int64 = 0
 	end := false
-	index = 0
-	for !end {
+	// We stop trying to find enum values when end is true (last index was not found) AND when at least 50 indexes have been checked.
+	for !end || index < 50 {
 		instance.SetInt(index)
 		enumJavaName := fmt.Sprintf("%v", instance.Interface())
 		if enumJavaName == strconv.FormatInt(index, 10) {
@@ -562,9 +562,7 @@ func (g *schemaGenerator) getEnumDescriptor(t reflect.Type) EnumDescriptor {
 		} else {
 			enumValues = append(enumValues, EnumValueDescriptor{
 				Name: enumJavaName,
-				// For "string" type, the Value is the same as the Name
-				// but for "integer" type, the Value would be the index, so we need both fields.
-				Value: enumJavaName,
+				Value: index,
 			})
 		}
 
@@ -572,7 +570,7 @@ func (g *schemaGenerator) getEnumDescriptor(t reflect.Type) EnumDescriptor {
 	}
 
 	return EnumDescriptor{
-		Type:   "string", // TODO: To be auto discovered.
+		Type:   "integer",
 		Values: enumValues,
 	}
 }

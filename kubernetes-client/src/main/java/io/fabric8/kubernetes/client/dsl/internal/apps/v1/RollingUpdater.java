@@ -22,15 +22,20 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
-import io.fabric8.kubernetes.client.dsl.Operation;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
-import io.fabric8.kubernetes.client.dsl.WatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.dsl.base.PatchType;
+import io.fabric8.kubernetes.client.dsl.internal.PatchUtils;
+import io.fabric8.kubernetes.client.dsl.internal.PatchUtils.Format;
 import io.fabric8.kubernetes.client.dsl.internal.core.v1.PodOperationsImpl;
+import io.fabric8.kubernetes.client.impl.BaseClient;
+import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 import io.fabric8.kubernetes.client.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,32 +51,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static io.fabric8.kubernetes.client.internal.SerializationUtils.dumpWithoutRuntimeStateAsYaml;
-
 public abstract class RollingUpdater<T extends HasMetadata, L> {
   public static final String DEPLOYMENT_KEY = "deployment";
-
-  private static final Long DEFAULT_ROLLING_TIMEOUT = 15 * 60 * 1000L; // 15 mins
 
   private static final Long DEFAULT_SERVER_GC_WAIT_TIMEOUT = 60 * 1000L; // 60 seconds
 
   private static final transient Logger LOG = LoggerFactory.getLogger(RollingUpdater.class);
 
-  protected final ClientContext clientContext;
+  protected final Client client;
   protected final String namespace;
   private final long rollingTimeoutMillis;
   private final long loggingIntervalMillis;
 
-  protected RollingUpdater(ClientContext clientContext, String namespace) {
-    this(clientContext, namespace, DEFAULT_ROLLING_TIMEOUT, Config.DEFAULT_LOGGING_INTERVAL);
-  }
-
-  protected RollingUpdater(ClientContext clientContext, String namespace, long rollingTimeoutMillis, long loggingIntervalMillis) {
-    this.clientContext = clientContext;
+  protected RollingUpdater(Client client, String namespace, long rollingTimeoutMillis, long loggingIntervalMillis) {
+    this.client = client;
     this.namespace = namespace;
     this.rollingTimeoutMillis = rollingTimeoutMillis;
     this.loggingIntervalMillis = loggingIntervalMillis;
@@ -79,7 +76,7 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
 
   protected abstract T createClone(T obj, String newName, String newDeploymentHash);
 
-  protected abstract WatchListDeletable<Pod, PodList> selectedPodLister(T obj);
+  protected abstract FilterWatchListDeletable<Pod, PodList, PodResource> selectedPodLister(T obj);
 
   protected abstract T updateDeploymentKey(String name, String hash);
 
@@ -104,11 +101,11 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
 
       for (Pod pod : oldPods.getItems()) {
         try {
-            Pod old = pods().inNamespace(namespace).withName(pod.getMetadata().getName()).get();
-            Pod updated = new PodBuilder(old)
-                .editMetadata().addToLabels(DEPLOYMENT_KEY, oldDeploymentHash).endMetadata()
-                .build();
-            pods().inNamespace(namespace).withName(pod.getMetadata().getName()).replace(updated);
+          Pod old = pods().inNamespace(namespace).withName(pod.getMetadata().getName()).get();
+          Pod updated = new PodBuilder(old)
+              .editMetadata().addToLabels(DEPLOYMENT_KEY, oldDeploymentHash).endMetadata()
+              .build();
+          pods().inNamespace(namespace).withName(pod.getMetadata().getName()).replace(updated);
         } catch (KubernetesClientException e) {
           LOG.warn("Unable to add deployment key to pod: {}", e.getMessage());
         }
@@ -172,6 +169,22 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
     }
   }
 
+  private static <T> T applyPatch(Resource<T> resource, Map<String, Object> map, KubernetesSerialization serialization) {
+    return resource.patch(PatchContext.of(PatchType.STRATEGIC_MERGE), serialization.asJson(map));
+  }
+
+  public static <T extends HasMetadata> T resume(RollableScalableResourceOperation<T, ?, ?> resource) {
+    return applyPatch(resource, RollingUpdater.requestPayLoadForRolloutResume(), resource.getKubernetesSerialization());
+  }
+
+  public static <T extends HasMetadata> T pause(RollableScalableResourceOperation<T, ?, ?> resource) {
+    return applyPatch(resource, RollingUpdater.requestPayLoadForRolloutPause(), resource.getKubernetesSerialization());
+  }
+
+  public static <T extends HasMetadata> T restart(RollableScalableResourceOperation<T, ?, ?> resource) {
+    return applyPatch(resource, RollingUpdater.requestPayLoadForRolloutRestart(), resource.getKubernetesSerialization());
+  }
+
   public static Map<String, Object> requestPayLoadForRolloutPause() {
     Map<String, Object> jsonPatchPayload = new HashMap<>();
     Map<String, Object> spec = new HashMap<>();
@@ -191,7 +204,8 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
   public static Map<String, Object> requestPayLoadForRolloutRestart() {
     Map<String, Object> jsonPatchPayload = new HashMap<>();
     Map<String, String> annotations = new HashMap<>();
-    annotations.put("kubectl.kubernetes.io/restartedAt", new Date().toInstant().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+    annotations.put("kubectl.kubernetes.io/restartedAt",
+        new Date().toInstant().atOffset(ZoneOffset.UTC).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
     Map<String, Object> templateMetadata = new HashMap<>();
     templateMetadata.put("annotations", annotations);
     Map<String, Object> template = new HashMap<>();
@@ -207,7 +221,7 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
    */
   private void waitUntilPodsAreReady(final T obj, final String namespace, final int requiredPodCount) {
     final AtomicInteger podCount = new AtomicInteger(0);
-    
+
     CompletableFuture<List<Pod>> future = selectedPodLister(obj).informOnCondition(items -> {
       int count = 0;
       for (Pod item : items) {
@@ -221,15 +235,16 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
       return count == requiredPodCount;
     });
 
-    ScheduledFuture<?> logger = Utils.scheduleAtFixedRate(Utils.getCommonExecutorSerive(),
+    Future<?> logger = Utils.scheduleAtFixedRate(Runnable::run,
         () -> LOG.debug("Only {}/{} pod(s) ready for {}: {} in namespace: {} seconds so waiting...",
             podCount.get(), requiredPodCount, obj.getKind(), obj.getMetadata().getName(), namespace),
         0, loggingIntervalMillis, TimeUnit.MILLISECONDS);
-    
+
     try {
       if (!Utils.waitUntilReady(future, rollingTimeoutMillis, TimeUnit.MILLISECONDS)) {
-          LOG.warn("Only {}/{} pod(s) ready for {}: {} in namespace: {}  after waiting for {} seconds so giving up",
-                  podCount.get(), requiredPodCount, obj.getKind(), obj.getMetadata().getName(), namespace, TimeUnit.MILLISECONDS.toSeconds(rollingTimeoutMillis));
+        LOG.warn("Only {}/{} pod(s) ready for {}: {} in namespace: {}  after waiting for {} seconds so giving up",
+            podCount.get(), requiredPodCount, obj.getKind(), obj.getMetadata().getName(), namespace,
+            TimeUnit.MILLISECONDS.toSeconds(rollingTimeoutMillis));
       }
     } finally {
       future.cancel(true);
@@ -242,7 +257,7 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
    * Lets wait until the resource is actually deleted in the server
    */
   private void waitUntilDeleted(final String namespace, final String name) {
-    ScheduledFuture<?> logger = Utils.scheduleAtFixedRate(Utils.getCommonExecutorSerive(),
+    Future<?> logger = Utils.scheduleAtFixedRate(Runnable::run,
         () -> LOG.debug("Found resource {}/{} not yet deleted on server, so waiting...", namespace, name),
         0, loggingIntervalMillis, TimeUnit.MILLISECONDS);
     try {
@@ -255,19 +270,20 @@ public abstract class RollingUpdater<T extends HasMetadata, L> {
   }
 
   private String md5sum(HasMetadata obj) throws NoSuchAlgorithmException, JsonProcessingException {
-    byte[] digest = MessageDigest.getInstance("MD5").digest(dumpWithoutRuntimeStateAsYaml(obj).getBytes());
+    byte[] digest = MessageDigest.getInstance("MD5").digest(PatchUtils
+        .withoutRuntimeState(obj, Format.YAML, true, client.adapt(BaseClient.class).getKubernetesSerialization()).getBytes());
     BigInteger i = new BigInteger(1, digest);
     return String.format("%1$032x", i);
   }
 
-  protected abstract Operation<T, L, RollableScalableResource<T>> resources();
+  protected abstract MixedOperation<T, L, RollableScalableResource<T>> resources();
 
-  protected Operation<Pod, PodList, PodResource<Pod>> pods() {
-    return new PodOperationsImpl(clientContext);
+  protected MixedOperation<Pod, PodList, PodResource> pods() {
+    return new PodOperationsImpl(client);
   }
-  
-  protected FilterWatchListDeletable<Pod, PodList> selectedPodLister(LabelSelector selector) {
+
+  protected FilterWatchListDeletable<Pod, PodList, PodResource> selectedPodLister(LabelSelector selector) {
     return pods().inNamespace(namespace).withLabelSelector(selector);
   }
-  
+
 }

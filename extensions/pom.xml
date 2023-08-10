@@ -21,7 +21,7 @@
   <parent>
     <artifactId>kubernetes-client-project</artifactId>
     <groupId>io.fabric8</groupId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>kubernetes-extensions</artifactId>
@@ -34,12 +34,42 @@
     <module>service-catalog</module>
     <module>volumesnapshot</module>
     <module>chaosmesh</module>
-    <module>camel-k</module>
     <module>certmanager</module>
     <module>verticalpodautoscaler</module>
     <module>volcano</module>
     <module>istio</module>
     <module>open-cluster-management</module>
   </modules>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.jsonschema2pojo</groupId>
+          <artifactId>jsonschema2pojo-maven-plugin</artifactId>
+          <configuration>
+            <customAnnotator>io.fabric8.kubernetes.jsonschema2pojo.ExtensionTypeAnnotator</customAnnotator>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>add-source</goal>
+              </goals>
+              <configuration>
+                <sources>
+                  <source>${generate.targetDirectory}</source>
+                </sources>
+              </configuration>
+            </execution>
+           </executions>
+         </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 
 </project>

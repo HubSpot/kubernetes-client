@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.monitoring.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,6 +38,7 @@ import lombok.experimental.Accessors;
     "basicAuth",
     "bearerToken",
     "bearerTokenFile",
+    "headers",
     "name",
     "oauth2",
     "proxyUrl",
@@ -64,6 +66,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class RemoteReadSpec implements KubernetesResource
 {
 
@@ -75,6 +78,9 @@ public class RemoteReadSpec implements KubernetesResource
     private java.lang.String bearerToken;
     @JsonProperty("bearerTokenFile")
     private java.lang.String bearerTokenFile;
+    @JsonProperty("headers")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> headers = new LinkedHashMap<String, String>();
     @JsonProperty("name")
     private java.lang.String name;
     @JsonProperty("oauth2")
@@ -86,13 +92,14 @@ public class RemoteReadSpec implements KubernetesResource
     @JsonProperty("remoteTimeout")
     private java.lang.String remoteTimeout;
     @JsonProperty("requiredMatchers")
-    private Map<String, String> requiredMatchers;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> requiredMatchers = new LinkedHashMap<String, String>();
     @JsonProperty("tlsConfig")
     private TLSConfig tlsConfig;
     @JsonProperty("url")
     private java.lang.String url;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -101,27 +108,13 @@ public class RemoteReadSpec implements KubernetesResource
     public RemoteReadSpec() {
     }
 
-    /**
-     * 
-     * @param authorization
-     * @param readRecent
-     * @param bearerToken
-     * @param remoteTimeout
-     * @param requiredMatchers
-     * @param basicAuth
-     * @param proxyUrl
-     * @param name
-     * @param oauth2
-     * @param bearerTokenFile
-     * @param url
-     * @param tlsConfig
-     */
-    public RemoteReadSpec(Authorization authorization, BasicAuth basicAuth, java.lang.String bearerToken, java.lang.String bearerTokenFile, java.lang.String name, OAuth2 oauth2, java.lang.String proxyUrl, Boolean readRecent, java.lang.String remoteTimeout, Map<String, String> requiredMatchers, TLSConfig tlsConfig, java.lang.String url) {
+    public RemoteReadSpec(Authorization authorization, BasicAuth basicAuth, java.lang.String bearerToken, java.lang.String bearerTokenFile, Map<String, String> headers, java.lang.String name, OAuth2 oauth2, java.lang.String proxyUrl, Boolean readRecent, java.lang.String remoteTimeout, Map<String, String> requiredMatchers, TLSConfig tlsConfig, java.lang.String url) {
         super();
         this.authorization = authorization;
         this.basicAuth = basicAuth;
         this.bearerToken = bearerToken;
         this.bearerTokenFile = bearerTokenFile;
+        this.headers = headers;
         this.name = name;
         this.oauth2 = oauth2;
         this.proxyUrl = proxyUrl;
@@ -170,6 +163,16 @@ public class RemoteReadSpec implements KubernetesResource
     @JsonProperty("bearerTokenFile")
     public void setBearerTokenFile(java.lang.String bearerTokenFile) {
         this.bearerTokenFile = bearerTokenFile;
+    }
+
+    @JsonProperty("headers")
+    public Map<String, String> getHeaders() {
+        return headers;
+    }
+
+    @JsonProperty("headers")
+    public void setHeaders(Map<String, String> headers) {
+        this.headers = headers;
     }
 
     @JsonProperty("name")

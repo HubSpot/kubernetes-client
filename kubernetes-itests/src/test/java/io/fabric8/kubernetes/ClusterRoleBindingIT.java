@@ -15,42 +15,26 @@
  */
 package io.fabric8.kubernetes;
 
-import io.fabric8.commons.ClusterEntity;
-import io.fabric8.commons.DeleteEntity;
+import io.fabric8.junit.jupiter.api.LoadKubernetesManifests;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBinding;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRoleBindingList;
-
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.arquillian.cube.kubernetes.impl.requirement.RequiresKubernetes;
-import org.arquillian.cube.requirement.ArquillianConditionalRunner;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(ArquillianConditionalRunner.class)
-@RequiresKubernetes
-public class ClusterRoleBindingIT {
+@LoadKubernetesManifests("/clusterrolebinding-it.yml")
+class ClusterRoleBindingIT {
 
-  @ArquillianResource
   KubernetesClient client;
 
-  @BeforeClass
-  public static void init() {
-    ClusterEntity.apply(ClusterRoleBindingIT.class.getResourceAsStream("/clusterrolebinding-it.yml"));
-  }
-
   @Test
-  public void get() {
+  void get() {
 
     ClusterRoleBinding clusterRoleBinding = client.rbac().clusterRoleBindings().withName("read-nodes-get").get();
 
@@ -71,10 +55,10 @@ public class ClusterRoleBindingIT {
   }
 
   @Test
-  public void load() {
+  void load() {
 
     ClusterRoleBinding aClusterRoleBinding = client.rbac().clusterRoleBindings()
-      .load(getClass().getResourceAsStream("/test-kubernetesclusterrolebinding.yml")).get();
+        .load(getClass().getResourceAsStream("/test-kubernetesclusterrolebinding.yml")).item();
     assertNotNull(aClusterRoleBinding);
     assertEquals("ClusterRoleBinding", aClusterRoleBinding.getKind());
     assertNotNull(aClusterRoleBinding.getMetadata());
@@ -92,7 +76,7 @@ public class ClusterRoleBindingIT {
   }
 
   @Test
-  public void list() {
+  void list() {
 
     ClusterRoleBindingList clusterRoleBindingList = client.rbac().clusterRoleBindings().list();
     boolean found = false;
@@ -100,8 +84,8 @@ public class ClusterRoleBindingIT {
     assertNotNull(clusterRoleBindingList);
     assertNotNull(clusterRoleBindingList.getItems());
 
-    for (ClusterRoleBinding clusterRoleBinding : clusterRoleBindingList.getItems())  {
-      if (clusterRoleBinding.getMetadata().getName().equals("read-nodes-list"))  {
+    for (ClusterRoleBinding clusterRoleBinding : clusterRoleBindingList.getItems()) {
+      if (clusterRoleBinding.getMetadata().getName().equals("read-nodes-list")) {
         assertEquals("ClusterRoleBinding", clusterRoleBinding.getKind());
         assertNotNull(clusterRoleBinding.getMetadata());
         assertEquals("read-nodes-list", clusterRoleBinding.getMetadata().getName());
@@ -123,10 +107,12 @@ public class ClusterRoleBindingIT {
   }
 
   @Test
-  public void update() {
+  void update() {
 
-    ClusterRoleBinding clusterRoleBinding = client.rbac().clusterRoleBindings().withName("read-nodes-update").edit(c -> new ClusterRoleBindingBuilder(c)
-                               .editSubject(0).withName("jane-new").endSubject().build());
+    ClusterRoleBinding clusterRoleBinding = client.rbac().clusterRoleBindings().withName("read-nodes-update")
+        .edit(c -> new ClusterRoleBindingBuilder(c)
+            .editMetadata().withResourceVersion(null).endMetadata()
+            .editSubject(0).withName("jane-new").endSubject().build());
 
     assertNotNull(clusterRoleBinding);
     assertEquals("ClusterRoleBinding", clusterRoleBinding.getKind());
@@ -145,21 +131,16 @@ public class ClusterRoleBindingIT {
   }
 
   @Test
-  public void delete() {
+  void delete() {
     ClusterRoleBindingList clusterRoleBindingListBefore = client.rbac().clusterRoleBindings().list();
 
-    boolean deleted = client.rbac().clusterRoleBindings().withName("read-nodes-delete").delete();
+    boolean deleted = client.rbac().clusterRoleBindings().withName("read-nodes-delete").delete().size() == 1;
     assertTrue(deleted);
 
-    DeleteEntity<ClusterRoleBinding> clusterRoleBindingDeleteEntity = new DeleteEntity<>(ClusterRoleBinding.class, client, "read-nodes", null);
-    await().atMost(30, TimeUnit.SECONDS).until(clusterRoleBindingDeleteEntity);
+    client.rbac().clusterRoleBindings().withName("read-nodes-delete")
+        .waitUntilCondition(crb -> crb == null || crb.getMetadata().getDeletionTimestamp() != null, 30, TimeUnit.SECONDS);
 
     ClusterRoleBindingList clusterRoleBindingListAfter = client.rbac().clusterRoleBindings().list();
-    assertEquals(clusterRoleBindingListBefore.getItems().size()-1,clusterRoleBindingListAfter.getItems().size());
-  }
-
-  @AfterClass
-  public static void cleanup() {
-    ClusterEntity.remove(ClusterRoleBindingIT.class.getResourceAsStream("/clusterrolebinding-it.yml"));
+    assertEquals(clusterRoleBindingListBefore.getItems().size() - 1, clusterRoleBindingListAfter.getItems().size());
   }
 }

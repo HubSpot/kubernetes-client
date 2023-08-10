@@ -1,0 +1,177 @@
+JokeRequestJavaCr[0] = package org.test.v1alpha1;
+
+@io.fabric8.kubernetes.model.annotation.Version(value = "v1alpha1" , storage = true , served = true)
+@io.fabric8.kubernetes.model.annotation.Group("samples.javaoperatorsdk.io")
+@io.fabric8.kubernetes.model.annotation.Singular("jokerequest")
+@io.fabric8.kubernetes.model.annotation.Plural("jokerequests")
+@javax.annotation.processing.Generated("io.fabric8.java.generator.CRGeneratorRunner")
+public class JokeRequest extends io.fabric8.kubernetes.client.CustomResource<org.test.v1alpha1.JokeRequestSpec, org.test.v1alpha1.JokeRequestStatus> implements io.fabric8.kubernetes.api.model.Namespaced {
+}
+
+JokeRequestJavaCr[1] = package org.test.v1alpha1;
+
+@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+@com.fasterxml.jackson.annotation.JsonPropertyOrder({"category","excluded","safe"})
+@com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = com.fasterxml.jackson.databind.JsonDeserializer.None.class)
+@javax.annotation.processing.Generated("io.fabric8.java.generator.CRGeneratorRunner")
+public class JokeRequestSpec implements io.fabric8.kubernetes.api.model.KubernetesResource {
+
+    public enum Category {
+
+        @com.fasterxml.jackson.annotation.JsonProperty("Pun")
+        PUN("Pun"),
+        @com.fasterxml.jackson.annotation.JsonProperty("Christmas")
+        CHRISTMAS("Christmas"),
+        @com.fasterxml.jackson.annotation.JsonProperty("Spooky")
+        SPOOKY("Spooky"),
+        @com.fasterxml.jackson.annotation.JsonProperty("Any")
+        ANY("Any"),
+        @com.fasterxml.jackson.annotation.JsonProperty("Misc")
+        MISC("Misc"),
+        @com.fasterxml.jackson.annotation.JsonProperty("Programming")
+        PROGRAMMING("Programming"),
+        @com.fasterxml.jackson.annotation.JsonProperty("Dark")
+        DARK("Dark");
+
+        java.lang.String value;
+
+        Category(java.lang.String value) {
+            this.value = value;
+        }
+
+        @com.fasterxml.jackson.annotation.JsonValue()
+        public java.lang.String getValue() {
+            return value;
+        }
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("category")
+    @com.fasterxml.jackson.annotation.JsonSetter(nulls = com.fasterxml.jackson.annotation.Nulls.SKIP)
+    private Category category;
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public enum Excluded {
+
+        @com.fasterxml.jackson.annotation.JsonProperty("sexist")
+        SEXIST("sexist"),
+        @com.fasterxml.jackson.annotation.JsonProperty("nsfw")
+        NSFW("nsfw"),
+        @com.fasterxml.jackson.annotation.JsonProperty("religious")
+        RELIGIOUS("religious"),
+        @com.fasterxml.jackson.annotation.JsonProperty("explicit")
+        EXPLICIT("explicit"),
+        @com.fasterxml.jackson.annotation.JsonProperty("racist")
+        RACIST("racist"),
+        @com.fasterxml.jackson.annotation.JsonProperty("political")
+        POLITICAL("political");
+
+        java.lang.String value;
+
+        Excluded(java.lang.String value) {
+            this.value = value;
+        }
+
+        @com.fasterxml.jackson.annotation.JsonValue()
+        public java.lang.String getValue() {
+            return value;
+        }
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("excluded")
+    @com.fasterxml.jackson.annotation.JsonSetter(nulls = com.fasterxml.jackson.annotation.Nulls.SKIP)
+    private java.util.List<Excluded> excluded;
+
+    public java.util.List<Excluded> getExcluded() {
+        return excluded;
+    }
+
+    public void setExcluded(java.util.List<Excluded> excluded) {
+        this.excluded = excluded;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("safe")
+    @com.fasterxml.jackson.annotation.JsonSetter(nulls = com.fasterxml.jackson.annotation.Nulls.SKIP)
+    private Boolean safe;
+
+    public Boolean getSafe() {
+        return safe;
+    }
+
+    public void setSafe(Boolean safe) {
+        this.safe = safe;
+    }
+}
+
+JokeRequestJavaCr[2] = package org.test.v1alpha1;
+
+@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+@com.fasterxml.jackson.annotation.JsonPropertyOrder({"error","message","state"})
+@com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = com.fasterxml.jackson.databind.JsonDeserializer.None.class)
+@javax.annotation.processing.Generated("io.fabric8.java.generator.CRGeneratorRunner")
+public class JokeRequestStatus implements io.fabric8.kubernetes.api.model.KubernetesResource {
+
+    @com.fasterxml.jackson.annotation.JsonProperty("error")
+    @com.fasterxml.jackson.annotation.JsonSetter(nulls = com.fasterxml.jackson.annotation.Nulls.SKIP)
+    private Boolean error;
+
+    public Boolean getError() {
+        return error;
+    }
+
+    public void setError(Boolean error) {
+        this.error = error;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("message")
+    @com.fasterxml.jackson.annotation.JsonSetter(nulls = com.fasterxml.jackson.annotation.Nulls.SKIP)
+    private String message;
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public enum State {
+
+        @com.fasterxml.jackson.annotation.JsonProperty("PROCESSING")
+        PROCESSING("PROCESSING"), @com.fasterxml.jackson.annotation.JsonProperty("CREATED")
+        CREATED("CREATED"), @com.fasterxml.jackson.annotation.JsonProperty("UNKNOWN")
+        UNKNOWN("UNKNOWN"), @com.fasterxml.jackson.annotation.JsonProperty("ERROR")
+        ERROR("ERROR"), @com.fasterxml.jackson.annotation.JsonProperty("ALREADY_PRESENT")
+        ALREADY_PRESENT("ALREADY_PRESENT");
+
+        java.lang.String value;
+
+        State(java.lang.String value) {
+            this.value = value;
+        }
+
+        @com.fasterxml.jackson.annotation.JsonValue()
+        public java.lang.String getValue() {
+            return value;
+        }
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("state")
+    @com.fasterxml.jackson.annotation.JsonSetter(nulls = com.fasterxml.jackson.annotation.Nulls.SKIP)
+    private State state;
+
+    public State getState() {
+        return state;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+}
+

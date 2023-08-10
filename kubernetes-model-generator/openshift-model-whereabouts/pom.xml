@@ -23,7 +23,7 @@
   <parent>
     <groupId>io.fabric8</groupId>
     <artifactId>kubernetes-model-generator</artifactId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>openshift-model-whereabouts</artifactId>
@@ -32,6 +32,10 @@
 
   <properties>
     <clone-kube>true</clone-kube>
+    <osgi.import>*</osgi.import>
+    <osgi.export>
+      io.fabric8.openshift.api.model.whereabouts**,
+    </osgi.export>
   </properties>
 
   <dependencies>
@@ -62,26 +66,6 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>${maven.bundle.plugin.version}</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-            <Import-Package>*</Import-Package>
-            <Export-Package>
-              io.fabric8.openshift.api.model.whereabouts**,
-            </Export-Package>
-            <Include-Resource>
-              {maven-resources},
-              /META-INF/jandex.idx=target/classes/META-INF/jandex.idx,
-              /whereabouts.properties=target/classes/whereabouts.properties
-            </Include-Resource>
-          </instructions>
-        </configuration>
       </plugin>
     </plugins>
   </build>

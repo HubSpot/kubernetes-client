@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.storage;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -56,6 +57,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class VolumeAttachmentStatus implements KubernetesResource
 {
 
@@ -64,11 +66,12 @@ public class VolumeAttachmentStatus implements KubernetesResource
     @JsonProperty("attached")
     private Boolean attached;
     @JsonProperty("attachmentMetadata")
-    private Map<String, String> attachmentMetadata;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> attachmentMetadata = new LinkedHashMap<String, String>();
     @JsonProperty("detachError")
     private VolumeError detachError;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -77,13 +80,6 @@ public class VolumeAttachmentStatus implements KubernetesResource
     public VolumeAttachmentStatus() {
     }
 
-    /**
-     * 
-     * @param attachmentMetadata
-     * @param detachError
-     * @param attachError
-     * @param attached
-     */
     public VolumeAttachmentStatus(VolumeError attachError, Boolean attached, Map<String, String> attachmentMetadata, VolumeError detachError) {
         super();
         this.attachError = attachError;

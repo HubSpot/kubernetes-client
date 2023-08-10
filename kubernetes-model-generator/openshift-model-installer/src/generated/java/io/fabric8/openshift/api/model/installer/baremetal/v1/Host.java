@@ -1,14 +1,16 @@
 
 package io.fabric8.openshift.api.model.installer.baremetal.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -60,6 +62,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Host implements KubernetesResource
 {
 
@@ -74,13 +77,13 @@ public class Host implements KubernetesResource
     @JsonProperty("name")
     private String name;
     @JsonProperty("networkConfig")
-    private String networkConfig;
+    private JsonNode networkConfig;
     @JsonProperty("role")
     private String role;
     @JsonProperty("rootDeviceHints")
     private RootDeviceHints rootDeviceHints;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -89,18 +92,7 @@ public class Host implements KubernetesResource
     public Host() {
     }
 
-    /**
-     * 
-     * @param bootMACAddress
-     * @param role
-     * @param hardwareProfile
-     * @param name
-     * @param networkConfig
-     * @param bmc
-     * @param rootDeviceHints
-     * @param bootMode
-     */
-    public Host(BMC bmc, String bootMACAddress, String bootMode, String hardwareProfile, String name, String networkConfig, String role, RootDeviceHints rootDeviceHints) {
+    public Host(BMC bmc, String bootMACAddress, String bootMode, String hardwareProfile, String name, JsonNode networkConfig, String role, RootDeviceHints rootDeviceHints) {
         super();
         this.bmc = bmc;
         this.bootMACAddress = bootMACAddress;
@@ -163,12 +155,12 @@ public class Host implements KubernetesResource
     }
 
     @JsonProperty("networkConfig")
-    public String getNetworkConfig() {
+    public JsonNode getNetworkConfig() {
         return networkConfig;
     }
 
     @JsonProperty("networkConfig")
-    public void setNetworkConfig(String networkConfig) {
+    public void setNetworkConfig(JsonNode networkConfig) {
         this.networkConfig = networkConfig;
     }
 

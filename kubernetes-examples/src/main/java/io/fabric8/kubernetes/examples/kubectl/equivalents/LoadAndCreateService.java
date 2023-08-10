@@ -16,22 +16,22 @@
 package io.fabric8.kubernetes.examples.kubectl.equivalents;
 
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
 /**
  * This example is Java equivalent to `kubectl create -f test-svc.yaml`. It loads
- * Service YAML manifest and then applies to to Kubernetes Cluster.
+ * Service YAML manifest and then applies it to the Kubernetes Cluster.
  */
 public class LoadAndCreateService {
-    public static void main(String[] args) {
-        try (KubernetesClient k8s = new DefaultKubernetesClient()) {
-            // Load Service YAML Manifest into Java object
-            Service svc = k8s.services()
-                    .load(LoadAndCreateService.class.getResourceAsStream("/test-svc.yaml"))
-                    .get();
-            // Apply it to Kubernetes Cluster
-            k8s.services().inNamespace("default").create(svc);
-        }
+  public static void main(String[] args) {
+    try (KubernetesClient k8s = new KubernetesClientBuilder().build()) {
+      // Load Service YAML Manifest into Java object
+      Service svc = k8s.services()
+          .load(LoadAndCreateService.class.getResourceAsStream("/test-svc.yaml"))
+          .item();
+      // Apply it to Kubernetes Cluster
+      k8s.services().inNamespace("default").resource(svc).create();
     }
+  }
 }

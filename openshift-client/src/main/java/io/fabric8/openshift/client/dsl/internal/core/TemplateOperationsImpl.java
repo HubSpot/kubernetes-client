@@ -17,29 +17,24 @@ package io.fabric8.openshift.client.dsl.internal.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.mifmif.common.regex.Generex;
-import io.fabric8.kubernetes.api.builder.VisitableBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.Client;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
+import io.fabric8.kubernetes.client.dsl.ParameterMixedOperation;
+import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperation;
 import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.internal.OperationContext;
 import io.fabric8.kubernetes.client.http.HttpRequest;
-import io.fabric8.kubernetes.client.http.HttpRequest.Builder;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.kubernetes.client.utils.URLUtils;
 import io.fabric8.kubernetes.client.utils.Utils;
 import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.api.model.TemplateList;
-import io.fabric8.openshift.client.OpenshiftClientContext;
 import io.fabric8.openshift.client.ParameterValue;
-import io.fabric8.openshift.client.dsl.TemplateOperation;
 import io.fabric8.openshift.client.dsl.TemplateResource;
-import io.fabric8.openshift.client.dsl.internal.OpenShiftOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,19 +44,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.fabric8.openshift.client.OpenShiftAPIGroups.TEMPLATE;
 
 public class TemplateOperationsImpl
-  extends OpenShiftOperation<Template, TemplateList, TemplateResource<Template, KubernetesList>>
-  implements TemplateOperation {
+    extends HasMetadataOperation<Template, TemplateList, TemplateResource>
+    implements TemplateResource,
+    ParameterMixedOperation<Template, TemplateList, TemplateResource> {
 
   private static final Logger logger = LoggerFactory.getLogger(TemplateOperationsImpl.class);
   private static final String EXPRESSION = "expression";
@@ -70,13 +65,13 @@ public class TemplateOperationsImpl
 
   private final Map<String, String> parameters;
 
-  public TemplateOperationsImpl(OpenshiftClientContext clientContext) {
-    this(HasMetadataOperationsImpl.defaultContext(clientContext), null);
+  public TemplateOperationsImpl(Client client) {
+    this(HasMetadataOperationsImpl.defaultContext(client), null);
   }
 
   public TemplateOperationsImpl(OperationContext context, Map<String, String> parameters) {
     super(context.withApiGroupName(TEMPLATE)
-      .withPlural("templates"), Template.class, TemplateList.class);
+        .withPlural("templates"), Template.class, TemplateList.class);
     this.parameters = parameters;
   }
 
@@ -100,7 +95,7 @@ public class TemplateOperationsImpl
 
   @Override
   public KubernetesList process(InputStream is) {
-    return process(unmarshal(is, MAPS_REFERENCE));
+    return process(getKubernetesSerialization().unmarshal(is, MAPS_REFERENCE));
   }
 
   @Override
@@ -118,7 +113,9 @@ public class TemplateOperationsImpl
         }
       }
 
-      HttpRequest.Builder requestBuilder = this.httpClient.newHttpRequestBuilder().post(JSON, JSON_MAPPER.writeValueAsString(t)).url(getProcessUrl());
+      HttpRequest.Builder requestBuilder = this.httpClient.newHttpRequestBuilder()
+          .post(JSON, getKubernetesSerialization().asJson(t))
+          .url(getProcessUrl());
       t = handleResponse(requestBuilder);
       KubernetesList l = new KubernetesList();
       l.setItems(t.getObjects());
@@ -137,7 +134,6 @@ public class TemplateOperationsImpl
     return process(valuesMap);
   }
 
-
   @Override
   public KubernetesList processLocally(File f) {
     try (FileInputStream is = new FileInputStream(f)) {
@@ -149,7 +145,7 @@ public class TemplateOperationsImpl
 
   @Override
   public KubernetesList processLocally(InputStream is) {
-    return processLocally(unmarshal(is, MAPS_REFERENCE));
+    return processLocally(getKubernetesSerialization().unmarshal(is, MAPS_REFERENCE));
   }
 
   @Override
@@ -162,134 +158,89 @@ public class TemplateOperationsImpl
   }
 
   @Override
-  public MixedOperation<Template, TemplateList, TemplateResource<Template, KubernetesList>> withParameters(Map<String, String> parameters) {
+  public TemplateOperationsImpl withParameters(Map<String, String> parameters) {
     return newInstance(context, parameters);
   }
 
   @Override
-  public KubernetesList processLocally(Map<String, String> valuesMap)  {
-    String namespace = getItem() != null ? getItem().getMetadata().getNamespace() : getNamespace();
-    if (namespace == null) {
-      namespace = getConfig().getNamespace();
-    }
+  public KubernetesList processLocally(Map<String, String> valuesMap) {
+    Template t = processParameters(getItemOrRequireFromServer());
 
-    String name = getItem() != null ? getItem().getMetadata().getName() : getName();
-
-    Template t = withParameters(valuesMap)
-      .inNamespace(namespace)
-      .withName(name)
-      .get();
-
-    List<Parameter> parameters = t != null ? t.getParameters() : null;
+    List<Parameter> parameters = t.getParameters();
     KubernetesList list = new KubernetesListBuilder()
-      .withItems(t != null && t.getObjects() != null ? t.getObjects() : Collections.<HasMetadata>emptyList())
-      .build();
+        .withItems(t.getObjects())
+        .build();
 
-    try {
-      String json = JSON_MAPPER.writeValueAsString(list);
-      if (parameters != null && !parameters.isEmpty()) {
-        // lets make a few passes in case there's expressions in values
-        for (int i = 0; i < 5; i++) {
-          for (Parameter parameter : parameters) {
-            String parameterName = parameter.getName();
-            String parameterValue;
-            if (valuesMap.containsKey(parameterName)) {
-              parameterValue = valuesMap.get(parameterName);
-            } else if (Utils.isNotNullOrEmpty(parameter.getValue())) {
-              parameterValue = parameter.getValue();
-            } else if (EXPRESSION.equals(parameter.getGenerate())) {
-              Generex generex = new Generex(parameter.getFrom());
-              parameterValue = generex.random();
-            } else if (parameter.getRequired() == null || !parameter.getRequired()) {
-              parameterValue = "";
-            } else {
-              throw new IllegalArgumentException("No value available for parameter name: " + parameterName);
-            }
-            if (parameterValue == null) {
-              logger.debug("Parameter {} has a null value", parameterName);
-              parameterValue = "";
-            }
-            json = Utils.interpolateString(json, Collections.singletonMap(parameterName, parameterValue));
+    String json = getKubernetesSerialization().asJson(list);
+    String last = null;
+
+    if (parameters != null && !parameters.isEmpty()) {
+      while (!Objects.equals(last, json)) {
+        last = json;
+        for (Parameter parameter : parameters) {
+          String parameterName = parameter.getName();
+          String parameterValue;
+          if (valuesMap.containsKey(parameterName)) {
+            parameterValue = valuesMap.get(parameterName);
+          } else if (Utils.isNotNullOrEmpty(parameter.getValue())) {
+            parameterValue = parameter.getValue();
+          } else if (EXPRESSION.equals(parameter.getGenerate())) {
+            Generex generex = new Generex(parameter.getFrom());
+            parameterValue = generex.random();
+          } else if (parameter.getRequired() == null || !parameter.getRequired()) {
+            parameterValue = "";
+          } else {
+            throw new IllegalArgumentException("No value available for parameter name: " + parameterName);
           }
+          if (parameterValue == null) {
+            logger.debug("Parameter {} has a null value", parameterName);
+            parameterValue = "";
+          }
+          json = Utils.interpolateString(json, Collections.singletonMap(parameterName, parameterValue));
         }
       }
-
-      list = JSON_MAPPER.readValue(json, KubernetesList.class);
-    } catch (IOException e) {
-      throw KubernetesClientException.launderThrowable(e);
     }
-    return list;
-  }
 
+    return getKubernetesSerialization().unmarshal(json, KubernetesList.class);
+  }
 
   private URL getProcessUrl() throws MalformedURLException {
-    URL requestUrl = getRootUrl();
-    if (getNamespace() != null) {
-      requestUrl = new URL(URLUtils.join(requestUrl.toString(), "namespaces" , getNamespace()));
-    }
-    requestUrl = new URL(URLUtils.join(requestUrl.toString(), "processedtemplates"));
-    return requestUrl;
+    return getNamespacedUrl(getNamespace(), "processedtemplates");
   }
 
   @Override
-  public TemplateResource<Template, KubernetesList> load(InputStream is) {
-    String generatedName = "template-" + Utils.randomString(5);
+  public Template get() {
+    return processParameters(super.get());
+  }
+
+  private Template processParameters(Template t) {
+    if (this.parameters != null && !this.parameters.isEmpty()) {
+      return getKubernetesSerialization()
+          .unmarshal(Utils.interpolateString(getKubernetesSerialization().asJson(t), this.parameters), Template.class);
+    }
+    return t;
+  }
+
+  @Override
+  public TemplateResource load(InputStream is) {
     Template template = null;
-    Object item = Serialization.unmarshal(is, parameters);
+    List<HasMetadata> items = this.context.getClient().adapt(KubernetesClient.class).load(is).items();
+    Object item = items;
+    if (items.size() == 1) {
+      item = items.get(0);
+    }
     if (item instanceof Template) {
       template = (Template) item;
-    } else if (item instanceof HasMetadata) {
-      HasMetadata h = (HasMetadata) item;
+    } else {
+      String generatedName = "template-" + Utils.randomString(5);
       template = new TemplateBuilder()
-        .withNewMetadata()
+          .withNewMetadata()
           .withName(generatedName)
-          .withNamespace(h.getMetadata() != null ? h.getMetadata().getNamespace() : null)
-        .endMetadata()
-        .withObjects(h).build();
-    } else if (item instanceof KubernetesResourceList) {
-      List<HasMetadata> list = ((KubernetesResourceList<HasMetadata>) item).getItems();
-      template = new TemplateBuilder()
-        .withNewMetadata()
-          .withName(generatedName)
-        .endMetadata()
-        .withObjects(list.toArray(new HasMetadata[list.size()])).build();
-    } else if (item instanceof HasMetadata[]) {
-      template = new TemplateBuilder()
-        .withNewMetadata()
-          .withName(generatedName)
-        .endMetadata()
-        .withObjects((HasMetadata[]) item).build();
-    } else if (item instanceof Collection) {
-      List<HasMetadata> items = new ArrayList<>();
-      for (Object o : (Collection) item) {
-        if (o instanceof HasMetadata) {
-          items.add((HasMetadata) o);
-        }
-      }
-      template = new TemplateBuilder()
-        .withNewMetadata()
-          .withName(generatedName)
-        .endMetadata()
-        .withObjects(items.toArray(new HasMetadata[items.size()])).build();
+          .endMetadata()
+          .withObjects(items).build();
     }
 
-    return newInstance(context.withItem(template));
-  }
-
-  @Override
-  protected Template handleGet(URL resourceUrl) throws InterruptedException, IOException {
-    return super.handleGet(resourceUrl, getType(), this.parameters);
-  }
-
-  @Override
-  protected <T> T handleResponse(Builder requestBuilder, Class<T> type)
-      throws InterruptedException, IOException {
-    return handleResponse(requestBuilder, type, parameters);
-  }
-
-  @Override
-  protected VisitableBuilder<Template, ?> createVisitableBuilder(Template item) {
-    return new TemplateBuilder(item);
+    return resource(template);
   }
 
 }

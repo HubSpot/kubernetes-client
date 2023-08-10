@@ -22,28 +22,21 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.dsl.internal.RawCustomResourceOperationsImpl;
 import io.fabric8.kubernetes.client.mock.crd.CronTab;
 import io.fabric8.kubernetes.client.mock.crd.CronTabSpec;
 import io.fabric8.kubernetes.client.mock.crd.CronTabStatus;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableKubernetesMockClient(crud = true)
 class CustomResourceCrudTest {
@@ -54,12 +47,14 @@ class CustomResourceCrudTest {
 
   @BeforeEach
   void setUp() {
-    KubernetesDeserializer.registerCustomKind("stable.example.com/v1", "CronTab", CronTab.class);
+    client.getKubernetesSerialization().registerKubernetesResource("stable.example.com/v1", "CronTab",
+        CronTab.class);
     cronTabCrd = client
-      .apiextensions().v1()
-      .customResourceDefinitions()
-      .load(getClass().getResourceAsStream("/crontab-crd.yml"))
-      .get();
+        .apiextensions()
+        .v1()
+        .customResourceDefinitions()
+        .load(getClass().getResourceAsStream("/crontab-crd.yml"))
+        .item();
     client.apiextensions().v1().customResourceDefinitions().create(cronTabCrd);
   }
 
@@ -69,7 +64,8 @@ class CustomResourceCrudTest {
     CronTab cronTab2 = createCronTab("my-second-cron-object", "* * * * */4", 2, "my-second-cron-image");
     CronTab cronTab3 = createCronTab("my-third-cron-object", "* * * * */3", 1, "my-third-cron-image");
 
-    MixedOperation<CronTab, KubernetesResourceList<CronTab>, Resource<CronTab>> cronTabClient = client.customResources(CronTab.class);
+    MixedOperation<CronTab, KubernetesResourceList<CronTab>, Resource<CronTab>> cronTabClient = client
+        .resources(CronTab.class);
 
     cronTabClient.inNamespace("test-ns").create(cronTab1);
     cronTabClient.inNamespace("test-ns").create(cronTab2);
@@ -97,38 +93,13 @@ class CustomResourceCrudTest {
   }
 
   @Test
-  void testCreateOrReplaceRaw() throws IOException {
-    RawCustomResourceOperationsImpl raw = client.customResource(CustomResourceDefinitionContext.fromCrd(cronTabCrd));
-
-    Map<String, Object> object = new HashMap<>();
-    Map<String, Object> metadata = new HashMap<>();
-    metadata.put("name", "foo");
-
-    object.put("apiVersion", "stable.example.com/v1");
-    object.put("kind", "CronTab");
-    object.put("metadata", metadata);
-    object.put("spec", new HashMap<>());
-
-    Map<String, Object> created = raw.createOrReplace(object);
-
-    assertEquals(Collections.emptyMap(), created.get("spec"));
-    assertTrue(((Map)created.get("metadata")).entrySet().containsAll(metadata.entrySet()));
-
-    object.put("spec", Collections.singletonMap("image", "value"));
-
-    Map<String, Object> updated = raw.createOrReplace(object);
-    assertNotEquals(created, updated);
-    assertEquals(Collections.singletonMap("image", "value"), updated.get("spec"));
-  }
-
-  @Test
   void testCrudWithDashSymbolInCRDName() {
     CronTab cronTab1 = createCronTab("my-new-cron-object", "* * * * */5", 3, "my-awesome-cron-image");
     CronTab cronTab2 = createCronTab("my-second-cron-object", "* * * * */4", 2, "my-second-cron-image");
     CronTab cronTab3 = createCronTab("my-third-cron-object", "* * * * */3", 1, "my-third-cron-image");
 
     MixedOperation<CronTab, KubernetesResourceList<CronTab>, Resource<CronTab>> cronTabClient = client
-      .customResources(CronTab.class);
+        .resources(CronTab.class);
 
     cronTabClient.inNamespace("test-ns").create(cronTab1);
     cronTabClient.inNamespace("test-ns").create(cronTab2);
@@ -163,7 +134,8 @@ class CustomResourceCrudTest {
     cronTab.setStatus(status);
 
     NonNamespaceOperation<CronTab, KubernetesResourceList<CronTab>, Resource<CronTab>> cronTabClient = client
-        .customResources(CronTab.class).inNamespace("test-ns");
+        .resources(CronTab.class)
+        .inNamespace("test-ns");
 
     CronTab result = cronTabClient.create(cronTab);
 
@@ -174,6 +146,7 @@ class CustomResourceCrudTest {
     labels.put("app", "core");
 
     cronTab.getMetadata().setLabels(labels);
+    cronTab.getMetadata().setResourceVersion("1");
 
     result = cronTabClient.replace(cronTab);
 
@@ -193,12 +166,14 @@ class CustomResourceCrudTest {
     assertNotNull(result.getStatus());
 
     labels.put("another", "label");
+    cronTab.getMetadata().setResourceVersion(null);
     result = cronTabClient.withName(cronTab.getMetadata().getName()).patch(cronTab);
 
     // should retain the existing
     assertNotNull(result.getStatus());
     // should have accumulated all labels
-    assertEquals(new HashSet<String>(Arrays.asList("app", "other", "another")), result.getMetadata().getLabels().keySet());
+    assertEquals(new HashSet<String>(Arrays.asList("app", "other", "another")),
+        result.getMetadata().getLabels().keySet());
 
     assertEquals(originalUid, result.getMetadata().getUid());
   }
@@ -211,7 +186,8 @@ class CustomResourceCrudTest {
     cronTab.setStatus(status);
 
     NonNamespaceOperation<CronTab, KubernetesResourceList<CronTab>, Resource<CronTab>> cronTabClient = client
-        .resources(CronTab.class).inNamespace("test-ns");
+        .resources(CronTab.class)
+        .inNamespace("test-ns");
 
     CronTab result = cronTabClient.create(cronTab);
 
@@ -222,6 +198,31 @@ class CustomResourceCrudTest {
 
     result = cronTabClient.withName(cronTab.getMetadata().getName()).patchStatus(result);
     assertNotNull(result.getStatus());
+  }
+
+  @Test
+  void testNullStatus() {
+    CronTab cronTab = createCronTab("my-new-cron-object", "* * * * */5", 3, "my-awesome-cron-image");
+
+    NonNamespaceOperation<CronTab, KubernetesResourceList<CronTab>, Resource<CronTab>> cronTabClient = client
+        .resources(CronTab.class)
+        .inNamespace("test-ns");
+
+    CronTab result = cronTabClient.resource(cronTab).create();
+
+    // should be null after create
+    assertNull(result.getStatus());
+    String resourceVersion = result.getMetadata().getResourceVersion();
+
+    // should be a no-op
+    result = cronTabClient.resource(result).patchStatus();
+    assertNull(result.getStatus());
+    assertEquals(resourceVersion, result.getMetadata().getResourceVersion());
+
+    // should be a no-op
+    result = cronTabClient.resource(result).replace();
+    assertNull(result.getStatus());
+    assertEquals(resourceVersion, result.getMetadata().getResourceVersion());
   }
 
   void assertCronTab(CronTab cronTab, String name, String cronTabSpec, int replicas, String image) {

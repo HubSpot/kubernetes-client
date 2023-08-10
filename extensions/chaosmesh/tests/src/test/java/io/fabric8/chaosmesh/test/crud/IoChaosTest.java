@@ -15,70 +15,68 @@
  */
 package io.fabric8.chaosmesh.test.crud;
 
-
 import io.fabric8.chaosmesh.client.ChaosMeshClient;
-import io.fabric8.chaosmesh.server.mock.EnableChaosMeshMockClient;
-import io.fabric8.chaosmesh.v1alpha1.IoChaos;
-import io.fabric8.chaosmesh.v1alpha1.IoChaosBuilder;
-import io.fabric8.chaosmesh.v1alpha1.IoChaosList;
+import io.fabric8.chaosmesh.v1alpha1.IOChaos;
+import io.fabric8.chaosmesh.v1alpha1.IOChaosBuilder;
+import io.fabric8.chaosmesh.v1alpha1.IOChaosList;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@EnableChaosMeshMockClient(crud = true)
-class IoChaosTest {
+@EnableKubernetesMockClient(crud = true)
+class IOChaosTest {
 
   ChaosMeshClient client;
+
   @Test
   void testCrud() {
 
-    IoChaos ioc1 = new IoChaosBuilder()
-      .withNewMetadata()
-      .withName("partition")
-      .addToLabels("key1", "value1")
-      .endMetadata()
-      .withNewSpec()
-      .withAction("partition")
-      .withNewScheduler().withCron("@every 10m").endScheduler()
-      .endSpec().build();
-    IoChaos ioc2 = new IoChaosBuilder()
-      .withNewMetadata()
-      .withName("latency")
-      .addToLabels("key1", "value1")
-      .endMetadata()
-      .withNewSpec()
-      .withAction("latency")
-      .withDelay("100ms")
-      .withDuration("100s")
-      .withNewScheduler().withCron("@every 10m").endScheduler()
-      .endSpec().build();
+    IOChaos ioc1 = new IOChaosBuilder()
+        .withNewMetadata()
+        .withName("partition")
+        .addToLabels("key1", "value1")
+        .endMetadata()
+        .withNewSpec()
+        .withAction("partition")
+        .endSpec().build();
+    IOChaos ioc2 = new IOChaosBuilder()
+        .withNewMetadata()
+        .withName("latency")
+        .addToLabels("key1", "value1")
+        .endMetadata()
+        .withNewSpec()
+        .withAction("latency")
+        .withDelay("100ms")
+        .withDuration("100s")
+        .endSpec().build();
 
     //Create
     client.ioChaos().create(ioc1);
     client.ioChaos().create(ioc2);
 
     //Read
-    IoChaosList vsList = client.ioChaos().list();
+    IOChaosList vsList = client.ioChaos().list();
     assertNotNull(vsList);
     assertEquals(2, vsList.getItems().size());
 
-    IoChaos s1 = client.ioChaos().withName("partition").get();
+    IOChaos s1 = client.ioChaos().withName("partition").get();
     assertNotNull(s1);
 
     //Update
-    IoChaos u1 = client.ioChaos().withName("latency").edit(io -> new IoChaosBuilder(io)
-      .editMetadata()
-      .addToLabels("updated", "true")
-      .endMetadata()
-      .build());
+    IOChaos u1 = client.ioChaos().withName("latency").edit(io -> new IOChaosBuilder(io)
+        .editMetadata()
+        .addToLabels("updated", "true")
+        .endMetadata()
+        .build());
 
     assertNotNull(u1);
     assertEquals("true", client.ioChaos().withName("latency").get().getMetadata().getLabels().get("updated"));
 
     //Delete
-    assertTrue(client.ioChaos().withName("latency").delete());
+    assertEquals(1, client.ioChaos().withName("latency").delete().size());
     assertNull(client.ioChaos().withName("latency").get());
   }
 }

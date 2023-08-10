@@ -20,57 +20,54 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetList;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.dsl.Operation;
+import io.fabric8.kubernetes.client.Client;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
-import io.fabric8.kubernetes.client.dsl.WatchListDeletable;
 
 class ReplicaSetRollingUpdater extends RollingUpdater<ReplicaSet, ReplicaSetList> {
 
-  ReplicaSetRollingUpdater(ClientContext clientContext, String namespace) {
-    super(clientContext, namespace);
-  }
-
-  ReplicaSetRollingUpdater(ClientContext clientContext, String namespace, long rollingTimeoutMillis, long loggingIntervalMillis) {
-    super(clientContext, namespace, rollingTimeoutMillis, loggingIntervalMillis);
+  ReplicaSetRollingUpdater(Client client, String namespace, long rollingTimeoutMillis, long loggingIntervalMillis) {
+    super(client, namespace, rollingTimeoutMillis, loggingIntervalMillis);
   }
 
   @Override
   protected ReplicaSet createClone(ReplicaSet obj, String newName, String newDeploymentHash) {
     return new ReplicaSetBuilder(obj)
-      .editMetadata()
-      .withResourceVersion(null)
-      .withName(newName)
-      .endMetadata()
-      .editSpec()
-      .withReplicas(0)
-      .editSelector().addToMatchLabels(DEPLOYMENT_KEY, newDeploymentHash).endSelector()
-      .editTemplate().editMetadata().addToLabels(DEPLOYMENT_KEY, newDeploymentHash).endMetadata().endTemplate()
-      .endSpec()
-      .build();
+        .editMetadata()
+        .withResourceVersion(null)
+        .withName(newName)
+        .endMetadata()
+        .editSpec()
+        .withReplicas(0)
+        .editSelector().addToMatchLabels(DEPLOYMENT_KEY, newDeploymentHash).endSelector()
+        .editTemplate().editMetadata().addToLabels(DEPLOYMENT_KEY, newDeploymentHash).endMetadata().endTemplate()
+        .endSpec()
+        .build();
   }
 
   @Override
-  protected WatchListDeletable<Pod, PodList> selectedPodLister(ReplicaSet obj) {
+  protected FilterWatchListDeletable<Pod, PodList, PodResource> selectedPodLister(ReplicaSet obj) {
     return selectedPodLister(obj.getSpec().getSelector());
   }
 
   @Override
   protected ReplicaSet updateDeploymentKey(String name, String hash) {
-     return resources().inNamespace(namespace).withName(name).edit(old->new ReplicaSetBuilder(old).editSpec()
-       .editSelector().addToMatchLabels(DEPLOYMENT_KEY, hash).endSelector()
-       .editTemplate().editMetadata().addToLabels(DEPLOYMENT_KEY, hash).endMetadata().endTemplate()
-       .endSpec()
-       .build());
+    return resources().inNamespace(namespace).withName(name).edit(old -> new ReplicaSetBuilder(old).editSpec()
+        .editSelector().addToMatchLabels(DEPLOYMENT_KEY, hash).endSelector()
+        .editTemplate().editMetadata().addToLabels(DEPLOYMENT_KEY, hash).endMetadata().endTemplate()
+        .endSpec()
+        .build());
   }
 
   @Override
   protected ReplicaSet removeDeploymentKey(String name) {
-     return resources().inNamespace(namespace).withName(name).edit(old->new ReplicaSetBuilder(old).editSpec()
-         .editSelector().removeFromMatchLabels(DEPLOYMENT_KEY).endSelector()
-         .editTemplate().editMetadata().removeFromLabels(DEPLOYMENT_KEY).endMetadata().endTemplate()
-         .endSpec()
-         .build());
+    return resources().inNamespace(namespace).withName(name).edit(old -> new ReplicaSetBuilder(old).editSpec()
+        .editSelector().removeFromMatchLabels(DEPLOYMENT_KEY).endSelector()
+        .editTemplate().editMetadata().removeFromLabels(DEPLOYMENT_KEY).endMetadata().endTemplate()
+        .endSpec()
+        .build());
   }
 
   @Override
@@ -84,7 +81,7 @@ class ReplicaSetRollingUpdater extends RollingUpdater<ReplicaSet, ReplicaSetList
   }
 
   @Override
-  protected Operation<ReplicaSet, ReplicaSetList, RollableScalableResource<ReplicaSet>> resources() {
-    return new ReplicaSetOperationsImpl(this.clientContext);
+  protected MixedOperation<ReplicaSet, ReplicaSetList, RollableScalableResource<ReplicaSet>> resources() {
+    return new ReplicaSetOperationsImpl(this.client);
   }
 }

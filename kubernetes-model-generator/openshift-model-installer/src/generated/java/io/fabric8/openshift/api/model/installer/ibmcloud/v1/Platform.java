@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.ibmcloud.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,12 +36,13 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "computeSubnets",
+    "controlPlaneSubnets",
     "defaultMachinePlatform",
+    "networkResourceGroupName",
     "region",
     "resourceGroupName",
-    "subnets",
-    "vpc",
-    "vpcResourceGroupName"
+    "vpcName"
 })
 @ToString
 @EqualsAndHashCode
@@ -60,24 +62,28 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Platform implements KubernetesResource
 {
 
+    @JsonProperty("computeSubnets")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<String> computeSubnets = new ArrayList<String>();
+    @JsonProperty("controlPlaneSubnets")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<String> controlPlaneSubnets = new ArrayList<String>();
     @JsonProperty("defaultMachinePlatform")
     private MachinePool defaultMachinePlatform;
+    @JsonProperty("networkResourceGroupName")
+    private String networkResourceGroupName;
     @JsonProperty("region")
     private String region;
     @JsonProperty("resourceGroupName")
     private String resourceGroupName;
-    @JsonProperty("subnets")
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private List<String> subnets = new ArrayList<String>();
-    @JsonProperty("vpc")
-    private String vpc;
-    @JsonProperty("vpcResourceGroupName")
-    private String vpcResourceGroupName;
+    @JsonProperty("vpcName")
+    private String vpcName;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -86,23 +92,35 @@ public class Platform implements KubernetesResource
     public Platform() {
     }
 
-    /**
-     * 
-     * @param vpcResourceGroupName
-     * @param resourceGroupName
-     * @param defaultMachinePlatform
-     * @param vpc
-     * @param subnets
-     * @param region
-     */
-    public Platform(MachinePool defaultMachinePlatform, String region, String resourceGroupName, List<String> subnets, String vpc, String vpcResourceGroupName) {
+    public Platform(List<String> computeSubnets, List<String> controlPlaneSubnets, MachinePool defaultMachinePlatform, String networkResourceGroupName, String region, String resourceGroupName, String vpcName) {
         super();
+        this.computeSubnets = computeSubnets;
+        this.controlPlaneSubnets = controlPlaneSubnets;
         this.defaultMachinePlatform = defaultMachinePlatform;
+        this.networkResourceGroupName = networkResourceGroupName;
         this.region = region;
         this.resourceGroupName = resourceGroupName;
-        this.subnets = subnets;
-        this.vpc = vpc;
-        this.vpcResourceGroupName = vpcResourceGroupName;
+        this.vpcName = vpcName;
+    }
+
+    @JsonProperty("computeSubnets")
+    public List<String> getComputeSubnets() {
+        return computeSubnets;
+    }
+
+    @JsonProperty("computeSubnets")
+    public void setComputeSubnets(List<String> computeSubnets) {
+        this.computeSubnets = computeSubnets;
+    }
+
+    @JsonProperty("controlPlaneSubnets")
+    public List<String> getControlPlaneSubnets() {
+        return controlPlaneSubnets;
+    }
+
+    @JsonProperty("controlPlaneSubnets")
+    public void setControlPlaneSubnets(List<String> controlPlaneSubnets) {
+        this.controlPlaneSubnets = controlPlaneSubnets;
     }
 
     @JsonProperty("defaultMachinePlatform")
@@ -113,6 +131,16 @@ public class Platform implements KubernetesResource
     @JsonProperty("defaultMachinePlatform")
     public void setDefaultMachinePlatform(MachinePool defaultMachinePlatform) {
         this.defaultMachinePlatform = defaultMachinePlatform;
+    }
+
+    @JsonProperty("networkResourceGroupName")
+    public String getNetworkResourceGroupName() {
+        return networkResourceGroupName;
+    }
+
+    @JsonProperty("networkResourceGroupName")
+    public void setNetworkResourceGroupName(String networkResourceGroupName) {
+        this.networkResourceGroupName = networkResourceGroupName;
     }
 
     @JsonProperty("region")
@@ -135,34 +163,14 @@ public class Platform implements KubernetesResource
         this.resourceGroupName = resourceGroupName;
     }
 
-    @JsonProperty("subnets")
-    public List<String> getSubnets() {
-        return subnets;
+    @JsonProperty("vpcName")
+    public String getVpcName() {
+        return vpcName;
     }
 
-    @JsonProperty("subnets")
-    public void setSubnets(List<String> subnets) {
-        this.subnets = subnets;
-    }
-
-    @JsonProperty("vpc")
-    public String getVpc() {
-        return vpc;
-    }
-
-    @JsonProperty("vpc")
-    public void setVpc(String vpc) {
-        this.vpc = vpc;
-    }
-
-    @JsonProperty("vpcResourceGroupName")
-    public String getVpcResourceGroupName() {
-        return vpcResourceGroupName;
-    }
-
-    @JsonProperty("vpcResourceGroupName")
-    public void setVpcResourceGroupName(String vpcResourceGroupName) {
-        this.vpcResourceGroupName = vpcResourceGroupName;
+    @JsonProperty("vpcName")
+    public void setVpcName(String vpcName) {
+        this.vpcName = vpcName;
     }
 
     @JsonAnyGetter

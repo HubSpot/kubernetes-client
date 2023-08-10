@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.operator.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,7 +36,8 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
-    "categories"
+    "categories",
+    "types"
 })
 @ToString
 @EqualsAndHashCode
@@ -55,14 +57,17 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class DeveloperConsoleCatalogCustomization implements KubernetesResource
 {
 
     @JsonProperty("categories")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<DeveloperConsoleCatalogCategory> categories = new ArrayList<DeveloperConsoleCatalogCategory>();
+    @JsonProperty("types")
+    private DeveloperConsoleCatalogTypes types;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,13 +76,10 @@ public class DeveloperConsoleCatalogCustomization implements KubernetesResource
     public DeveloperConsoleCatalogCustomization() {
     }
 
-    /**
-     * 
-     * @param categories
-     */
-    public DeveloperConsoleCatalogCustomization(List<DeveloperConsoleCatalogCategory> categories) {
+    public DeveloperConsoleCatalogCustomization(List<DeveloperConsoleCatalogCategory> categories, DeveloperConsoleCatalogTypes types) {
         super();
         this.categories = categories;
+        this.types = types;
     }
 
     @JsonProperty("categories")
@@ -88,6 +90,16 @@ public class DeveloperConsoleCatalogCustomization implements KubernetesResource
     @JsonProperty("categories")
     public void setCategories(List<DeveloperConsoleCatalogCategory> categories) {
         this.categories = categories;
+    }
+
+    @JsonProperty("types")
+    public DeveloperConsoleCatalogTypes getTypes() {
+        return types;
+    }
+
+    @JsonProperty("types")
+    public void setTypes(DeveloperConsoleCatalogTypes types) {
+        this.types = types;
     }
 
     @JsonAnyGetter

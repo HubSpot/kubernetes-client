@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.batch.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,7 +40,8 @@ import lombok.experimental.Accessors;
     "schedule",
     "startingDeadlineSeconds",
     "successfulJobsHistoryLimit",
-    "suspend"
+    "suspend",
+    "timeZone"
 })
 @ToString
 @EqualsAndHashCode
@@ -59,6 +61,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class CronJobSpec implements KubernetesResource
 {
 
@@ -76,8 +79,10 @@ public class CronJobSpec implements KubernetesResource
     private Integer successfulJobsHistoryLimit;
     @JsonProperty("suspend")
     private Boolean suspend;
+    @JsonProperty("timeZone")
+    private String timeZone;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -86,17 +91,7 @@ public class CronJobSpec implements KubernetesResource
     public CronJobSpec() {
     }
 
-    /**
-     * 
-     * @param suspend
-     * @param schedule
-     * @param jobTemplate
-     * @param startingDeadlineSeconds
-     * @param concurrencyPolicy
-     * @param failedJobsHistoryLimit
-     * @param successfulJobsHistoryLimit
-     */
-    public CronJobSpec(String concurrencyPolicy, Integer failedJobsHistoryLimit, JobTemplateSpec jobTemplate, String schedule, Long startingDeadlineSeconds, Integer successfulJobsHistoryLimit, Boolean suspend) {
+    public CronJobSpec(String concurrencyPolicy, Integer failedJobsHistoryLimit, JobTemplateSpec jobTemplate, String schedule, Long startingDeadlineSeconds, Integer successfulJobsHistoryLimit, Boolean suspend, String timeZone) {
         super();
         this.concurrencyPolicy = concurrencyPolicy;
         this.failedJobsHistoryLimit = failedJobsHistoryLimit;
@@ -105,6 +100,7 @@ public class CronJobSpec implements KubernetesResource
         this.startingDeadlineSeconds = startingDeadlineSeconds;
         this.successfulJobsHistoryLimit = successfulJobsHistoryLimit;
         this.suspend = suspend;
+        this.timeZone = timeZone;
     }
 
     @JsonProperty("concurrencyPolicy")
@@ -175,6 +171,16 @@ public class CronJobSpec implements KubernetesResource
     @JsonProperty("suspend")
     public void setSuspend(Boolean suspend) {
         this.suspend = suspend;
+    }
+
+    @JsonProperty("timeZone")
+    public String getTimeZone() {
+        return timeZone;
+    }
+
+    @JsonProperty("timeZone")
+    public void setTimeZone(String timeZone) {
+        this.timeZone = timeZone;
     }
 
     @JsonAnyGetter

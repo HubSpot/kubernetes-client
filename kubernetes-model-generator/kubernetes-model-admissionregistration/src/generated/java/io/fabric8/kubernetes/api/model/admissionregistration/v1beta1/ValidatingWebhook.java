@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.admissionregistration.v1beta1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.admissionregistration.v1.RuleWithOperations;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -37,6 +39,7 @@ import lombok.experimental.Accessors;
     "admissionReviewVersions",
     "clientConfig",
     "failurePolicy",
+    "matchConditions",
     "matchPolicy",
     "name",
     "namespaceSelector",
@@ -63,6 +66,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ValidatingWebhook implements KubernetesResource
 {
 
@@ -73,6 +77,9 @@ public class ValidatingWebhook implements KubernetesResource
     private WebhookClientConfig clientConfig;
     @JsonProperty("failurePolicy")
     private String failurePolicy;
+    @JsonProperty("matchConditions")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<MatchCondition> matchConditions = new ArrayList<MatchCondition>();
     @JsonProperty("matchPolicy")
     private String matchPolicy;
     @JsonProperty("name")
@@ -89,7 +96,7 @@ public class ValidatingWebhook implements KubernetesResource
     @JsonProperty("timeoutSeconds")
     private Integer timeoutSeconds;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -98,24 +105,12 @@ public class ValidatingWebhook implements KubernetesResource
     public ValidatingWebhook() {
     }
 
-    /**
-     * 
-     * @param admissionReviewVersions
-     * @param matchPolicy
-     * @param name
-     * @param namespaceSelector
-     * @param timeoutSeconds
-     * @param rules
-     * @param clientConfig
-     * @param objectSelector
-     * @param failurePolicy
-     * @param sideEffects
-     */
-    public ValidatingWebhook(List<String> admissionReviewVersions, WebhookClientConfig clientConfig, String failurePolicy, String matchPolicy, String name, io.fabric8.kubernetes.api.model.LabelSelector namespaceSelector, io.fabric8.kubernetes.api.model.LabelSelector objectSelector, List<RuleWithOperations> rules, String sideEffects, Integer timeoutSeconds) {
+    public ValidatingWebhook(List<String> admissionReviewVersions, WebhookClientConfig clientConfig, String failurePolicy, List<MatchCondition> matchConditions, String matchPolicy, String name, io.fabric8.kubernetes.api.model.LabelSelector namespaceSelector, io.fabric8.kubernetes.api.model.LabelSelector objectSelector, List<RuleWithOperations> rules, String sideEffects, Integer timeoutSeconds) {
         super();
         this.admissionReviewVersions = admissionReviewVersions;
         this.clientConfig = clientConfig;
         this.failurePolicy = failurePolicy;
+        this.matchConditions = matchConditions;
         this.matchPolicy = matchPolicy;
         this.name = name;
         this.namespaceSelector = namespaceSelector;
@@ -153,6 +148,16 @@ public class ValidatingWebhook implements KubernetesResource
     @JsonProperty("failurePolicy")
     public void setFailurePolicy(String failurePolicy) {
         this.failurePolicy = failurePolicy;
+    }
+
+    @JsonProperty("matchConditions")
+    public List<MatchCondition> getMatchConditions() {
+        return matchConditions;
+    }
+
+    @JsonProperty("matchConditions")
+    public void setMatchConditions(List<MatchCondition> matchConditions) {
+        this.matchConditions = matchConditions;
     }
 
     @JsonProperty("matchPolicy")

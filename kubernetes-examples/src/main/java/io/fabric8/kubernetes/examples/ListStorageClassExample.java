@@ -16,8 +16,8 @@
 package io.fabric8.kubernetes.examples;
 
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,9 +31,9 @@ public class ListStorageClassExample {
     if (args.length > 0) {
       configBuilder.withMasterUrl(args[0]);
     }
-    try (KubernetesClient client = new DefaultKubernetesClient(configBuilder.build())) {
-      client.storage().storageClasses().list().getItems()
-        .forEach(sc -> logger.info("Storage class: {}", sc.getMetadata().getName()));
+    try (KubernetesClient client = new KubernetesClientBuilder().withConfig(configBuilder.build()).build()) {
+      client.storage().v1().storageClasses().list().getItems()
+          .forEach(sc -> logger.info("Storage class: {}", sc.getMetadata().getName()));
     } catch (KubernetesClientException e) {
       logger.error(e.getMessage(), e);
     }

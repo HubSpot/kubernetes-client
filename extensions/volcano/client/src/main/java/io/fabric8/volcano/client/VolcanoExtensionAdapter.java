@@ -16,18 +16,12 @@
 package io.fabric8.volcano.client;
 
 import io.fabric8.kubernetes.client.Client;
-import io.fabric8.kubernetes.client.ExtensionAdapter;
-import io.fabric8.kubernetes.client.ExtensionAdapterSupport;
+import io.fabric8.kubernetes.client.extension.ExtensionAdapter;
+import io.fabric8.volcano.client.dsl.V1beta1APIGroupDSL;
 
-import java.net.URL;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+public class VolcanoExtensionAdapter implements ExtensionAdapter<VolcanoClient> {
 
-public class VolcanoExtensionAdapter extends ExtensionAdapterSupport implements ExtensionAdapter<VolcanoClient> {
-
-  static final ConcurrentMap<URL, Boolean> IS_API = new ConcurrentHashMap<>();
-  static final ConcurrentMap<URL, Boolean> USES_API_GROUPS = new ConcurrentHashMap<>();
-  public static final String API_GROUP = "volcano.sh";
+  public static final String API_GROUP = "scheduling.volcano.sh";
 
   @Override
   public Class<VolcanoClient> getExtensionType() {
@@ -35,12 +29,13 @@ public class VolcanoExtensionAdapter extends ExtensionAdapterSupport implements 
   }
 
   @Override
-  public Boolean isAdaptable(Client client) {
-    return isAdaptable(client, IS_API, USES_API_GROUPS, API_GROUP);
-  }
-
-  @Override
   public VolcanoClient adapt(Client client) {
     return new DefaultVolcanoClient(client);
   }
+
+  @Override
+  public void registerClients(ClientFactory factory) {
+    factory.register(V1beta1APIGroupDSL.class, new V1beta1APIGroupClient());
+  }
+
 }

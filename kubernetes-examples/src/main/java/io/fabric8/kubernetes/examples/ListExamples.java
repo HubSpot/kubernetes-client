@@ -18,8 +18,8 @@ package io.fabric8.kubernetes.examples;
 import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,44 +36,39 @@ public class ListExamples {
     if (args.length > 0) {
       configBuilder.withMasterUrl(args[0]);
     }
-    try (KubernetesClient client = new DefaultKubernetesClient(configBuilder.build())) {
+    try (KubernetesClient client = new KubernetesClientBuilder().withConfig(configBuilder.build()).build()) {
       final String namespace = Optional.ofNullable(client.getNamespace()).orElse("default");
 
       System.out.println(
-        client.namespaces().list()
-      );
+          client.namespaces().list());
 
       System.out.println(
-        client.namespaces().withLabel("this", "works").list()
-      );
+          client.namespaces().withLabel("this", "works").list());
 
       System.out.println(
-        client.pods().withLabel("this", "works").list()
-      );
+          client.pods().withLabel("this", "works").list());
 
       System.out.println(
-        client.pods().inNamespace("test").withLabel("this", "works").list()
-      );
+          client.pods().inNamespace("test").withLabel("this", "works").list());
 
       System.out.println(
-        client.pods().inNamespace("test").withName("testing").get()
-      );
+          client.pods().inNamespace("test").withName("testing").get());
 
       /*
-       * 	The continue option should be set when retrieving more results from the server.
-       * 	Since this value is server defined, clients may only use the continue value from
-       * 	a previous query result with identical query parameters (except for the value of
-       * 	continue) and the server may reject a continue value it does not recognize.
+       * The continue option should be set when retrieving more results from the server.
+       * Since this value is server defined, clients may only use the continue value from
+       * a previous query result with identical query parameters (except for the value of
+       * continue) and the server may reject a continue value it does not recognize.
        */
       PodList podList = client.pods().inNamespace(namespace).list(new ListOptionsBuilder().withLimit(5L).build());
       podList.getItems().forEach(obj -> System.out.println(obj.getMetadata().getName()));
 
       podList = client.pods().inNamespace(namespace)
-        .list(new ListOptionsBuilder().withLimit(5L).withContinue(podList.getMetadata().getContinue()).build());
+          .list(new ListOptionsBuilder().withLimit(5L).withContinue(podList.getMetadata().getContinue()).build());
       podList.getItems().forEach(obj -> System.out.println(obj.getMetadata().getName()));
 
       Integer services = client.services().inNamespace(namespace)
-        .list(new ListOptionsBuilder().withLimit(1L).build()).getItems().size();
+          .list(new ListOptionsBuilder().withLimit(1L).build()).getItems().size();
 
       client.services().inNamespace(namespace).list(new ListOptionsBuilder().withLimit(1L).withContinue(null).build());
       System.out.println(services);

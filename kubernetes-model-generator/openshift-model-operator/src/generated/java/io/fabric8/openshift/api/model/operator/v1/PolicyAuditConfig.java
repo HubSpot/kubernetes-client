@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.operator.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,6 +36,7 @@ import lombok.experimental.Accessors;
     "metadata",
     "destination",
     "maxFileSize",
+    "maxLogFiles",
     "rateLimit",
     "syslogFacility"
 })
@@ -56,6 +58,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class PolicyAuditConfig implements KubernetesResource
 {
 
@@ -63,12 +66,14 @@ public class PolicyAuditConfig implements KubernetesResource
     private String destination;
     @JsonProperty("maxFileSize")
     private Integer maxFileSize;
+    @JsonProperty("maxLogFiles")
+    private Integer maxLogFiles;
     @JsonProperty("rateLimit")
     private Integer rateLimit;
     @JsonProperty("syslogFacility")
     private String syslogFacility;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -77,17 +82,11 @@ public class PolicyAuditConfig implements KubernetesResource
     public PolicyAuditConfig() {
     }
 
-    /**
-     * 
-     * @param rateLimit
-     * @param destination
-     * @param maxFileSize
-     * @param syslogFacility
-     */
-    public PolicyAuditConfig(String destination, Integer maxFileSize, Integer rateLimit, String syslogFacility) {
+    public PolicyAuditConfig(String destination, Integer maxFileSize, Integer maxLogFiles, Integer rateLimit, String syslogFacility) {
         super();
         this.destination = destination;
         this.maxFileSize = maxFileSize;
+        this.maxLogFiles = maxLogFiles;
         this.rateLimit = rateLimit;
         this.syslogFacility = syslogFacility;
     }
@@ -110,6 +109,16 @@ public class PolicyAuditConfig implements KubernetesResource
     @JsonProperty("maxFileSize")
     public void setMaxFileSize(Integer maxFileSize) {
         this.maxFileSize = maxFileSize;
+    }
+
+    @JsonProperty("maxLogFiles")
+    public Integer getMaxLogFiles() {
+        return maxLogFiles;
+    }
+
+    @JsonProperty("maxLogFiles")
+    public void setMaxLogFiles(Integer maxLogFiles) {
+        this.maxLogFiles = maxLogFiles;
     }
 
     @JsonProperty("rateLimit")

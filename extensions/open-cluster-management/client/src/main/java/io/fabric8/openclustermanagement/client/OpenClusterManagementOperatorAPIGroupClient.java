@@ -15,12 +15,10 @@
  */
 package io.fabric8.openclustermanagement.client;
 
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.extension.ClientAdapter;
 import io.fabric8.openclustermanagement.api.model.multiclusterhub.operator.v1.MultiClusterHub;
 import io.fabric8.openclustermanagement.api.model.multiclusterhub.operator.v1.MultiClusterHubList;
 import io.fabric8.openclustermanagement.api.model.operator.v1.ClusterManager;
@@ -29,29 +27,26 @@ import io.fabric8.openclustermanagement.api.model.operator.v1.Klusterlet;
 import io.fabric8.openclustermanagement.api.model.operator.v1.KlusterletList;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementOperatorAPIGroupDSL;
 
-public class OpenClusterManagementOperatorAPIGroupClient extends BaseClient implements OpenClusterManagementOperatorAPIGroupDSL {
+public class OpenClusterManagementOperatorAPIGroupClient extends ClientAdapter<OpenClusterManagementOperatorAPIGroupClient>
+    implements OpenClusterManagementOperatorAPIGroupDSL {
 
-  public OpenClusterManagementOperatorAPIGroupClient() {
-    super();
-  }
-
-  public OpenClusterManagementOperatorAPIGroupClient(ClientContext clientContext) {
-    super(clientContext);
+  @Override
+  public OpenClusterManagementOperatorAPIGroupClient newInstance() {
+    return new OpenClusterManagementOperatorAPIGroupClient();
   }
 
   @Override
   public MixedOperation<MultiClusterHub, MultiClusterHubList, Resource<MultiClusterHub>> multiClusterHubs() {
-    return Handlers.getOperation(MultiClusterHub.class, MultiClusterHubList.class, this);
+    return resources(MultiClusterHub.class, MultiClusterHubList.class);
   }
 
   @Override
   public NonNamespaceOperation<Klusterlet, KlusterletList, Resource<Klusterlet>> klusterlets() {
-    return Handlers.getOperation(Klusterlet.class, KlusterletList.class, this);
+    return resources(Klusterlet.class, KlusterletList.class);
   }
 
   @Override
   public NonNamespaceOperation<ClusterManager, ClusterManagerList, Resource<ClusterManager>> clusterManagers() {
-    return Handlers.getOperation(ClusterManager.class, ClusterManagerList.class, this);
+    return resources(ClusterManager.class, ClusterManagerList.class);
   }
 }
-

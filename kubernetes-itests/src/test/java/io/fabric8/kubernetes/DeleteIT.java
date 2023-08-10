@@ -15,228 +15,216 @@
  */
 package io.fabric8.kubernetes;
 
-import io.fabric8.commons.ClusterEntity;
-import io.fabric8.commons.DeleteEntity;
+import io.fabric8.junit.jupiter.api.LoadKubernetesManifests;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.arquillian.cube.kubernetes.api.Session;
-import org.arquillian.cube.kubernetes.impl.requirement.RequiresKubernetes;
-import org.arquillian.cube.requirement.ArquillianConditionalRunner;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.utils.CommonThreadPool;
+import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
-import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(ArquillianConditionalRunner.class)
-@RequiresKubernetes
-public class DeleteIT {
-  @ArquillianResource
+@LoadKubernetesManifests("/delete-it.yml")
+class DeleteIT {
+
   KubernetesClient client;
 
-  @ArquillianResource
-  Session session;
-
-  @BeforeClass
-  public static void init() {
-    ClusterEntity.apply(ClusterRoleIT.class.getResourceAsStream("/delete-it.yml"));
-  }
-
   @Test
-  public void testDeleteNonExistentResource() {
+  void testDeleteNonExistentResource() {
     // Given
     String podName = "i-dont-exist";
-
     // When
-    Boolean isDeleted = client.pods().inNamespace(session.getNamespace()).withName(podName).delete();
-
+    boolean isDeleted = client.pods().withName(podName).delete().size() == 1;
     // Then
     assertFalse(isDeleted);
   }
 
   @Test
-  public void testDeleteExistentResource() {
+  void testDeleteNonExistentResourceBlocking() {
+    // Given
+    String podName = "i-dont-exist";
+    // When
+    long start = System.currentTimeMillis();
+    client.pods().withName(podName).withTimeout(10, TimeUnit.MINUTES).delete();
+    // Then it shouldn't block
+    assertTrue(System.currentTimeMillis() - start < TimeUnit.MILLISECONDS.convert(1, TimeUnit.MINUTES));
+  }
+
+  @Test
+  void testBlockingDeleteExistentResource() throws Exception {
     // Given
     String name = "deleteit-existent";
-
     // When
-    Boolean isDeleted = client.secrets().inNamespace(session.getNamespace()).withName(name).delete();
+    Resource<Secret> op = client.secrets().withName(name);
+    CompletableFuture<List<StatusDetails>> future;
+    try {
+      op.edit(s -> {
+        s.addFinalizer("fabric8.com/blocking");
+        return s;
+      });
+      future = CompletableFuture.supplyAsync(() -> op.withTimeout(60, TimeUnit.SECONDS).delete(), CommonThreadPool.get());
 
-    // Then
-    assertTrue(isDeleted);
-    DeleteEntity<Secret> deleteEntity = new DeleteEntity<>(Secret.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+      try {
+        future.get(10, TimeUnit.SECONDS);
+      } catch (TimeoutException e) {
+        // expected - we're waiting for the finalizer
+      }
+      assertNotNull(op.get().getMetadata().getDeletionTimestamp());
+    } finally {
+      op.edit(s -> {
+        s.getMetadata().setFinalizers(null);
+        return s;
+      });
+    }
+
+    assertEquals(1, future.get(60, TimeUnit.SECONDS).size());
   }
 
   @Test
-  public void testDeleteWithGracePeriod() {
+  void testDeleteWithGracePeriod() {
     // Given
     String name = "deleteit-existent-graceperiod";
-
     // When
-    Boolean isDeleted = client.secrets().inNamespace(session.getNamespace()).withName(name).withGracePeriod(0).delete();
-
+    boolean isDeleted = client.secrets().withName(name)
+        .withGracePeriod(0).delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<Secret> deleteEntity = new DeleteEntity<>(Secret.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.secrets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteWithCascadingEnabled() {
+  void testDeleteWithCascadingEnabled() {
     // Given
     String name = "deleteit-existent-cascading";
-
     // When
-    Boolean isDeleted = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name).cascading(true).delete();
-
+    boolean isDeleted = client.apps().replicaSets().withName(name).cascading(true).delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteWithPropagationPolicyForeground() {
+  void testDeleteWithPropagationPolicyForeground() {
     // Given
     String name = "deleteit-existent-foreground";
-
     // When
-    Boolean isDeleted = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name)
-      .withPropagationPolicy(DeletionPropagation.FOREGROUND)
-      .delete();
-
+    boolean isDeleted = client.apps().replicaSets().withName(name)
+        .withPropagationPolicy(DeletionPropagation.FOREGROUND)
+        .delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteWithPropagationPolicyBackground() {
+  void testDeleteWithPropagationPolicyBackground() {
     // Given
     String name = "deleteit-existent-background";
-
     // When
-    Boolean isDeleted = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name)
-      .withPropagationPolicy(DeletionPropagation.BACKGROUND)
-      .delete();
-
+    boolean isDeleted = client.apps().replicaSets().withName(name)
+        .withPropagationPolicy(DeletionPropagation.BACKGROUND)
+        .delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteWithPropagationPolicyOrphan() {
+  void testDeleteWithPropagationPolicyOrphan() {
     // Given
     String name = "deleteit-existent-orphan";
-
     // When
-    Boolean isDeleted = client.apps().deployments().inNamespace(session.getNamespace()).withName(name)
-      .withPropagationPolicy(DeletionPropagation.ORPHAN)
-      .delete();
-
+    boolean isDeleted = client.apps().deployments().withName(name)
+        .withPropagationPolicy(DeletionPropagation.ORPHAN)
+        .delete().size() == 1;
     // Then
-    ReplicaSetList replicaSetList = client.apps().replicaSets().inNamespace(session.getNamespace()).withLabel("test", name).list();
+    ReplicaSetList replicaSetList = client.apps().replicaSets().withLabel("test", name).list();
     assertTrue(isDeleted);
     assertNotNull(replicaSetList);
     assertEquals(1, replicaSetList.getItems().size());
-    assertTrue(client.resource(replicaSetList.getItems().get(0)).inNamespace(session.getNamespace()).delete());
+    assertTrue(client.resource(replicaSetList.getItems().get(0)).delete().size() == 1);
   }
 
   @Test
-  public void testDeleteResource() {
+  void testDeleteResource() {
     // Given
     String name = "deleteit-resource";
-
     // When
-    ReplicaSet replicaSet = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name).get();
-    Boolean isDeleted = client.resource(replicaSet).inNamespace(session.getNamespace()).delete();
-
+    ReplicaSet replicaSet = client.apps().replicaSets().withName(name).get();
+    boolean isDeleted = client.resource(replicaSet).delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteResourceCascading() {
+  void testDeleteResourceCascading() {
     // Given
     String name = "deleteit-resource-cascading";
-
     // When
-    ReplicaSet replicaSet = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name).get();
-    Boolean isDeleted = client.resource(replicaSet).inNamespace(session.getNamespace()).cascading(true).delete();
-
+    ReplicaSet replicaSet = client.apps().replicaSets().withName(name).get();
+    boolean isDeleted = client.resource(replicaSet).cascading(true).delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteResourcePropagationPolicyBackground() {
+  void testDeleteResourcePropagationPolicyBackground() {
     // Given
     String name = "deleteit-resource-background";
-
     // When
-    ReplicaSet replicaSet = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name).get();
-    Boolean isDeleted = client.resource(replicaSet).inNamespace(session.getNamespace())
-      .withPropagationPolicy(DeletionPropagation.BACKGROUND)
-      .delete();
-
+    ReplicaSet replicaSet = client.apps().replicaSets().withName(name).get();
+    boolean isDeleted = client.resource(replicaSet)
+        .withPropagationPolicy(DeletionPropagation.BACKGROUND)
+        .delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteResourcePropagationPolicyForeground() {
+  void testDeleteResourcePropagationPolicyForeground() {
     // Given
     String name = "deleteit-resource-foreground";
-
     // When
-    ReplicaSet replicaSet = client.apps().replicaSets().inNamespace(session.getNamespace()).withName(name).get();
-    Boolean isDeleted = client.resource(replicaSet).inNamespace(session.getNamespace())
-      .withPropagationPolicy(DeletionPropagation.FOREGROUND)
-      .delete();
-
+    ReplicaSet replicaSet = client.apps().replicaSets().withName(name).get();
+    boolean isDeleted = client.resource(replicaSet)
+        .withPropagationPolicy(DeletionPropagation.FOREGROUND)
+        .delete().size() == 1;
     // Then
     assertTrue(isDeleted);
-    DeleteEntity<ReplicaSet> deleteEntity = new DeleteEntity<>(ReplicaSet.class, client, name, session.getNamespace());
-    await().atMost(30, TimeUnit.SECONDS).until(deleteEntity);
+    client.apps().replicaSets().withName(name).waitUntilCondition(Objects::isNull, 60, TimeUnit.SECONDS);
   }
 
   @Test
-  public void testDeleteResourcePropagationPolicyOrphan() {
+  void testDeleteResourcePropagationPolicyOrphan() {
     // Given
     String name = "deleteit-resource-orphan";
-
     // When
-    Deployment deploy = client.apps().deployments().inNamespace(session.getNamespace()).withName(name).get();
-    Boolean isDeleted = client.resource(deploy).inNamespace(session.getNamespace())
-      .withPropagationPolicy(DeletionPropagation.ORPHAN)
-      .delete();
-
+    Deployment deploy = client.apps().deployments().withName(name).get();
+    boolean isDeleted = client.resource(deploy)
+        .withPropagationPolicy(DeletionPropagation.ORPHAN)
+        .delete().size() == 1;
     // Then
-    ReplicaSetList replicaSetList = client.apps().replicaSets().inNamespace(session.getNamespace()).withLabel("test", name).list();
+    ReplicaSetList replicaSetList = client.apps().replicaSets().withLabel("test", name).list();
     assertTrue(isDeleted);
     assertNotNull(replicaSetList);
     assertEquals(1, replicaSetList.getItems().size());
-    assertTrue(client.resource(replicaSetList.getItems().get(0)).inNamespace(session.getNamespace()).delete());
+    assertTrue(client.resource(replicaSetList.getItems().get(0)).delete().size() == 1);
   }
 }

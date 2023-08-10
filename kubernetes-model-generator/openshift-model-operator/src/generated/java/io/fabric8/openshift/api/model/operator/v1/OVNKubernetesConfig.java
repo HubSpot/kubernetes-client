@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.operator.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,11 +34,15 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "egressIPConfig",
+    "gatewayConfig",
     "genevePort",
     "hybridOverlayConfig",
     "ipsecConfig",
     "mtu",
-    "policyAuditConfig"
+    "policyAuditConfig",
+    "v4InternalSubnet",
+    "v6InternalSubnet"
 })
 @ToString
 @EqualsAndHashCode
@@ -57,9 +62,14 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class OVNKubernetesConfig implements KubernetesResource
 {
 
+    @JsonProperty("egressIPConfig")
+    private EgressIPConfig egressIPConfig;
+    @JsonProperty("gatewayConfig")
+    private GatewayConfig gatewayConfig;
     @JsonProperty("genevePort")
     private Integer genevePort;
     @JsonProperty("hybridOverlayConfig")
@@ -70,8 +80,12 @@ public class OVNKubernetesConfig implements KubernetesResource
     private Integer mtu;
     @JsonProperty("policyAuditConfig")
     private PolicyAuditConfig policyAuditConfig;
+    @JsonProperty("v4InternalSubnet")
+    private String v4InternalSubnet;
+    @JsonProperty("v6InternalSubnet")
+    private String v6InternalSubnet;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -80,21 +94,37 @@ public class OVNKubernetesConfig implements KubernetesResource
     public OVNKubernetesConfig() {
     }
 
-    /**
-     * 
-     * @param policyAuditConfig
-     * @param genevePort
-     * @param hybridOverlayConfig
-     * @param ipsecConfig
-     * @param mtu
-     */
-    public OVNKubernetesConfig(Integer genevePort, HybridOverlayConfig hybridOverlayConfig, IPsecConfig ipsecConfig, Integer mtu, PolicyAuditConfig policyAuditConfig) {
+    public OVNKubernetesConfig(EgressIPConfig egressIPConfig, GatewayConfig gatewayConfig, Integer genevePort, HybridOverlayConfig hybridOverlayConfig, IPsecConfig ipsecConfig, Integer mtu, PolicyAuditConfig policyAuditConfig, String v4InternalSubnet, String v6InternalSubnet) {
         super();
+        this.egressIPConfig = egressIPConfig;
+        this.gatewayConfig = gatewayConfig;
         this.genevePort = genevePort;
         this.hybridOverlayConfig = hybridOverlayConfig;
         this.ipsecConfig = ipsecConfig;
         this.mtu = mtu;
         this.policyAuditConfig = policyAuditConfig;
+        this.v4InternalSubnet = v4InternalSubnet;
+        this.v6InternalSubnet = v6InternalSubnet;
+    }
+
+    @JsonProperty("egressIPConfig")
+    public EgressIPConfig getEgressIPConfig() {
+        return egressIPConfig;
+    }
+
+    @JsonProperty("egressIPConfig")
+    public void setEgressIPConfig(EgressIPConfig egressIPConfig) {
+        this.egressIPConfig = egressIPConfig;
+    }
+
+    @JsonProperty("gatewayConfig")
+    public GatewayConfig getGatewayConfig() {
+        return gatewayConfig;
+    }
+
+    @JsonProperty("gatewayConfig")
+    public void setGatewayConfig(GatewayConfig gatewayConfig) {
+        this.gatewayConfig = gatewayConfig;
     }
 
     @JsonProperty("genevePort")
@@ -145,6 +175,26 @@ public class OVNKubernetesConfig implements KubernetesResource
     @JsonProperty("policyAuditConfig")
     public void setPolicyAuditConfig(PolicyAuditConfig policyAuditConfig) {
         this.policyAuditConfig = policyAuditConfig;
+    }
+
+    @JsonProperty("v4InternalSubnet")
+    public String getV4InternalSubnet() {
+        return v4InternalSubnet;
+    }
+
+    @JsonProperty("v4InternalSubnet")
+    public void setV4InternalSubnet(String v4InternalSubnet) {
+        this.v4InternalSubnet = v4InternalSubnet;
+    }
+
+    @JsonProperty("v6InternalSubnet")
+    public String getV6InternalSubnet() {
+        return v6InternalSubnet;
+    }
+
+    @JsonProperty("v6InternalSubnet")
+    public void setV6InternalSubnet(String v6InternalSubnet) {
+        this.v6InternalSubnet = v6InternalSubnet;
     }
 
     @JsonAnyGetter

@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.operatorhub.v1alpha1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -57,6 +58,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class StrategyDetailsDeployment implements KubernetesResource
 {
 
@@ -64,12 +66,13 @@ public class StrategyDetailsDeployment implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<StrategyDeploymentPermissions> clusterPermissions = new ArrayList<StrategyDeploymentPermissions>();
     @JsonProperty("deployments")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<StrategyDeploymentSpec> deployments = new ArrayList<StrategyDeploymentSpec>();
     @JsonProperty("permissions")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<StrategyDeploymentPermissions> permissions = new ArrayList<StrategyDeploymentPermissions>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -78,12 +81,6 @@ public class StrategyDetailsDeployment implements KubernetesResource
     public StrategyDetailsDeployment() {
     }
 
-    /**
-     * 
-     * @param clusterPermissions
-     * @param deployments
-     * @param permissions
-     */
     public StrategyDetailsDeployment(List<StrategyDeploymentPermissions> clusterPermissions, List<StrategyDeploymentSpec> deployments, List<StrategyDeploymentPermissions> permissions) {
         super();
         this.clusterPermissions = clusterPermissions;

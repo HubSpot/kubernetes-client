@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.aws.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,6 +40,8 @@ import lombok.experimental.Accessors;
     "defaultMachinePlatform",
     "experimentalPropagateUserTags",
     "hostedZone",
+    "lbType",
+    "propagateUserTags",
     "region",
     "serviceEndpoints",
     "subnets",
@@ -62,6 +65,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Platform implements KubernetesResource
 {
 
@@ -73,6 +77,10 @@ public class Platform implements KubernetesResource
     private Boolean experimentalPropagateUserTags;
     @JsonProperty("hostedZone")
     private java.lang.String hostedZone;
+    @JsonProperty("lbType")
+    private java.lang.String lbType;
+    @JsonProperty("propagateUserTags")
+    private Boolean propagateUserTags;
     @JsonProperty("region")
     private java.lang.String region;
     @JsonProperty("serviceEndpoints")
@@ -82,9 +90,10 @@ public class Platform implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> subnets = new ArrayList<java.lang.String>();
     @JsonProperty("userTags")
-    private Map<String, String> userTags;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> userTags = new LinkedHashMap<String, String>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -93,23 +102,14 @@ public class Platform implements KubernetesResource
     public Platform() {
     }
 
-    /**
-     * 
-     * @param amiID
-     * @param hostedZone
-     * @param experimentalPropagateUserTags
-     * @param defaultMachinePlatform
-     * @param userTags
-     * @param subnets
-     * @param region
-     * @param serviceEndpoints
-     */
-    public Platform(java.lang.String amiID, MachinePool defaultMachinePlatform, Boolean experimentalPropagateUserTags, java.lang.String hostedZone, java.lang.String region, List<ServiceEndpoint> serviceEndpoints, List<java.lang.String> subnets, Map<String, String> userTags) {
+    public Platform(java.lang.String amiID, MachinePool defaultMachinePlatform, Boolean experimentalPropagateUserTags, java.lang.String hostedZone, java.lang.String lbType, Boolean propagateUserTags, java.lang.String region, List<ServiceEndpoint> serviceEndpoints, List<java.lang.String> subnets, Map<String, String> userTags) {
         super();
         this.amiID = amiID;
         this.defaultMachinePlatform = defaultMachinePlatform;
         this.experimentalPropagateUserTags = experimentalPropagateUserTags;
         this.hostedZone = hostedZone;
+        this.lbType = lbType;
+        this.propagateUserTags = propagateUserTags;
         this.region = region;
         this.serviceEndpoints = serviceEndpoints;
         this.subnets = subnets;
@@ -154,6 +154,26 @@ public class Platform implements KubernetesResource
     @JsonProperty("hostedZone")
     public void setHostedZone(java.lang.String hostedZone) {
         this.hostedZone = hostedZone;
+    }
+
+    @JsonProperty("lbType")
+    public java.lang.String getLbType() {
+        return lbType;
+    }
+
+    @JsonProperty("lbType")
+    public void setLbType(java.lang.String lbType) {
+        this.lbType = lbType;
+    }
+
+    @JsonProperty("propagateUserTags")
+    public Boolean getPropagateUserTags() {
+        return propagateUserTags;
+    }
+
+    @JsonProperty("propagateUserTags")
+    public void setPropagateUserTags(Boolean propagateUserTags) {
+        this.propagateUserTags = propagateUserTags;
     }
 
     @JsonProperty("region")

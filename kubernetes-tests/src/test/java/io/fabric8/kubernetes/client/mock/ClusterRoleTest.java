@@ -19,13 +19,12 @@ package io.fabric8.kubernetes.client.mock;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.rbac.ClusterRole;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.ParameterNamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
+import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.AssertionsForClassTypes.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -36,7 +35,8 @@ class ClusterRoleTest {
 
   @Test
   void testLoadFromFile() {
-    ClusterRole kubernetesClusterRole = client.rbac().clusterRoles().load(getClass().getResourceAsStream("/test-clusterrole.yml")).get();
+    ClusterRole kubernetesClusterRole = client.rbac().clusterRoles()
+        .load(getClass().getResourceAsStream("/test-clusterrole.yml")).item();
 
     assertNotNull(kubernetesClusterRole);
   }
@@ -44,18 +44,15 @@ class ClusterRoleTest {
   @Test
   void testHandlersLoadFromFile() {
 
-    ParameterNamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata> load = client.load(getClass().getResourceAsStream("/test-clusterrole.yml"));
+    NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata> load = client
+        .load(getClass().getResourceAsStream("/test-clusterrole.yml"));
 
     assertNotNull(load);
 
-    try {
-      List<HasMetadata> hasMetadata = load.get();
+    List<HasMetadata> hasMetadata = load.items();
 
-      assertNotNull(hasMetadata);
-      assertEquals(1, hasMetadata.size());
-      assertEquals("viewer", hasMetadata.get(0).getMetadata().getName());
-    } catch (NullPointerException e) {
-      fail("No handler found for specified resource");
-    }
+    assertNotNull(hasMetadata);
+    assertEquals(1, hasMetadata.size());
+    assertEquals("viewer", hasMetadata.get(0).getMetadata().getName());
   }
 }

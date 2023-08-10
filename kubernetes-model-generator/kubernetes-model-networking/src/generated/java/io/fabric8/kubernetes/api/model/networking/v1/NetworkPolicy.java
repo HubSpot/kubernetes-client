@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.networking.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -37,7 +38,8 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
-    "spec"
+    "spec",
+    "status"
 })
 @ToString
 @EqualsAndHashCode
@@ -57,11 +59,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("networking.k8s.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "networking.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class NetworkPolicy implements HasMetadata, Namespaced
 {
 
@@ -83,8 +86,10 @@ public class NetworkPolicy implements HasMetadata, Namespaced
     private io.fabric8.kubernetes.api.model.ObjectMeta metadata;
     @JsonProperty("spec")
     private NetworkPolicySpec spec;
+    @JsonProperty("status")
+    private NetworkPolicyStatus status;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -93,19 +98,13 @@ public class NetworkPolicy implements HasMetadata, Namespaced
     public NetworkPolicy() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param spec
-     */
-    public NetworkPolicy(String apiVersion, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, NetworkPolicySpec spec) {
+    public NetworkPolicy(String apiVersion, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, NetworkPolicySpec spec, NetworkPolicyStatus status) {
         super();
         this.apiVersion = apiVersion;
         this.kind = kind;
         this.metadata = metadata;
         this.spec = spec;
+        this.status = status;
     }
 
     /**
@@ -166,6 +165,16 @@ public class NetworkPolicy implements HasMetadata, Namespaced
     @JsonProperty("spec")
     public void setSpec(NetworkPolicySpec spec) {
         this.spec = spec;
+    }
+
+    @JsonProperty("status")
+    public NetworkPolicyStatus getStatus() {
+        return status;
+    }
+
+    @JsonProperty("status")
+    public void setStatus(NetworkPolicyStatus status) {
+        this.status = status;
     }
 
     @JsonAnyGetter

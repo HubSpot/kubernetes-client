@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -44,6 +45,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class NodeStatus implements KubernetesResource
 {
 
@@ -51,9 +53,11 @@ public class NodeStatus implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<NodeAddress> addresses = new ArrayList<NodeAddress>();
     @JsonProperty("allocatable")
-    private Map<String, io.fabric8.kubernetes.api.model.Quantity> allocatable;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.Quantity> allocatable = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.Quantity>();
     @JsonProperty("capacity")
-    private Map<String, io.fabric8.kubernetes.api.model.Quantity> capacity;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, io.fabric8.kubernetes.api.model.Quantity> capacity = new LinkedHashMap<String, io.fabric8.kubernetes.api.model.Quantity>();
     @JsonProperty("conditions")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<NodeCondition> conditions = new ArrayList<NodeCondition>();
@@ -75,7 +79,7 @@ public class NodeStatus implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> volumesInUse = new ArrayList<java.lang.String>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -84,20 +88,6 @@ public class NodeStatus implements KubernetesResource
     public NodeStatus() {
     }
 
-    /**
-     * 
-     * @param daemonEndpoints
-     * @param phase
-     * @param allocatable
-     * @param volumesInUse
-     * @param addresses
-     * @param images
-     * @param nodeInfo
-     * @param conditions
-     * @param config
-     * @param volumesAttached
-     * @param capacity
-     */
     public NodeStatus(List<NodeAddress> addresses, Map<String, io.fabric8.kubernetes.api.model.Quantity> allocatable, Map<String, io.fabric8.kubernetes.api.model.Quantity> capacity, List<NodeCondition> conditions, NodeConfigStatus config, NodeDaemonEndpoints daemonEndpoints, List<ContainerImage> images, NodeSystemInfo nodeInfo, java.lang.String phase, List<AttachedVolume> volumesAttached, List<java.lang.String> volumesInUse) {
         super();
         this.addresses = addresses;

@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model.extensions;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -24,6 +25,8 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import io.sundr.transform.annotations.TemplateTransformation;
+import io.sundr.transform.annotations.TemplateTransformations;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -57,8 +60,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1beta1")
 @Group("extensions")
+@Generated("jsonschema2pojo")
 public class DeploymentRollback implements KubernetesResource
 {
 
@@ -81,9 +88,10 @@ public class DeploymentRollback implements KubernetesResource
     @JsonProperty("rollbackTo")
     private RollbackConfig rollbackTo;
     @JsonProperty("updatedAnnotations")
-    private Map<String, String> updatedAnnotations;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> updatedAnnotations = new LinkedHashMap<String, String>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -92,14 +100,6 @@ public class DeploymentRollback implements KubernetesResource
     public DeploymentRollback() {
     }
 
-    /**
-     * 
-     * @param updatedAnnotations
-     * @param apiVersion
-     * @param kind
-     * @param name
-     * @param rollbackTo
-     */
     public DeploymentRollback(java.lang.String apiVersion, java.lang.String kind, java.lang.String name, RollbackConfig rollbackTo, Map<String, String> updatedAnnotations) {
         super();
         this.apiVersion = apiVersion;

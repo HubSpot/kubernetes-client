@@ -54,6 +54,7 @@ hs_err_pid*
 # .idea/uiDesigner.xml
 
 # Gradle:
+.gradle
 # .idea/gradle.xml
 # .idea/libraries
 
@@ -83,3 +84,6 @@ crashlytics-build.properties
 # Ignore generator binary output file
 kubernetes-model-generator/*/generate
 extensions/*/generator/generate
+
+# Formatter and Impsort cache directory
+.cache

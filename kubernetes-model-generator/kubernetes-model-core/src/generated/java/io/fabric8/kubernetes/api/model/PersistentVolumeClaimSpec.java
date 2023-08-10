@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,6 +42,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class PersistentVolumeClaimSpec implements KubernetesResource
 {
 
@@ -50,7 +52,7 @@ public class PersistentVolumeClaimSpec implements KubernetesResource
     @JsonProperty("dataSource")
     private TypedLocalObjectReference dataSource;
     @JsonProperty("dataSourceRef")
-    private TypedLocalObjectReference dataSourceRef;
+    private TypedObjectReference dataSourceRef;
     @JsonProperty("resources")
     private ResourceRequirements resources;
     @JsonProperty("selector")
@@ -62,7 +64,7 @@ public class PersistentVolumeClaimSpec implements KubernetesResource
     @JsonProperty("volumeName")
     private String volumeName;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,18 +73,7 @@ public class PersistentVolumeClaimSpec implements KubernetesResource
     public PersistentVolumeClaimSpec() {
     }
 
-    /**
-     * 
-     * @param storageClassName
-     * @param dataSourceRef
-     * @param volumeName
-     * @param resources
-     * @param selector
-     * @param accessModes
-     * @param dataSource
-     * @param volumeMode
-     */
-    public PersistentVolumeClaimSpec(List<String> accessModes, TypedLocalObjectReference dataSource, TypedLocalObjectReference dataSourceRef, ResourceRequirements resources, LabelSelector selector, String storageClassName, String volumeMode, String volumeName) {
+    public PersistentVolumeClaimSpec(List<String> accessModes, TypedLocalObjectReference dataSource, TypedObjectReference dataSourceRef, ResourceRequirements resources, LabelSelector selector, String storageClassName, String volumeMode, String volumeName) {
         super();
         this.accessModes = accessModes;
         this.dataSource = dataSource;
@@ -115,12 +106,12 @@ public class PersistentVolumeClaimSpec implements KubernetesResource
     }
 
     @JsonProperty("dataSourceRef")
-    public TypedLocalObjectReference getDataSourceRef() {
+    public TypedObjectReference getDataSourceRef() {
         return dataSourceRef;
     }
 
     @JsonProperty("dataSourceRef")
-    public void setDataSourceRef(TypedLocalObjectReference dataSourceRef) {
+    public void setDataSourceRef(TypedObjectReference dataSourceRef) {
         this.dataSourceRef = dataSourceRef;
     }
 

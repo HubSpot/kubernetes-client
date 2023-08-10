@@ -25,7 +25,7 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.junit.jupiter.api.Assertions;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,8 +34,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
 
-import static junit.framework.TestCase.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,29 +50,29 @@ public class V1CustomResourceDefinitionTest {
   @BeforeEach
   void setupCrd() throws IOException {
     customResourceDefinition = new CustomResourceDefinitionBuilder()
-      .withNewMetadata()
-      .withName("sparkclusters.radanalytics.io")
-      .endMetadata()
-      .withNewSpec()
-      .withGroup("radanalytics.io")
-      .addNewVersion()
-      .withName("v1")
-      .withServed(true)
-      .withStorage(true)
-      .withNewSchema()
-      .withNewOpenAPIV3SchemaLike(readSchema())
-      .endOpenAPIV3Schema()
-      .endSchema()
-      .endVersion()
-      .withScope("Namespaced")
-      .withNewNames()
-      .withPlural("sparkclusters")
-      .withSingular("sparkcluster")
-      .withKind("SparkCluster")
-      .addNewShortName("sc")
-      .endNames()
-      .endSpec()
-      .build();
+        .withNewMetadata()
+        .withName("sparkclusters.radanalytics.io")
+        .endMetadata()
+        .withNewSpec()
+        .withGroup("radanalytics.io")
+        .addNewVersion()
+        .withName("v1")
+        .withServed(true)
+        .withStorage(true)
+        .withNewSchema()
+        .withNewOpenAPIV3SchemaLike(readSchema())
+        .endOpenAPIV3Schema()
+        .endSchema()
+        .endVersion()
+        .withScope("Namespaced")
+        .withNewNames()
+        .withPlural("sparkclusters")
+        .withSingular("sparkcluster")
+        .withKind("SparkCluster")
+        .addToShortNames("sc")
+        .endNames()
+        .endSpec()
+        .build();
   }
 
   @Test
@@ -84,27 +84,32 @@ public class V1CustomResourceDefinitionTest {
 
   @Test
   void testGet() {
-    server.expect().get().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/sparkclusters.radanalytics.io").andReturn(HttpURLConnection.HTTP_OK, customResourceDefinition).once();
+    server.expect().get().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/sparkclusters.radanalytics.io")
+        .andReturn(HttpURLConnection.HTTP_OK, customResourceDefinition).once();
 
-    CustomResourceDefinition crd = client.apiextensions().v1().customResourceDefinitions().withName("sparkclusters.radanalytics.io").get();
+    CustomResourceDefinition crd = client.apiextensions().v1().customResourceDefinitions()
+        .withName("sparkclusters.radanalytics.io").get();
     assertNotNull(crd);
     assertEquals("sparkclusters.radanalytics.io", crd.getMetadata().getName());
   }
 
   @Test
   void testCreate() {
-    server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").andReturn(HttpURLConnection.HTTP_OK, customResourceDefinition).once();
+    server.expect().post().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+        .andReturn(HttpURLConnection.HTTP_OK, customResourceDefinition).once();
 
-    CustomResourceDefinition crd = client.apiextensions().v1().customResourceDefinitions().createOrReplace(customResourceDefinition);
+    CustomResourceDefinition crd = client.apiextensions().v1().customResourceDefinitions()
+        .createOrReplace(customResourceDefinition);
     assertNotNull(crd);
     assertEquals("sparkclusters.radanalytics.io", crd.getMetadata().getName());
     // Assertion to test behavior in https://github.com/fabric8io/kubernetes-client/issues/1486
-    assertNull(crd.getSpec().getVersions().get(0).getSchema().getOpenAPIV3Schema().getDependencies());
+    assertFalse(Serialization.asYaml(crd.getSpec().getVersions().get(0).getSchema()).contains("dependencies"));
   }
 
   @Test
   void testList() {
-    server.expect().get().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions").andReturn(HttpURLConnection.HTTP_OK, new KubernetesListBuilder().withItems(customResourceDefinition).build()).once();
+    server.expect().get().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+        .andReturn(HttpURLConnection.HTTP_OK, new KubernetesListBuilder().withItems(customResourceDefinition).build()).once();
 
     CustomResourceDefinitionList crdList = client.apiextensions().v1().customResourceDefinitions().list();
     assertNotNull(crdList);
@@ -114,21 +119,12 @@ public class V1CustomResourceDefinitionTest {
 
   @Test
   void testDelete() {
-    server.expect().delete().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/sparkclusters.radanalytics.io").andReturn(HttpURLConnection.HTTP_OK, customResourceDefinition).once();
+    server.expect().delete().withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions/sparkclusters.radanalytics.io")
+        .andReturn(HttpURLConnection.HTTP_OK, customResourceDefinition).once();
 
-    Boolean deleted = client.apiextensions().v1().customResourceDefinitions().withName("sparkclusters.radanalytics.io").delete();
+    Boolean deleted = client.apiextensions().v1().customResourceDefinitions().withName("sparkclusters.radanalytics.io")
+        .delete().size() == 1;
     assertTrue(deleted);
-  }
-
-  @Test
-  void testCustomResourceDefinitionTest() {
-    // When
-    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-crd-no-apiversion.yml")).get();
-
-    // Then
-    Assertions.assertNotNull(items);
-    Assertions.assertEquals(1, items.size());
-    Assertions.assertTrue(items.get(0) instanceof CustomResourceDefinition);
   }
 
   JSONSchemaProps readSchema() throws IOException {

@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.monitoring.v1alpha1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +34,7 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "matchType",
     "name",
     "regex",
     "value"
@@ -55,9 +57,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Matcher implements KubernetesResource
 {
 
+    @JsonProperty("matchType")
+    private String matchType;
     @JsonProperty("name")
     private String name;
     @JsonProperty("regex")
@@ -65,7 +70,7 @@ public class Matcher implements KubernetesResource
     @JsonProperty("value")
     private String value;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -74,17 +79,22 @@ public class Matcher implements KubernetesResource
     public Matcher() {
     }
 
-    /**
-     * 
-     * @param regex
-     * @param name
-     * @param value
-     */
-    public Matcher(String name, Boolean regex, String value) {
+    public Matcher(String matchType, String name, Boolean regex, String value) {
         super();
+        this.matchType = matchType;
         this.name = name;
         this.regex = regex;
         this.value = value;
+    }
+
+    @JsonProperty("matchType")
+    public String getMatchType() {
+        return matchType;
+    }
+
+    @JsonProperty("matchType")
+    public void setMatchType(String matchType) {
+        this.matchType = matchType;
     }
 
     @JsonProperty("name")

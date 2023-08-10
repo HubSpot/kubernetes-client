@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.storage;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,6 +40,7 @@ import lombok.experimental.Accessors;
     "fsGroupPolicy",
     "podInfoOnMount",
     "requiresRepublish",
+    "seLinuxMount",
     "storageCapacity",
     "tokenRequests",
     "volumeLifecycleModes"
@@ -61,6 +63,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class CSIDriverSpec implements KubernetesResource
 {
 
@@ -72,6 +75,8 @@ public class CSIDriverSpec implements KubernetesResource
     private Boolean podInfoOnMount;
     @JsonProperty("requiresRepublish")
     private Boolean requiresRepublish;
+    @JsonProperty("seLinuxMount")
+    private Boolean seLinuxMount;
     @JsonProperty("storageCapacity")
     private Boolean storageCapacity;
     @JsonProperty("tokenRequests")
@@ -81,7 +86,7 @@ public class CSIDriverSpec implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> volumeLifecycleModes = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -90,22 +95,13 @@ public class CSIDriverSpec implements KubernetesResource
     public CSIDriverSpec() {
     }
 
-    /**
-     * 
-     * @param fsGroupPolicy
-     * @param attachRequired
-     * @param requiresRepublish
-     * @param storageCapacity
-     * @param tokenRequests
-     * @param volumeLifecycleModes
-     * @param podInfoOnMount
-     */
-    public CSIDriverSpec(Boolean attachRequired, String fsGroupPolicy, Boolean podInfoOnMount, Boolean requiresRepublish, Boolean storageCapacity, List<TokenRequest> tokenRequests, List<String> volumeLifecycleModes) {
+    public CSIDriverSpec(Boolean attachRequired, String fsGroupPolicy, Boolean podInfoOnMount, Boolean requiresRepublish, Boolean seLinuxMount, Boolean storageCapacity, List<TokenRequest> tokenRequests, List<String> volumeLifecycleModes) {
         super();
         this.attachRequired = attachRequired;
         this.fsGroupPolicy = fsGroupPolicy;
         this.podInfoOnMount = podInfoOnMount;
         this.requiresRepublish = requiresRepublish;
+        this.seLinuxMount = seLinuxMount;
         this.storageCapacity = storageCapacity;
         this.tokenRequests = tokenRequests;
         this.volumeLifecycleModes = volumeLifecycleModes;
@@ -149,6 +145,16 @@ public class CSIDriverSpec implements KubernetesResource
     @JsonProperty("requiresRepublish")
     public void setRequiresRepublish(Boolean requiresRepublish) {
         this.requiresRepublish = requiresRepublish;
+    }
+
+    @JsonProperty("seLinuxMount")
+    public Boolean getSeLinuxMount() {
+        return seLinuxMount;
+    }
+
+    @JsonProperty("seLinuxMount")
+    public void setSeLinuxMount(Boolean seLinuxMount) {
+        this.seLinuxMount = seLinuxMount;
     }
 
     @JsonProperty("storageCapacity")

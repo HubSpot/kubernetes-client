@@ -15,40 +15,53 @@
  */
 package io.fabric8.crd.example.joke;
 
+import io.fabric8.kubernetes.model.annotation.PrinterColumn;
+
 public class JokeRequestStatus {
-    public enum State {
-        CREATED,
-        ALREADY_PRESENT,
-        PROCESSING,
-        ERROR,
-        UNKNOWN
-    }
+  public enum State {
+    CREATED,
+    ALREADY_PRESENT,
+    PROCESSING,
+    ERROR,
+    UNKNOWN
+  }
 
-    private State state = State.UNKNOWN;
-    private boolean error;
-    private String message;
+  private State state = State.UNKNOWN;
+  private boolean error;
+  private String message;
 
-    public State getState() {
-        return state;
-    }
+  @PrinterColumn(name = "jokeCategory")
+  private JokeRequestSpec.Category category = JokeRequestSpec.Category.Any;
 
-    public void setState(State state) {
-        this.state = state;
-    }
+  public State getState() {
+    return state;
+  }
 
-    public boolean isError() {
-        return error;
-    }
+  public void setState(State state) {
+    this.state = state;
+  }
 
-    public void setError(boolean error) {
-        this.error = error;
-    }
+  public boolean isError() {
+    return error;
+  }
 
-    public String getMessage() {
-        return message;
-    }
+  public void setError(boolean error) {
+    this.error = error;
+  }
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
+  }
+
+  public JokeRequestSpec.Category getCategory() {
+    return category;
+  }
+
+  public void setCategory(JokeRequestSpec.Category category) {
+    this.category = category;
+  }
 }

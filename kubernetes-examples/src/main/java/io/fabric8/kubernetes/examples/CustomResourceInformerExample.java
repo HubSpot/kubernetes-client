@@ -17,8 +17,8 @@ package io.fabric8.kubernetes.examples;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.informers.ResourceEventHandler;
 import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import io.fabric8.kubernetes.client.informers.SharedInformerFactory;
@@ -33,32 +33,34 @@ public class CustomResourceInformerExample {
   private static final Logger logger = LoggerFactory.getLogger(CustomResourceInformerExample.class);
 
   public static void main(String[] args) {
-    try (KubernetesClient client = new DefaultKubernetesClient()) {
+    try (KubernetesClient client = new KubernetesClientBuilder().build()) {
       SharedInformerFactory sharedInformerFactory = client.informers();
-      SharedIndexInformer<Dummy> podInformer = sharedInformerFactory.sharedIndexInformerForCustomResource(Dummy.class, 60 * 1000L);
+      SharedIndexInformer<Dummy> podInformer = sharedInformerFactory.sharedIndexInformerFor(Dummy.class, 60 * 1000L);
       logger.info("Informer factory initialized.");
 
       podInformer.addEventHandler(
-        new ResourceEventHandler<Dummy>() {
-          @Override
-          public void onAdd(Dummy pod) {
-            logger.info("{} dummy added", pod.getMetadata().getName());
-          }
+          new ResourceEventHandler<Dummy>() {
+            @Override
+            public void onAdd(Dummy pod) {
+              logger.info("{} dummy added", pod.getMetadata().getName());
+            }
 
-          @Override
-          public void onUpdate(Dummy oldPod, Dummy newPod) {
-            logger.info("{} dummy updated", oldPod.getMetadata().getName());
-          }
+            @Override
+            public void onUpdate(Dummy oldPod, Dummy newPod) {
+              logger.info("{} dummy updated", oldPod.getMetadata().getName());
+            }
 
-          @Override
-          public void onDelete(Dummy pod, boolean deletedFinalStateUnknown) {
-            logger.info("{} dummy deleted", pod.getMetadata().getName());
-          }
+            @Override
+            public void onDelete(Dummy pod, boolean deletedFinalStateUnknown) {
+              logger.info("{} dummy deleted", pod.getMetadata().getName());
+            }
+          });
+
+      podInformer.stopped().whenComplete((v, t) -> {
+        if (t != null) {
+          logger.error("Exception occurred, caught: {}", t.getMessage());
         }
-      );
-
-      sharedInformerFactory.addSharedInformerEventListener(ex ->
-        logger.error("Exception occurred, but caught: {}", ex.getMessage()));
+      });
 
       logger.info("Starting all registered informers");
       sharedInformerFactory.startAllRegisteredInformers();
@@ -84,12 +86,13 @@ public class CustomResourceInformerExample {
         toCreate.getMetadata().setNamespace(client.getNamespace());
       } else {
         toCreate.getMetadata().setNamespace(client.namespaces().list().getItems().stream().findFirst()
-          .map(HasMetadata::getMetadata).map(ObjectMeta::getNamespace).orElse("default"));
+            .map(HasMetadata::getMetadata).map(ObjectMeta::getNamespace).orElse("default"));
       }
 
-      client.customResources(Dummy.class).createOrReplace(toCreate);
+      client.resources(Dummy.class).resource(toCreate).createOrReplace();
       // Wait for some time now
       TimeUnit.MINUTES.sleep(5);
+      podInformer.close();
     } catch (InterruptedException interruptedException) {
       Thread.currentThread().interrupt();
       logger.warn("interrupted: {}", interruptedException.getMessage());

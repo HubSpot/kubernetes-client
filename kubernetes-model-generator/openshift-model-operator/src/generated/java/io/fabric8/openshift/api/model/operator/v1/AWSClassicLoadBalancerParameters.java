@@ -1,15 +1,18 @@
 
 package io.fabric8.openshift.api.model.operator.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.Duration;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -31,7 +34,8 @@ import lombok.experimental.Accessors;
 @JsonPropertyOrder({
     "apiVersion",
     "kind",
-    "metadata"
+    "metadata",
+    "connectionIdleTimeout"
 })
 @ToString
 @EqualsAndHashCode
@@ -51,11 +55,36 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class AWSClassicLoadBalancerParameters implements KubernetesResource
 {
 
+    @JsonProperty("connectionIdleTimeout")
+    private Duration connectionIdleTimeout;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
+
+    /**
+     * No args constructor for use in serialization
+     * 
+     */
+    public AWSClassicLoadBalancerParameters() {
+    }
+
+    public AWSClassicLoadBalancerParameters(Duration connectionIdleTimeout) {
+        super();
+        this.connectionIdleTimeout = connectionIdleTimeout;
+    }
+
+    @JsonProperty("connectionIdleTimeout")
+    public Duration getConnectionIdleTimeout() {
+        return connectionIdleTimeout;
+    }
+
+    @JsonProperty("connectionIdleTimeout")
+    public void setConnectionIdleTimeout(Duration connectionIdleTimeout) {
+        this.connectionIdleTimeout = connectionIdleTimeout;
+    }
 
     @JsonAnyGetter
     public Map<String, Object> getAdditionalProperties() {

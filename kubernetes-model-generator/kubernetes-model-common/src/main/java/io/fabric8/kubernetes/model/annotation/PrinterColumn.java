@@ -20,20 +20,33 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * @deprecated: use io.fabric8.crd.generator.annotation.PrinterColumn instead
+ */
 @Target({ ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
+@Deprecated
 public @interface PrinterColumn {
-  
+
   /**
    * The name of the column.
    * An empty column name implies the use of the property name
+   * 
    * @return the column name, or empty string if the annotated property name should be used.
    */
   String name() default "";
 
   /**
    * The printer column format.
+   * 
    * @return the format or empty string if no format is specified.
    */
   String format() default "";
+
+  /**
+   * The printer column priority.
+   *
+   * @return the priority or 0 if no priority is specified.
+   */
+  int priority() default 0;
 }

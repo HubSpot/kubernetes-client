@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -17,7 +18,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LocalObjectReference;
-import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -82,12 +82,13 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("security.openshift.io")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "openshift.properties", gather = true)
-})
-public class SecurityContextConstraints implements HasMetadata, Namespaced
+@Generated("jsonschema2pojo")
+public class SecurityContextConstraints implements HasMetadata
 {
 
     @JsonProperty("allowHostDirVolumePlugin")
@@ -105,6 +106,7 @@ public class SecurityContextConstraints implements HasMetadata, Namespaced
     @JsonProperty("allowPrivilegedContainer")
     private Boolean allowPrivilegedContainer;
     @JsonProperty("allowedCapabilities")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> allowedCapabilities = new ArrayList<String>();
     @JsonProperty("allowedFlexVolumes")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -120,6 +122,7 @@ public class SecurityContextConstraints implements HasMetadata, Namespaced
     @JsonProperty("apiVersion")
     private String apiVersion = "security.openshift.io/v1";
     @JsonProperty("defaultAddCapabilities")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> defaultAddCapabilities = new ArrayList<String>();
     @JsonProperty("defaultAllowPrivilegeEscalation")
     private Boolean defaultAllowPrivilegeEscalation;
@@ -129,6 +132,7 @@ public class SecurityContextConstraints implements HasMetadata, Namespaced
     @JsonProperty("fsGroup")
     private FSGroupStrategyOptions fsGroup;
     @JsonProperty("groups")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> groups = new ArrayList<String>();
     /**
      * 
@@ -144,6 +148,7 @@ public class SecurityContextConstraints implements HasMetadata, Namespaced
     @JsonProperty("readOnlyRootFilesystem")
     private Boolean readOnlyRootFilesystem;
     @JsonProperty("requiredDropCapabilities")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> requiredDropCapabilities = new ArrayList<String>();
     @JsonProperty("runAsUser")
     private RunAsUserStrategyOptions runAsUser;
@@ -155,11 +160,13 @@ public class SecurityContextConstraints implements HasMetadata, Namespaced
     @JsonProperty("supplementalGroups")
     private SupplementalGroupsStrategyOptions supplementalGroups;
     @JsonProperty("users")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> users = new ArrayList<String>();
     @JsonProperty("volumes")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> volumes = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -168,36 +175,6 @@ public class SecurityContextConstraints implements HasMetadata, Namespaced
     public SecurityContextConstraints() {
     }
 
-    /**
-     * 
-     * @param defaultAddCapabilities
-     * @param metadata
-     * @param seccompProfiles
-     * @param allowHostNetwork
-     * @param readOnlyRootFilesystem
-     * @param apiVersion
-     * @param allowPrivilegedContainer
-     * @param allowHostIPC
-     * @param supplementalGroups
-     * @param allowPrivilegeEscalation
-     * @param allowedFlexVolumes
-     * @param seLinuxContext
-     * @param fsGroup
-     * @param kind
-     * @param volumes
-     * @param allowHostPID
-     * @param groups
-     * @param requiredDropCapabilities
-     * @param allowHostDirVolumePlugin
-     * @param allowHostPorts
-     * @param priority
-     * @param users
-     * @param allowedCapabilities
-     * @param runAsUser
-     * @param forbiddenSysctls
-     * @param defaultAllowPrivilegeEscalation
-     * @param allowedUnsafeSysctls
-     */
     public SecurityContextConstraints(Boolean allowHostDirVolumePlugin, Boolean allowHostIPC, Boolean allowHostNetwork, Boolean allowHostPID, Boolean allowHostPorts, Boolean allowPrivilegeEscalation, Boolean allowPrivilegedContainer, List<String> allowedCapabilities, List<AllowedFlexVolume> allowedFlexVolumes, List<String> allowedUnsafeSysctls, String apiVersion, List<String> defaultAddCapabilities, Boolean defaultAllowPrivilegeEscalation, List<String> forbiddenSysctls, FSGroupStrategyOptions fsGroup, List<String> groups, String kind, io.fabric8.kubernetes.api.model.ObjectMeta metadata, Integer priority, Boolean readOnlyRootFilesystem, List<String> requiredDropCapabilities, RunAsUserStrategyOptions runAsUser, SELinuxContextStrategyOptions seLinuxContext, List<String> seccompProfiles, SupplementalGroupsStrategyOptions supplementalGroups, List<String> users, List<String> volumes) {
         super();
         this.allowHostDirVolumePlugin = allowHostDirVolumePlugin;

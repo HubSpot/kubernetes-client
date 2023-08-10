@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.hive.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -43,6 +44,7 @@ import lombok.experimental.Accessors;
     "podSpec",
     "prevClusterID",
     "prevInfraID",
+    "prevProvisionName",
     "stage"
 })
 @ToString
@@ -63,6 +65,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(io.fabric8.kubernetes.api.model.LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ClusterProvisionSpec implements KubernetesResource
 {
 
@@ -81,17 +84,20 @@ public class ClusterProvisionSpec implements KubernetesResource
     @JsonProperty("installLog")
     private java.lang.String installLog;
     @JsonProperty("metadata")
-    private Map<String, Object> metadata;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, Object> metadata = new LinkedHashMap<String, Object>();
     @JsonProperty("podSpec")
     private PodSpec podSpec;
     @JsonProperty("prevClusterID")
     private java.lang.String prevClusterID;
     @JsonProperty("prevInfraID")
     private java.lang.String prevInfraID;
+    @JsonProperty("prevProvisionName")
+    private java.lang.String prevProvisionName;
     @JsonProperty("stage")
     private java.lang.String stage;
     @JsonIgnore
-    private Map<java.lang.String, java.lang.Object> additionalProperties = new HashMap<java.lang.String, java.lang.Object>();
+    private Map<java.lang.String, java.lang.Object> additionalProperties = new LinkedHashMap<java.lang.String, java.lang.Object>();
 
     /**
      * No args constructor for use in serialization
@@ -100,22 +106,7 @@ public class ClusterProvisionSpec implements KubernetesResource
     public ClusterProvisionSpec() {
     }
 
-    /**
-     * 
-     * @param prevClusterID
-     * @param installLog
-     * @param metadata
-     * @param prevInfraID
-     * @param stage
-     * @param clusterDeploymentRef
-     * @param clusterID
-     * @param adminKubeconfigSecretRef
-     * @param adminPasswordSecretRef
-     * @param podSpec
-     * @param attempt
-     * @param infraID
-     */
-    public ClusterProvisionSpec(io.fabric8.kubernetes.api.model.LocalObjectReference adminKubeconfigSecretRef, io.fabric8.kubernetes.api.model.LocalObjectReference adminPasswordSecretRef, Integer attempt, io.fabric8.kubernetes.api.model.LocalObjectReference clusterDeploymentRef, java.lang.String clusterID, java.lang.String infraID, java.lang.String installLog, Map<String, Object> metadata, PodSpec podSpec, java.lang.String prevClusterID, java.lang.String prevInfraID, java.lang.String stage) {
+    public ClusterProvisionSpec(io.fabric8.kubernetes.api.model.LocalObjectReference adminKubeconfigSecretRef, io.fabric8.kubernetes.api.model.LocalObjectReference adminPasswordSecretRef, Integer attempt, io.fabric8.kubernetes.api.model.LocalObjectReference clusterDeploymentRef, java.lang.String clusterID, java.lang.String infraID, java.lang.String installLog, Map<String, Object> metadata, PodSpec podSpec, java.lang.String prevClusterID, java.lang.String prevInfraID, java.lang.String prevProvisionName, java.lang.String stage) {
         super();
         this.adminKubeconfigSecretRef = adminKubeconfigSecretRef;
         this.adminPasswordSecretRef = adminPasswordSecretRef;
@@ -128,6 +119,7 @@ public class ClusterProvisionSpec implements KubernetesResource
         this.podSpec = podSpec;
         this.prevClusterID = prevClusterID;
         this.prevInfraID = prevInfraID;
+        this.prevProvisionName = prevProvisionName;
         this.stage = stage;
     }
 
@@ -239,6 +231,16 @@ public class ClusterProvisionSpec implements KubernetesResource
     @JsonProperty("prevInfraID")
     public void setPrevInfraID(java.lang.String prevInfraID) {
         this.prevInfraID = prevInfraID;
+    }
+
+    @JsonProperty("prevProvisionName")
+    public java.lang.String getPrevProvisionName() {
+        return prevProvisionName;
+    }
+
+    @JsonProperty("prevProvisionName")
+    public void setPrevProvisionName(java.lang.String prevProvisionName) {
+        this.prevProvisionName = prevProvisionName;
     }
 
     @JsonProperty("stage")

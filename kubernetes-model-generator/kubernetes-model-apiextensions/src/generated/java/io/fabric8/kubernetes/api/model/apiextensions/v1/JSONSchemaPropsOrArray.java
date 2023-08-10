@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.apiextensions.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -58,15 +59,17 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class JSONSchemaPropsOrArray implements KubernetesResource
 {
 
     @JsonProperty("JSONSchemas")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<JSONSchemaProps> jSONSchemas = new ArrayList<JSONSchemaProps>();
     @JsonProperty("Schema")
     private JSONSchemaProps schema;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -75,11 +78,6 @@ public class JSONSchemaPropsOrArray implements KubernetesResource
     public JSONSchemaPropsOrArray() {
     }
 
-    /**
-     * 
-     * @param schema
-     * @param jSONSchemas
-     */
     public JSONSchemaPropsOrArray(List<JSONSchemaProps> jSONSchemas, JSONSchemaProps schema) {
         super();
         this.jSONSchemas = jSONSchemas;

@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -63,10 +64,11 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class KubeSchema {
 
     @JsonProperty("BaseKubernetesList")
-    private BaseKubernetesList baseKubernetesList;
+    private KubernetesList baseKubernetesList;
     @JsonProperty("Info")
     private Info info;
     @JsonProperty("ObjectMeta")
@@ -92,7 +94,7 @@ public class KubeSchema {
     @JsonProperty("V1beta1RuntimeClassList")
     private io.fabric8.kubernetes.api.model.node.v1beta1.RuntimeClassList v1beta1RuntimeClassList;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -101,23 +103,7 @@ public class KubeSchema {
     public KubeSchema() {
     }
 
-    /**
-     * 
-     * @param quantity
-     * @param v1RuntimeClassList
-     * @param baseKubernetesList
-     * @param v1beta1RuntimeClass
-     * @param objectReference
-     * @param v1RuntimeClass
-     * @param typeMeta
-     * @param objectMeta
-     * @param v1alpha1RuntimeClass
-     * @param v1alpha1RuntimeClassList
-     * @param v1beta1RuntimeClassList
-     * @param info
-     * @param status
-     */
-    public KubeSchema(BaseKubernetesList baseKubernetesList, Info info, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, io.fabric8.kubernetes.api.model.ObjectReference objectReference, Quantity quantity, Status status, TypeMeta typeMeta, io.fabric8.kubernetes.api.model.node.v1.RuntimeClass v1RuntimeClass, io.fabric8.kubernetes.api.model.node.v1.RuntimeClassList v1RuntimeClassList, io.fabric8.kubernetes.api.model.node.v1alpha1.RuntimeClass v1alpha1RuntimeClass, io.fabric8.kubernetes.api.model.node.v1alpha1.RuntimeClassList v1alpha1RuntimeClassList, io.fabric8.kubernetes.api.model.node.v1beta1.RuntimeClass v1beta1RuntimeClass, io.fabric8.kubernetes.api.model.node.v1beta1.RuntimeClassList v1beta1RuntimeClassList) {
+    public KubeSchema(KubernetesList baseKubernetesList, Info info, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, io.fabric8.kubernetes.api.model.ObjectReference objectReference, Quantity quantity, Status status, TypeMeta typeMeta, io.fabric8.kubernetes.api.model.node.v1.RuntimeClass v1RuntimeClass, io.fabric8.kubernetes.api.model.node.v1.RuntimeClassList v1RuntimeClassList, io.fabric8.kubernetes.api.model.node.v1alpha1.RuntimeClass v1alpha1RuntimeClass, io.fabric8.kubernetes.api.model.node.v1alpha1.RuntimeClassList v1alpha1RuntimeClassList, io.fabric8.kubernetes.api.model.node.v1beta1.RuntimeClass v1beta1RuntimeClass, io.fabric8.kubernetes.api.model.node.v1beta1.RuntimeClassList v1beta1RuntimeClassList) {
         super();
         this.baseKubernetesList = baseKubernetesList;
         this.info = info;
@@ -135,12 +121,12 @@ public class KubeSchema {
     }
 
     @JsonProperty("BaseKubernetesList")
-    public BaseKubernetesList getBaseKubernetesList() {
+    public KubernetesList getBaseKubernetesList() {
         return baseKubernetesList;
     }
 
     @JsonProperty("BaseKubernetesList")
-    public void setBaseKubernetesList(BaseKubernetesList baseKubernetesList) {
+    public void setBaseKubernetesList(KubernetesList baseKubernetesList) {
         this.baseKubernetesList = baseKubernetesList;
     }
 

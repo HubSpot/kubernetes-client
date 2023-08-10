@@ -15,35 +15,31 @@
  */
 package io.fabric8.openclustermanagement.client;
 
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.extension.ClientAdapter;
 import io.fabric8.openclustermanagement.api.model.multiclusterobservabilityoperator.apps.v1beta1.ObservabilityAddon;
 import io.fabric8.openclustermanagement.api.model.multiclusterobservabilityoperator.apps.v1beta1.ObservabilityAddonList;
 import io.fabric8.openclustermanagement.api.model.multiclusterobservabilityoperator.apps.v1beta2.MultiClusterObservability;
 import io.fabric8.openclustermanagement.api.model.multiclusterobservabilityoperator.apps.v1beta2.MultiClusterObservabilityList;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementObservabilityAPIGroupDSL;
 
-public class OpenClusterManagementObservabilityAPIGroupClient extends BaseClient implements OpenClusterManagementObservabilityAPIGroupDSL {
+public class OpenClusterManagementObservabilityAPIGroupClient extends
+    ClientAdapter<OpenClusterManagementObservabilityAPIGroupClient> implements OpenClusterManagementObservabilityAPIGroupDSL {
 
-  public OpenClusterManagementObservabilityAPIGroupClient() {
-    super();
-  }
-
-  public OpenClusterManagementObservabilityAPIGroupClient(ClientContext clientContext) {
-    super(clientContext);
+  @Override
+  public OpenClusterManagementObservabilityAPIGroupClient newInstance() {
+    return new OpenClusterManagementObservabilityAPIGroupClient();
   }
 
   @Override
   public NonNamespaceOperation<MultiClusterObservability, MultiClusterObservabilityList, Resource<MultiClusterObservability>> multiClusterObservailities() {
-    return Handlers.getOperation(MultiClusterObservability.class, MultiClusterObservabilityList.class, this);
+    return resources(MultiClusterObservability.class, MultiClusterObservabilityList.class);
   }
 
   @Override
   public MixedOperation<ObservabilityAddon, ObservabilityAddonList, Resource<ObservabilityAddon>> observabilityAddons() {
-    return Handlers.getOperation(ObservabilityAddon.class, ObservabilityAddonList.class, this);
+    return resources(ObservabilityAddon.class, ObservabilityAddonList.class);
   }
 }

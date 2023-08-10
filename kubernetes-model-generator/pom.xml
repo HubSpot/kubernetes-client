@@ -23,7 +23,7 @@
   <parent>
     <groupId>io.fabric8</groupId>
     <artifactId>kubernetes-client-project</artifactId>
-    <version>5.12.2</version>
+    <version>6.8.0</version>
   </parent>
 
   <artifactId>kubernetes-model-generator</artifactId>
@@ -35,6 +35,7 @@
     <module>kubernetes-model-common</module>
     <module>kubernetes-model-jsonschema2pojo</module>
     <module>kubernetes-model-core</module>
+    <module>kubernetes-model-gatewayapi</module>
     <module>kubernetes-model-rbac</module>
     <module>kubernetes-model-admissionregistration</module>
     <module>kubernetes-model-apiextensions</module>
@@ -51,10 +52,13 @@
     <module>kubernetes-model-node</module>
     <module>kubernetes-model-metrics</module>
     <module>kubernetes-model-policy</module>
+    <module>kubernetes-model-resource</module>
     <module>kubernetes-model-scheduling</module>
     <module>kubernetes-model-storageclass</module>
+    <module>kubernetes-model-kustomize</module>
     <module>openshift-model</module>
     <module>openshift-model-clusterautoscaling</module>
+    <module>openshift-model-config</module>
     <module>openshift-model-hive</module>
     <module>openshift-model-installer</module>
     <module>openshift-model-operator</module>
@@ -75,6 +79,14 @@
 
     <skipTests>false</skipTests>
     <testExclusionPattern>**/*KubernetesTest.java</testExclusionPattern>
+    <osgi.require-capability>
+      osgi.extender;
+      filter:="(osgi.extender=osgi.serviceloader.registrar)"
+    </osgi.require-capability>
+    <osgi.provide-capability>
+      osgi.serviceloader;
+      osgi.serviceloader=io.fabric8.kubernetes.api.model.KubernetesResource
+    </osgi.provide-capability>
   </properties>
 
   <dependencies>
@@ -108,24 +120,19 @@
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-migrationsupport</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-params</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>net.javacrumbs.json-unit</groupId>
       <artifactId>json-unit-fluent</artifactId>
-      <version>2.7.0</version>
+      <version>2.38.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
-      <version>3.10</version>
+      <version>3.12.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -133,40 +140,6 @@
   <build>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.jsonschema2pojo</groupId>
-          <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-          <version>${jsonschema2pojo.version}</version>
-          <configuration>
-            <customAnnotator>io.fabric8.kubernetes.jsonschema2pojo.KubernetesTypeAnnotator</customAnnotator>
-            <customRuleFactory>io.fabric8.kubernetes.jsonschema2pojo.Fabric8RuleFactory</customRuleFactory>
-            <sourcePaths>
-              <sourcePath>${project.basedir}/src/main/resources/schema/kube-schema.json</sourcePath>
-            </sourcePaths>
-            <targetPackage>io.fabric8.kubernetes.api.model</targetPackage>
-            <includeConstructors>true</includeConstructors>
-            <includeJsr303Annotations>false</includeJsr303Annotations>
-            <includeToString>false</includeToString>
-            <includeHashcodeAndEquals>false</includeHashcodeAndEquals>
-            <removeOldOutput>true</removeOldOutput>
-            <outputDirectory>${generate.targetDirectory}</outputDirectory>
-            <annotationStyle>none</annotationStyle>
-          </configuration>
-          <executions>
-            <execution>
-              <goals>
-                <goal>generate</goal>
-              </goals>
-            </execution>
-          </executions>
-          <dependencies>
-            <dependency>
-              <groupId>io.fabric8</groupId>
-              <artifactId>kubernetes-model-jsonschema2pojo</artifactId>
-              <version>${project.version}</version>
-            </dependency>
-          </dependencies>
-        </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
@@ -219,7 +192,6 @@
             </manifest>
             <manifestEntries>
               <Implementation-URL>${project.url}</Implementation-URL>
-              <Java-Version>${java.version}</Java-Version>
               <Scm-Url>${project.scm.url}</Scm-Url>
               <Scm-Connection>${project.scm.connection}</Scm-Connection>
               <Scm-Revision>${buildNumber}</Scm-Revision>
@@ -274,52 +246,6 @@
   </build>
 
   <profiles>
-    <profile>
-      <id>java9-plus</id>
-      <activation>
-        <jdk>[9,)</jdk>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>org.jsonschema2pojo</groupId>
-              <artifactId>jsonschema2pojo-maven-plugin</artifactId>
-              <dependencies>
-                <dependency>
-                  <groupId>javax.annotation</groupId>
-                  <artifactId>javax.annotation-api</artifactId>
-                  <version>1.3.2</version>
-                </dependency>
-              </dependencies>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-    <profile>
-      <id>site</id>
-      <modules>
-        <module>website</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>distro</id>
-      <modules>
-      </modules>
-    </profile>
-    <profile>
-      <id>itest</id>
-      <activation>
-        <property>
-          <name>itest</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <modules>
-        <module>model-generator-app</module>
-      </modules>
-    </profile>
     <profile>
       <id>doclint-java8-disable</id>
       <activation>

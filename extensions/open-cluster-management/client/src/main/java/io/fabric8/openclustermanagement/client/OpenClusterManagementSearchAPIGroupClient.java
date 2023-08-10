@@ -15,34 +15,30 @@
  */
 package io.fabric8.openclustermanagement.client;
 
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.extension.ClientAdapter;
 import io.fabric8.openclustermanagement.api.model.searchoperator.v1alpha1.SearchCustomization;
 import io.fabric8.openclustermanagement.api.model.searchoperator.v1alpha1.SearchCustomizationList;
 import io.fabric8.openclustermanagement.api.model.searchoperator.v1alpha1.SearchOperator;
 import io.fabric8.openclustermanagement.api.model.searchoperator.v1alpha1.SearchOperatorList;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementSearchAPIGroupDSL;
 
-public class OpenClusterManagementSearchAPIGroupClient extends BaseClient implements OpenClusterManagementSearchAPIGroupDSL {
+public class OpenClusterManagementSearchAPIGroupClient extends ClientAdapter<OpenClusterManagementSearchAPIGroupClient>
+    implements OpenClusterManagementSearchAPIGroupDSL {
 
-  public OpenClusterManagementSearchAPIGroupClient() {
-    super();
-  }
-
-  public OpenClusterManagementSearchAPIGroupClient(ClientContext clientContext) {
-    super(clientContext);
+  @Override
+  public OpenClusterManagementSearchAPIGroupClient newInstance() {
+    return new OpenClusterManagementSearchAPIGroupClient();
   }
 
   @Override
   public MixedOperation<SearchCustomization, SearchCustomizationList, Resource<SearchCustomization>> searchCustomizations() {
-    return Handlers.getOperation(SearchCustomization.class, SearchCustomizationList.class, this);
+    return resources(SearchCustomization.class, SearchCustomizationList.class);
   }
 
   @Override
   public MixedOperation<SearchOperator, SearchOperatorList, Resource<SearchOperator>> searchOperators() {
-    return Handlers.getOperation(SearchOperator.class, SearchOperatorList.class, this);
+    return resources(SearchOperator.class, SearchOperatorList.class);
   }
 }

@@ -16,50 +16,49 @@
 package io.fabric8.kubernetes.client.dsl.internal.apps.v1;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.api.model.apps.ControllerRevision;
 import io.fabric8.kubernetes.api.model.apps.ControllerRevisionList;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetList;
 import io.fabric8.kubernetes.api.model.extensions.DeploymentRollback;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.Handlers;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.kubernetes.client.dsl.BytesLimitTerminateTimeTailPrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
+import io.fabric8.kubernetes.client.dsl.Loggable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.dsl.PrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
+import io.fabric8.kubernetes.client.dsl.TailPrettyLoggable;
+import io.fabric8.kubernetes.client.dsl.TimeTailPrettyLoggable;
 import io.fabric8.kubernetes.client.dsl.TimeoutImageEditReplacePatchable;
-import io.fabric8.kubernetes.client.dsl.base.OperationContext;
+import io.fabric8.kubernetes.client.dsl.base.PatchContext;
+import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import io.fabric8.kubernetes.client.dsl.internal.HasMetadataOperationsImpl;
-import io.fabric8.kubernetes.client.dsl.internal.RollingOperationContext;
-import io.fabric8.kubernetes.client.utils.PodOperationUtil;
+import io.fabric8.kubernetes.client.dsl.internal.OperationContext;
+import io.fabric8.kubernetes.client.dsl.internal.PodOperationContext;
+import io.fabric8.kubernetes.client.utils.internal.PodOperationUtil;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class StatefulSetOperationsImpl extends RollableScalableResourceOperation<StatefulSet, StatefulSetList, RollableScalableResource<StatefulSet>>
-  implements TimeoutImageEditReplacePatchable<StatefulSet>
-{
-  public StatefulSetOperationsImpl(ClientContext clientContext) {
-    this(clientContext, null);
+public class StatefulSetOperationsImpl
+    extends RollableScalableResourceOperation<StatefulSet, StatefulSetList, RollableScalableResource<StatefulSet>>
+    implements TimeoutImageEditReplacePatchable<StatefulSet> {
+  public StatefulSetOperationsImpl(Client client) {
+    this(new PodOperationContext(), HasMetadataOperationsImpl.defaultContext(client));
   }
 
-  public StatefulSetOperationsImpl(ClientContext clientContext, String namespace) {
-    this(new RollingOperationContext(), HasMetadataOperationsImpl.defaultContext(clientContext).withNamespace(namespace));
-  }
-
-  public StatefulSetOperationsImpl(RollingOperationContext context, OperationContext superContext) {
+  public StatefulSetOperationsImpl(PodOperationContext context, OperationContext superContext) {
     super(context, superContext.withApiGroupName("apps")
-      .withApiGroupVersion("v1")
-      .withPlural("statefulsets"), StatefulSet.class, StatefulSetList.class);
+        .withApiGroupVersion("v1")
+        .withPlural("statefulsets"), StatefulSet.class, StatefulSetList.class);
   }
 
   @Override
@@ -68,72 +67,14 @@ public class StatefulSetOperationsImpl extends RollableScalableResourceOperation
   }
 
   @Override
-  public StatefulSetOperationsImpl newInstance(RollingOperationContext context) {
-    return new StatefulSetOperationsImpl(context, this.context);
-  }
-
-  @Override
-  public StatefulSet withReplicas(int count) {
-    return cascading(false).accept(s -> s.getSpec().setReplicas(count));
+  public StatefulSetOperationsImpl newInstance(PodOperationContext context,
+      OperationContext superContext) {
+    return new StatefulSetOperationsImpl(context, superContext);
   }
 
   @Override
   public RollingUpdater<StatefulSet, StatefulSetList> getRollingUpdater(long rollingTimeout, TimeUnit rollingTimeUnit) {
-    return new StatefulSetRollingUpdater(context, getNamespace(), rollingTimeUnit.toMillis(rollingTimeout), config.getLoggingInterval());
-  }
-
-  @Override
-  public int getCurrentReplicas(StatefulSet current) {
-    return current.getStatus().getReplicas();
-  }
-
-  @Override
-  public int getDesiredReplicas(StatefulSet item) {
-    return item.getSpec().getReplicas();
-  }
-
-  @Override
-  public long getObservedGeneration(StatefulSet current) {
-    return (current != null && current.getStatus() != null && current.getStatus().getObservedGeneration() != null)
-      ? current.getStatus().getObservedGeneration() : -1;
-  }
-
-  @Override
-  public StatefulSet updateImage(Map<String, String> containerToImageMap) {
-    StatefulSet statefulSet = get();
-    if (statefulSet == null) {
-      throw new KubernetesClientException("Existing replica set doesn't exist");
-    }
-    if (statefulSet.getSpec().getTemplate().getSpec().getContainers().isEmpty()) {
-      throw new KubernetesClientException("Pod has no containers!");
-    }
-
-    List<Container> containers = statefulSet.getSpec().getTemplate().getSpec().getContainers();
-    for (Container container : containers) {
-      if (containerToImageMap.containsKey(container.getName())) {
-        container.setImage(containerToImageMap.get(container.getName()));
-      }
-    }
-    statefulSet.getSpec().getTemplate().getSpec().setContainers(containers);
-    return sendPatchedObject(get(), statefulSet);
-  }
-
-  @Override
-  public StatefulSet updateImage(String image) {
-    StatefulSet oldRC = get();
-
-    if (oldRC == null) {
-      throw new KubernetesClientException("Existing StatefulSet doesn't exist");
-    }
-    if (oldRC.getSpec().getTemplate().getSpec().getContainers().size() > 1) {
-      throw new KubernetesClientException("Image update is not supported for multicontainer pods");
-    }
-    if (oldRC.getSpec().getTemplate().getSpec().getContainers().isEmpty()) {
-      throw new KubernetesClientException("Pod has no containers!");
-    }
-
-    Container container = oldRC.getSpec().getTemplate().getSpec().getContainers().iterator().next();
-    return updateImage(Collections.singletonMap(container.getName(), image));
+    return null;
   }
 
   @Override
@@ -142,44 +83,47 @@ public class StatefulSetOperationsImpl extends RollableScalableResourceOperation
   }
 
   @Override
-  public String getLog(Boolean isPretty) {
-    return PodOperationUtil.getLog(doGetLog(isPretty), isPretty);
+  public String getLog(boolean isPretty) {
+    return PodOperationUtil.getLog(
+        new StatefulSetOperationsImpl(rollingOperationContext.withPrettyOutput(isPretty), context).doGetLog(), isPretty);
   }
 
-  private List<PodResource<Pod>> doGetLog(boolean isPretty) {
+  private List<PodResource> doGetLog() {
     StatefulSet statefulSet = requireFromServer();
 
-    return PodOperationUtil.getPodOperationsForController(context, statefulSet.getMetadata().getUid(),
-      getStatefulSetSelectorLabels(statefulSet), isPretty, rollingOperationContext.getLogWaitTimeout(), rollingOperationContext.getContainerId());
+    return PodOperationUtil.getPodOperationsForController(context,
+        rollingOperationContext, statefulSet.getMetadata().getUid(),
+        getStatefulSetSelectorLabels(statefulSet));
   }
 
   /**
    * Returns an unclosed Reader. It's the caller responsibility to close it.
+   *
    * @return Reader
    */
   @Override
   public Reader getLogReader() {
-    return PodOperationUtil.getLogReader(doGetLog(false));
+    return PodOperationUtil.getLogReader(doGetLog());
+  }
+
+  /**
+   * Returns an unclosed InputStream. It's the caller responsibility to close it.
+   *
+   * @return InputStream
+   */
+  @Override
+  public InputStream getLogInputStream() {
+    return PodOperationUtil.getLogInputStream(doGetLog());
   }
 
   @Override
   public LogWatch watchLog(OutputStream out) {
-    return PodOperationUtil.watchLog(doGetLog(false), out);
-  }
-
-  @Override
-  public StatefulSet pause() {
-    return sendPatchedStatefulSet(RollingUpdater.requestPayLoadForRolloutPause());
-  }
-
-  @Override
-  public StatefulSet resume() {
-    return sendPatchedStatefulSet(RollingUpdater.requestPayLoadForRolloutResume());
+    return PodOperationUtil.watchLog(doGetLog(), out);
   }
 
   @Override
   public StatefulSet restart() {
-    return sendPatchedStatefulSet(RollingUpdater.requestPayLoadForRolloutRestart());
+    return RollingUpdater.restart(this);
   }
 
   @Override
@@ -205,37 +149,62 @@ public class StatefulSetOperationsImpl extends RollableScalableResourceOperation
     });
     ControllerRevision previousControllerRevision = controllerRevisions.get(1);
 
-    return sendPatchedStatefulSetData(previousControllerRevision.getData());
-  }
-
-  private StatefulSet sendPatchedStatefulSet(Map<String, Object> patchedUpdate) {
-    StatefulSet oldStatefulSet = get();
-    try {
-      return handlePatch(oldStatefulSet, patchedUpdate);
-    } catch (InterruptedException interruptedException) {
-      Thread.currentThread().interrupt();
-      throw KubernetesClientException.launderThrowable(interruptedException);
-    } catch (IOException e) {
-      throw KubernetesClientException.launderThrowable(e);
-    }
-  }
-
-  private StatefulSet sendPatchedStatefulSetData(HasMetadata patchedUpdate) {
-    return sendPatchedStatefulSet(getObjectValueAsMap(patchedUpdate));
+    return patch(PatchContext.of(PatchType.STRATEGIC_MERGE),
+        getKubernetesSerialization().asJson(previousControllerRevision.getData()));
   }
 
   private ControllerRevisionList getControllerRevisionListForStatefulSet(StatefulSet statefulSet) {
-    return Handlers.getOperation(ControllerRevision.class, ControllerRevisionList.class, this.context).inNamespace(namespace).withLabels(statefulSet.getSpec().getSelector().getMatchLabels()).list();
+    return this.context.getClient().resources(ControllerRevision.class, ControllerRevisionList.class).inNamespace(namespace)
+        .withLabels(statefulSet.getSpec().getSelector().getMatchLabels()).list();
   }
 
   static Map<String, String> getStatefulSetSelectorLabels(StatefulSet statefulSet) {
     Map<String, String> labels = new HashMap<>();
     if (statefulSet != null && statefulSet.getSpec() != null
-      && statefulSet.getSpec().getTemplate() != null
-      && statefulSet.getSpec().getTemplate().getMetadata() != null) {
+        && statefulSet.getSpec().getTemplate() != null
+        && statefulSet.getSpec().getTemplate().getMetadata() != null) {
       labels.putAll(statefulSet.getSpec().getTemplate().getMetadata().getLabels());
     }
     return labels;
   }
 
+  @Override
+  protected List<Container> getContainers(StatefulSet value) {
+    return value.getSpec().getTemplate().getSpec().getContainers();
+  }
+
+  @Override
+  public TimeTailPrettyLoggable limitBytes(int limitBytes) {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withLimitBytes(limitBytes), context);
+  }
+
+  @Override
+  public TimeTailPrettyLoggable terminated() {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withTerminatedStatus(true), context);
+  }
+
+  @Override
+  public Loggable withPrettyOutput() {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withPrettyOutput(true), context);
+  }
+
+  @Override
+  public PrettyLoggable tailingLines(int lines) {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withTailingLines(lines), context);
+  }
+
+  @Override
+  public TailPrettyLoggable sinceTime(String timestamp) {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withSinceTimestamp(timestamp), context);
+  }
+
+  @Override
+  public TailPrettyLoggable sinceSeconds(int seconds) {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withSinceSeconds(seconds), context);
+  }
+
+  @Override
+  public BytesLimitTerminateTimeTailPrettyLoggable usingTimestamps() {
+    return new StatefulSetOperationsImpl(rollingOperationContext.withTimestamps(true), context);
+  }
 }

@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.operator.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -42,6 +43,7 @@ import lombok.experimental.Accessors;
     "nodeStatuses",
     "observedGeneration",
     "readyReplicas",
+    "serviceAccountIssuers",
     "version"
 })
 @ToString
@@ -62,6 +64,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class KubeAPIServerStatus implements KubernetesResource
 {
 
@@ -82,10 +85,13 @@ public class KubeAPIServerStatus implements KubernetesResource
     private Long observedGeneration;
     @JsonProperty("readyReplicas")
     private Integer readyReplicas;
+    @JsonProperty("serviceAccountIssuers")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<ServiceAccountIssuerStatus> serviceAccountIssuers = new ArrayList<ServiceAccountIssuerStatus>();
     @JsonProperty("version")
     private String version;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -94,18 +100,7 @@ public class KubeAPIServerStatus implements KubernetesResource
     public KubeAPIServerStatus() {
     }
 
-    /**
-     * 
-     * @param nodeStatuses
-     * @param latestAvailableRevision
-     * @param generations
-     * @param latestAvailableRevisionReason
-     * @param readyReplicas
-     * @param conditions
-     * @param version
-     * @param observedGeneration
-     */
-    public KubeAPIServerStatus(List<OperatorCondition> conditions, List<GenerationStatus> generations, Integer latestAvailableRevision, String latestAvailableRevisionReason, List<NodeStatus> nodeStatuses, Long observedGeneration, Integer readyReplicas, String version) {
+    public KubeAPIServerStatus(List<OperatorCondition> conditions, List<GenerationStatus> generations, Integer latestAvailableRevision, String latestAvailableRevisionReason, List<NodeStatus> nodeStatuses, Long observedGeneration, Integer readyReplicas, List<ServiceAccountIssuerStatus> serviceAccountIssuers, String version) {
         super();
         this.conditions = conditions;
         this.generations = generations;
@@ -114,6 +109,7 @@ public class KubeAPIServerStatus implements KubernetesResource
         this.nodeStatuses = nodeStatuses;
         this.observedGeneration = observedGeneration;
         this.readyReplicas = readyReplicas;
+        this.serviceAccountIssuers = serviceAccountIssuers;
         this.version = version;
     }
 
@@ -185,6 +181,16 @@ public class KubeAPIServerStatus implements KubernetesResource
     @JsonProperty("readyReplicas")
     public void setReadyReplicas(Integer readyReplicas) {
         this.readyReplicas = readyReplicas;
+    }
+
+    @JsonProperty("serviceAccountIssuers")
+    public List<ServiceAccountIssuerStatus> getServiceAccountIssuers() {
+        return serviceAccountIssuers;
+    }
+
+    @JsonProperty("serviceAccountIssuers")
+    public void setServiceAccountIssuers(List<ServiceAccountIssuerStatus> serviceAccountIssuers) {
+        this.serviceAccountIssuers = serviceAccountIssuers;
     }
 
     @JsonProperty("version")

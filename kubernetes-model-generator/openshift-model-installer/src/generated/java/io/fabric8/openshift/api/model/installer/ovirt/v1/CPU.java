@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.installer.ovirt.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,7 +35,8 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "cores",
-    "sockets"
+    "sockets",
+    "threads"
 })
 @ToString
 @EqualsAndHashCode
@@ -54,6 +56,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class CPU implements KubernetesResource
 {
 
@@ -61,8 +64,10 @@ public class CPU implements KubernetesResource
     private Integer cores;
     @JsonProperty("sockets")
     private Integer sockets;
+    @JsonProperty("threads")
+    private Integer threads;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,15 +76,11 @@ public class CPU implements KubernetesResource
     public CPU() {
     }
 
-    /**
-     * 
-     * @param cores
-     * @param sockets
-     */
-    public CPU(Integer cores, Integer sockets) {
+    public CPU(Integer cores, Integer sockets, Integer threads) {
         super();
         this.cores = cores;
         this.sockets = sockets;
+        this.threads = threads;
     }
 
     @JsonProperty("cores")
@@ -100,6 +101,16 @@ public class CPU implements KubernetesResource
     @JsonProperty("sockets")
     public void setSockets(Integer sockets) {
         this.sockets = sockets;
+    }
+
+    @JsonProperty("threads")
+    public Integer getThreads() {
+        return threads;
+    }
+
+    @JsonProperty("threads")
+    public void setThreads(Integer threads) {
+        this.threads = threads;
     }
 
     @JsonAnyGetter

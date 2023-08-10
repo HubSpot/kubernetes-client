@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.gcp.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -40,6 +41,7 @@ import lombok.experimental.Accessors;
     "defaultMachinePlatform",
     "licenses",
     "network",
+    "networkProjectID",
     "projectID",
     "region"
 })
@@ -61,6 +63,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Platform implements KubernetesResource
 {
 
@@ -75,12 +78,14 @@ public class Platform implements KubernetesResource
     private List<String> licenses = new ArrayList<String>();
     @JsonProperty("network")
     private String network;
+    @JsonProperty("networkProjectID")
+    private String networkProjectID;
     @JsonProperty("projectID")
     private String projectID;
     @JsonProperty("region")
     private String region;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -89,23 +94,14 @@ public class Platform implements KubernetesResource
     public Platform() {
     }
 
-    /**
-     * 
-     * @param licenses
-     * @param controlPlaneSubnet
-     * @param defaultMachinePlatform
-     * @param region
-     * @param computeSubnet
-     * @param projectID
-     * @param network
-     */
-    public Platform(String computeSubnet, String controlPlaneSubnet, MachinePool defaultMachinePlatform, List<String> licenses, String network, String projectID, String region) {
+    public Platform(String computeSubnet, String controlPlaneSubnet, MachinePool defaultMachinePlatform, List<String> licenses, String network, String networkProjectID, String projectID, String region) {
         super();
         this.computeSubnet = computeSubnet;
         this.controlPlaneSubnet = controlPlaneSubnet;
         this.defaultMachinePlatform = defaultMachinePlatform;
         this.licenses = licenses;
         this.network = network;
+        this.networkProjectID = networkProjectID;
         this.projectID = projectID;
         this.region = region;
     }
@@ -158,6 +154,16 @@ public class Platform implements KubernetesResource
     @JsonProperty("network")
     public void setNetwork(String network) {
         this.network = network;
+    }
+
+    @JsonProperty("networkProjectID")
+    public String getNetworkProjectID() {
+        return networkProjectID;
+    }
+
+    @JsonProperty("networkProjectID")
+    public void setNetworkProjectID(String networkProjectID) {
+        this.networkProjectID = networkProjectID;
     }
 
     @JsonProperty("projectID")

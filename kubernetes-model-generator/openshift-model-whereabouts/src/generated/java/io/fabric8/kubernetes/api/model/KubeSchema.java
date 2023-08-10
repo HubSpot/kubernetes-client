@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -70,6 +71,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class KubeSchema {
 
     @JsonProperty("APIGroup")
@@ -77,7 +79,7 @@ public class KubeSchema {
     @JsonProperty("APIGroupList")
     private APIGroupList aPIGroupList;
     @JsonProperty("BaseKubernetesList")
-    private BaseKubernetesList baseKubernetesList;
+    private KubernetesList baseKubernetesList;
     @JsonProperty("IPAllocation")
     private IPAllocation iPAllocation;
     @JsonProperty("IPPool")
@@ -101,7 +103,7 @@ public class KubeSchema {
     @JsonProperty("TypeMeta")
     private TypeMeta typeMeta;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -110,24 +112,7 @@ public class KubeSchema {
     public KubeSchema() {
     }
 
-    /**
-     * 
-     * @param aPIGroupList
-     * @param baseKubernetesList
-     * @param overlappingRangeIPReservation
-     * @param iPAllocation
-     * @param patch
-     * @param aPIGroup
-     * @param iPPoolList
-     * @param typeMeta
-     * @param overlappingRangeIPReservationList
-     * @param objectMeta
-     * @param iPPool
-     * @param time
-     * @param info
-     * @param status
-     */
-    public KubeSchema(APIGroup aPIGroup, APIGroupList aPIGroupList, BaseKubernetesList baseKubernetesList, IPAllocation iPAllocation, IPPool iPPool, IPPoolList iPPoolList, Info info, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, OverlappingRangeIPReservation overlappingRangeIPReservation, OverlappingRangeIPReservationList overlappingRangeIPReservationList, Patch patch, Status status, String time, TypeMeta typeMeta) {
+    public KubeSchema(APIGroup aPIGroup, APIGroupList aPIGroupList, KubernetesList baseKubernetesList, IPAllocation iPAllocation, IPPool iPPool, IPPoolList iPPoolList, Info info, io.fabric8.kubernetes.api.model.ObjectMeta objectMeta, OverlappingRangeIPReservation overlappingRangeIPReservation, OverlappingRangeIPReservationList overlappingRangeIPReservationList, Patch patch, Status status, String time, TypeMeta typeMeta) {
         super();
         this.aPIGroup = aPIGroup;
         this.aPIGroupList = aPIGroupList;
@@ -166,12 +151,12 @@ public class KubeSchema {
     }
 
     @JsonProperty("BaseKubernetesList")
-    public BaseKubernetesList getBaseKubernetesList() {
+    public KubernetesList getBaseKubernetesList() {
         return baseKubernetesList;
     }
 
     @JsonProperty("BaseKubernetesList")
-    public void setBaseKubernetesList(BaseKubernetesList baseKubernetesList) {
+    public void setBaseKubernetesList(KubernetesList baseKubernetesList) {
         this.baseKubernetesList = baseKubernetesList;
     }
 

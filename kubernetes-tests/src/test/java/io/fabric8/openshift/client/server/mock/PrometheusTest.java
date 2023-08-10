@@ -17,7 +17,13 @@ package io.fabric8.openshift.client.server.mock;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.openshift.api.model.monitoring.v1.*;
+import io.fabric8.openshift.api.model.monitoring.v1.AlertingSpec;
+import io.fabric8.openshift.api.model.monitoring.v1.AlertmanagerEndpoints;
+import io.fabric8.openshift.api.model.monitoring.v1.AlertmanagerEndpointsBuilder;
+import io.fabric8.openshift.api.model.monitoring.v1.Prometheus;
+import io.fabric8.openshift.api.model.monitoring.v1.PrometheusBuilder;
+import io.fabric8.openshift.api.model.monitoring.v1.PrometheusList;
+import io.fabric8.openshift.api.model.monitoring.v1.PrometheusListBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.junit.jupiter.api.Test;
 
@@ -25,7 +31,9 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableOpenShiftMockClient
 class PrometheusTest {
@@ -35,7 +43,7 @@ class PrometheusTest {
 
   @Test
   void load() {
-    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-prometheus.yml")).get();
+    List<HasMetadata> items = client.load(getClass().getResourceAsStream("/test-prometheus.yml")).items();
     assertEquals(1, items.size());
     assertTrue(items.get(0) instanceof Prometheus);
     Prometheus prometheus = (Prometheus) items.get(0);
@@ -48,9 +56,9 @@ class PrometheusTest {
     // Given
     Prometheus prometheus = getPrometheus();
     server.expect().post()
-      .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses")
-      .andReturn(HttpURLConnection.HTTP_OK, prometheus)
-      .once();
+        .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses")
+        .andReturn(HttpURLConnection.HTTP_OK, prometheus)
+        .once();
 
     // When
     prometheus = client.monitoring().prometheuses().inNamespace("ns1").create(prometheus);
@@ -64,9 +72,9 @@ class PrometheusTest {
   void get() {
     // Given
     server.expect().get()
-      .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses/foo")
-      .andReturn(HttpURLConnection.HTTP_OK, getPrometheus())
-      .once();
+        .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses/foo")
+        .andReturn(HttpURLConnection.HTTP_OK, getPrometheus())
+        .once();
 
     // When
     Prometheus f = client.monitoring().prometheuses().inNamespace("ns1").withName("foo").get();
@@ -80,9 +88,9 @@ class PrometheusTest {
   void list() {
     // Given
     server.expect().get()
-      .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses")
-      .andReturn(HttpURLConnection.HTTP_OK, new PrometheusListBuilder().withItems(getPrometheus()).build())
-      .once();
+        .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses")
+        .andReturn(HttpURLConnection.HTTP_OK, new PrometheusListBuilder().withItems(getPrometheus()).build())
+        .once();
 
     // When
     PrometheusList fgList = client.monitoring().prometheuses().inNamespace("ns1").list();
@@ -97,12 +105,12 @@ class PrometheusTest {
   void delete() {
     // Given
     server.expect().delete()
-      .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses/foo")
-      .andReturn(HttpURLConnection.HTTP_OK, getPrometheus())
-      .once();
+        .withPath("/apis/monitoring.coreos.com/v1/namespaces/ns1/prometheuses/foo")
+        .andReturn(HttpURLConnection.HTTP_OK, getPrometheus())
+        .once();
 
     // When
-    Boolean deleted = client.monitoring().prometheuses().inNamespace("ns1").withName("foo").delete();
+    boolean deleted = client.monitoring().prometheuses().inNamespace("ns1").withName("foo").delete().size() == 1;
 
     // Then
     assertTrue(deleted);
@@ -110,10 +118,10 @@ class PrometheusTest {
 
   private Prometheus getPrometheus() {
     AlertmanagerEndpoints alertmanagerEndpoints = new AlertmanagerEndpointsBuilder()
-      .withName("alertmanager-main")
-      .withNamespace("monitoring")
-      .withPort(new IntOrString("web"))
-      .build();
+        .withName("alertmanager-main")
+        .withNamespace("monitoring")
+        .withPort(new IntOrString("web"))
+        .build();
     List<AlertmanagerEndpoints> alertmanagerEndpointsList = new ArrayList<>();
     alertmanagerEndpointsList.add(alertmanagerEndpoints);
 
@@ -121,11 +129,11 @@ class PrometheusTest {
     alertingSpec.setAlertmanagers(alertmanagerEndpointsList);
 
     return new PrometheusBuilder()
-      .withNewMetadata().withName("foo").endMetadata()
-      .withNewSpec()
-      .withServiceAccountName("prometheus-k8s")
-      .withAlerting(alertingSpec)
-      .endSpec()
-      .build();
+        .withNewMetadata().withName("foo").endMetadata()
+        .withNewSpec()
+        .withServiceAccountName("prometheus-k8s")
+        .withAlerting(alertingSpec)
+        .endSpec()
+        .build();
   }
 }

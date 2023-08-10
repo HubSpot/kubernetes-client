@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.monitoring.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -41,6 +42,7 @@ import lombok.experimental.Accessors;
     "affinity",
     "alertmanagerConfigNamespaceSelector",
     "alertmanagerConfigSelector",
+    "alertmanagerConfiguration",
     "baseImage",
     "clusterAdvertiseAddress",
     "clusterGossipInterval",
@@ -51,6 +53,7 @@ import lombok.experimental.Accessors;
     "containers",
     "externalUrl",
     "forceEnableClusterMode",
+    "hostAliases",
     "image",
     "imagePullSecrets",
     "initContainers",
@@ -97,6 +100,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(io.fabric8.kubernetes.api.model.LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class AlertmanagerSpec implements KubernetesResource
 {
 
@@ -109,6 +113,8 @@ public class AlertmanagerSpec implements KubernetesResource
     private io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigNamespaceSelector;
     @JsonProperty("alertmanagerConfigSelector")
     private io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigSelector;
+    @JsonProperty("alertmanagerConfiguration")
+    private AlertmanagerConfiguration alertmanagerConfiguration;
     @JsonProperty("baseImage")
     private java.lang.String baseImage;
     @JsonProperty("clusterAdvertiseAddress")
@@ -131,6 +137,9 @@ public class AlertmanagerSpec implements KubernetesResource
     private java.lang.String externalUrl;
     @JsonProperty("forceEnableClusterMode")
     private Boolean forceEnableClusterMode;
+    @JsonProperty("hostAliases")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<HostAlias> hostAliases = new ArrayList<HostAlias>();
     @JsonProperty("image")
     private java.lang.String image;
     @JsonProperty("imagePullSecrets")
@@ -148,7 +157,8 @@ public class AlertmanagerSpec implements KubernetesResource
     @JsonProperty("minReadySeconds")
     private Integer minReadySeconds;
     @JsonProperty("nodeSelector")
-    private Map<String, String> nodeSelector;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> nodeSelector = new LinkedHashMap<String, String>();
     @JsonProperty("paused")
     private Boolean paused;
     @JsonProperty("podMetadata")
@@ -193,7 +203,7 @@ public class AlertmanagerSpec implements KubernetesResource
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<Volume> volumes = new ArrayList<Volume>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -202,56 +212,13 @@ public class AlertmanagerSpec implements KubernetesResource
     public AlertmanagerSpec() {
     }
 
-    /**
-     * 
-     * @param paused
-     * @param serviceAccountName
-     * @param imagePullSecrets
-     * @param baseImage
-     * @param priorityClassName
-     * @param portName
-     * @param securityContext
-     * @param storage
-     * @param nodeSelector
-     * @param volumeMounts
-     * @param tolerations
-     * @param logLevel
-     * @param alertmanagerConfigSelector
-     * @param forceEnableClusterMode
-     * @param clusterPushpullInterval
-     * @param tag
-     * @param configSecret
-     * @param retention
-     * @param externalUrl
-     * @param image
-     * @param replicas
-     * @param topologySpreadConstraints
-     * @param volumes
-     * @param resources
-     * @param listenLocal
-     * @param secrets
-     * @param sha
-     * @param version
-     * @param clusterAdvertiseAddress
-     * @param alertmanagerConfigNamespaceSelector
-     * @param logFormat
-     * @param configMaps
-     * @param routePrefix
-     * @param additionalPeers
-     * @param containers
-     * @param clusterGossipInterval
-     * @param minReadySeconds
-     * @param podMetadata
-     * @param initContainers
-     * @param affinity
-     * @param clusterPeerTimeout
-     */
-    public AlertmanagerSpec(List<java.lang.String> additionalPeers, Affinity affinity, io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigNamespaceSelector, io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigSelector, java.lang.String baseImage, java.lang.String clusterAdvertiseAddress, java.lang.String clusterGossipInterval, java.lang.String clusterPeerTimeout, java.lang.String clusterPushpullInterval, List<java.lang.String> configMaps, java.lang.String configSecret, List<io.fabric8.kubernetes.api.model.Container> containers, java.lang.String externalUrl, Boolean forceEnableClusterMode, java.lang.String image, List<io.fabric8.kubernetes.api.model.LocalObjectReference> imagePullSecrets, List<io.fabric8.kubernetes.api.model.Container> initContainers, Boolean listenLocal, java.lang.String logFormat, java.lang.String logLevel, Integer minReadySeconds, Map<String, String> nodeSelector, Boolean paused, EmbeddedObjectMetadata podMetadata, java.lang.String portName, java.lang.String priorityClassName, Integer replicas, io.fabric8.kubernetes.api.model.ResourceRequirements resources, java.lang.String retention, java.lang.String routePrefix, List<java.lang.String> secrets, PodSecurityContext securityContext, java.lang.String serviceAccountName, java.lang.String sha, StorageSpec storage, java.lang.String tag, List<Toleration> tolerations, List<TopologySpreadConstraint> topologySpreadConstraints, java.lang.String version, List<VolumeMount> volumeMounts, List<Volume> volumes) {
+    public AlertmanagerSpec(List<java.lang.String> additionalPeers, Affinity affinity, io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigNamespaceSelector, io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigSelector, AlertmanagerConfiguration alertmanagerConfiguration, java.lang.String baseImage, java.lang.String clusterAdvertiseAddress, java.lang.String clusterGossipInterval, java.lang.String clusterPeerTimeout, java.lang.String clusterPushpullInterval, List<java.lang.String> configMaps, java.lang.String configSecret, List<io.fabric8.kubernetes.api.model.Container> containers, java.lang.String externalUrl, Boolean forceEnableClusterMode, List<HostAlias> hostAliases, java.lang.String image, List<io.fabric8.kubernetes.api.model.LocalObjectReference> imagePullSecrets, List<io.fabric8.kubernetes.api.model.Container> initContainers, Boolean listenLocal, java.lang.String logFormat, java.lang.String logLevel, Integer minReadySeconds, Map<String, String> nodeSelector, Boolean paused, EmbeddedObjectMetadata podMetadata, java.lang.String portName, java.lang.String priorityClassName, Integer replicas, io.fabric8.kubernetes.api.model.ResourceRequirements resources, java.lang.String retention, java.lang.String routePrefix, List<java.lang.String> secrets, PodSecurityContext securityContext, java.lang.String serviceAccountName, java.lang.String sha, StorageSpec storage, java.lang.String tag, List<Toleration> tolerations, List<TopologySpreadConstraint> topologySpreadConstraints, java.lang.String version, List<VolumeMount> volumeMounts, List<Volume> volumes) {
         super();
         this.additionalPeers = additionalPeers;
         this.affinity = affinity;
         this.alertmanagerConfigNamespaceSelector = alertmanagerConfigNamespaceSelector;
         this.alertmanagerConfigSelector = alertmanagerConfigSelector;
+        this.alertmanagerConfiguration = alertmanagerConfiguration;
         this.baseImage = baseImage;
         this.clusterAdvertiseAddress = clusterAdvertiseAddress;
         this.clusterGossipInterval = clusterGossipInterval;
@@ -262,6 +229,7 @@ public class AlertmanagerSpec implements KubernetesResource
         this.containers = containers;
         this.externalUrl = externalUrl;
         this.forceEnableClusterMode = forceEnableClusterMode;
+        this.hostAliases = hostAliases;
         this.image = image;
         this.imagePullSecrets = imagePullSecrets;
         this.initContainers = initContainers;
@@ -329,6 +297,16 @@ public class AlertmanagerSpec implements KubernetesResource
     @JsonProperty("alertmanagerConfigSelector")
     public void setAlertmanagerConfigSelector(io.fabric8.kubernetes.api.model.LabelSelector alertmanagerConfigSelector) {
         this.alertmanagerConfigSelector = alertmanagerConfigSelector;
+    }
+
+    @JsonProperty("alertmanagerConfiguration")
+    public AlertmanagerConfiguration getAlertmanagerConfiguration() {
+        return alertmanagerConfiguration;
+    }
+
+    @JsonProperty("alertmanagerConfiguration")
+    public void setAlertmanagerConfiguration(AlertmanagerConfiguration alertmanagerConfiguration) {
+        this.alertmanagerConfiguration = alertmanagerConfiguration;
     }
 
     @JsonProperty("baseImage")
@@ -429,6 +407,16 @@ public class AlertmanagerSpec implements KubernetesResource
     @JsonProperty("forceEnableClusterMode")
     public void setForceEnableClusterMode(Boolean forceEnableClusterMode) {
         this.forceEnableClusterMode = forceEnableClusterMode;
+    }
+
+    @JsonProperty("hostAliases")
+    public List<HostAlias> getHostAliases() {
+        return hostAliases;
+    }
+
+    @JsonProperty("hostAliases")
+    public void setHostAliases(List<HostAlias> hostAliases) {
+        this.hostAliases = hostAliases;
     }
 
     @JsonProperty("image")

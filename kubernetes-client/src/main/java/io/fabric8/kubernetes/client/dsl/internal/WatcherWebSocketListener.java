@@ -16,7 +16,7 @@
 package io.fabric8.kubernetes.client.dsl.internal;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.dsl.internal.AbstractWatchManager.WatchRequestState;
 import io.fabric8.kubernetes.client.http.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,59 +26,48 @@ import java.nio.charset.StandardCharsets;
 
 class WatcherWebSocketListener<T extends HasMetadata> implements WebSocket.Listener {
   protected static final Logger logger = LoggerFactory.getLogger(WatcherWebSocketListener.class);
-  
-  // don't allow for concurrent failure and message processing
-  // if something is holding the message thread, this can lead to concurrent processing on the watcher
-  // or worse additional reconnection attempts while the previous threads are still held
-  private final Object reconnectLock = new Object();
-  
+
+  protected final WatchRequestState state;
   protected final AbstractWatchManager<T> manager;
-  
-  protected WatcherWebSocketListener(AbstractWatchManager<T> manager) {
+
+  protected WatcherWebSocketListener(AbstractWatchManager<T> manager, WatchRequestState state) {
     this.manager = manager;
+    this.state = state;
   }
-  
+
   @Override
   public void onOpen(final WebSocket webSocket) {
     logger.debug("WebSocket successfully opened");
-    manager.resetReconnectAttempts();
+    manager.resetReconnectAttempts(state);
   }
-  
-  
+
   @Override
   public void onError(WebSocket webSocket, Throwable t) {
-    if (manager.isForceClosed()) {
-      logger.debug("Ignoring onFailure for already closed/closing websocket", t);
-      return;
-    }
-    
-    if (manager.cannotReconnect()) {
-      manager.close(new WatcherException("Connection failure", t));
-      return;
-    }
-    
-    synchronized (reconnectLock) {
-      manager.scheduleReconnect();
-    }
+    manager.watchEnded(t, state);
   }
-  
+
   @Override
   public void onMessage(WebSocket webSocket, String text) {
-    synchronized (reconnectLock) {
-      manager.onMessage(text);
+    try {
+      manager.onMessage(text, state);
+    } finally {
+      webSocket.request();
     }
   }
-  
+
   @Override
   public void onMessage(WebSocket webSocket, ByteBuffer bytes) {
     onMessage(webSocket, StandardCharsets.UTF_8.decode(bytes).toString());
   }
-  
+
   @Override
   public void onClose(WebSocket webSocket, int code, String reason) {
     logger.debug("WebSocket close received. code: {}, reason: {}", code, reason);
-    webSocket.sendClose(code, reason);
-    manager.scheduleReconnect();
+    try {
+      webSocket.sendClose(code, reason);
+    } finally {
+      manager.watchEnded(null, state);
+    }
   }
-  
+
 }

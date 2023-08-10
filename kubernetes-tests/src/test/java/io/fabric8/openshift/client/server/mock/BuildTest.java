@@ -15,19 +15,22 @@
  */
 package io.fabric8.openshift.client.server.mock;
 
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@EnableOpenShiftMockClient
+@EnableKubernetesMockClient
 class BuildTest {
-  OpenShiftMockServer server;
+  KubernetesMockServer server;
   OpenShiftClient openShiftClient;
 
   @Test
   void testLogWithoutTimestamps() {
-    server.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/test-build/log?pretty=false").andReturn(200, "test build output").times(2);
+    server.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/test-build/log?pretty=false")
+        .andReturn(200, "test build output").times(2);
 
     String log = openShiftClient.builds().inNamespace("ns1").withName("test-build").getLog();
     assertEquals("test build output", log);
@@ -35,9 +38,19 @@ class BuildTest {
 
   @Test
   void testLogWithTimestamps() {
-    server.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/test-build/log?pretty=false&timestamps=true").andReturn(200, "test build output").times(2);
+    server.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/test-build/log?pretty=false&timestamps=true")
+        .andReturn(200, "test build output").times(2);
 
     String log = openShiftClient.builds().inNamespace("ns1").withName("test-build").usingTimestamps().getLog();
+    assertEquals("test build output", log);
+  }
+
+  @Test
+  void testLogWithVersion() {
+    server.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/test-build/log?pretty=false&version=2")
+        .andReturn(200, "test build output").times(2);
+
+    String log = openShiftClient.builds().inNamespace("ns1").withName("test-build").withVersion(2).getLog();
     assertEquals("test build output", log);
   }
 }

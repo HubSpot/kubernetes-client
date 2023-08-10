@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.installer.openstack.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,6 +23,7 @@ import io.fabric8.kubernetes.api.model.ObjectReference;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.openshift.api.model.config.v1.OpenStackPlatformLoadBalancer;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
 import lombok.EqualsAndHashCode;
@@ -37,6 +39,7 @@ import lombok.experimental.Accessors;
     "metadata",
     "apiFloatingIP",
     "apiVIP",
+    "apiVIPs",
     "cloud",
     "clusterOSImage",
     "clusterOSImageProperties",
@@ -46,7 +49,9 @@ import lombok.experimental.Accessors;
     "externalNetwork",
     "ingressFloatingIP",
     "ingressVIP",
+    "ingressVIPs",
     "lbFloatingIP",
+    "loadBalancer",
     "machinesSubnet",
     "octaviaSupport",
     "region",
@@ -70,6 +75,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class Platform implements KubernetesResource
 {
 
@@ -77,17 +83,22 @@ public class Platform implements KubernetesResource
     private java.lang.String apiFloatingIP;
     @JsonProperty("apiVIP")
     private java.lang.String apiVIP;
+    @JsonProperty("apiVIPs")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<java.lang.String> apiVIPs = new ArrayList<java.lang.String>();
     @JsonProperty("cloud")
     private java.lang.String cloud;
     @JsonProperty("clusterOSImage")
     private java.lang.String clusterOSImage;
     @JsonProperty("clusterOSImageProperties")
-    private Map<String, String> clusterOSImageProperties;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> clusterOSImageProperties = new LinkedHashMap<String, String>();
     @JsonProperty("computeFlavor")
     private java.lang.String computeFlavor;
     @JsonProperty("defaultMachinePlatform")
     private MachinePool defaultMachinePlatform;
     @JsonProperty("externalDNS")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> externalDNS = new ArrayList<java.lang.String>();
     @JsonProperty("externalNetwork")
     private java.lang.String externalNetwork;
@@ -95,8 +106,13 @@ public class Platform implements KubernetesResource
     private java.lang.String ingressFloatingIP;
     @JsonProperty("ingressVIP")
     private java.lang.String ingressVIP;
+    @JsonProperty("ingressVIPs")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<java.lang.String> ingressVIPs = new ArrayList<java.lang.String>();
     @JsonProperty("lbFloatingIP")
     private java.lang.String lbFloatingIP;
+    @JsonProperty("loadBalancer")
+    private OpenStackPlatformLoadBalancer loadBalancer;
     @JsonProperty("machinesSubnet")
     private java.lang.String machinesSubnet;
     @JsonProperty("octaviaSupport")
@@ -106,7 +122,7 @@ public class Platform implements KubernetesResource
     @JsonProperty("trunkSupport")
     private java.lang.String trunkSupport;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -115,29 +131,11 @@ public class Platform implements KubernetesResource
     public Platform() {
     }
 
-    /**
-     * 
-     * @param apiVIP
-     * @param ingressFloatingIP
-     * @param ingressVIP
-     * @param octaviaSupport
-     * @param externalNetwork
-     * @param apiFloatingIP
-     * @param trunkSupport
-     * @param cloud
-     * @param machinesSubnet
-     * @param clusterOSImage
-     * @param defaultMachinePlatform
-     * @param externalDNS
-     * @param region
-     * @param lbFloatingIP
-     * @param computeFlavor
-     * @param clusterOSImageProperties
-     */
-    public Platform(java.lang.String apiFloatingIP, java.lang.String apiVIP, java.lang.String cloud, java.lang.String clusterOSImage, Map<String, String> clusterOSImageProperties, java.lang.String computeFlavor, MachinePool defaultMachinePlatform, List<java.lang.String> externalDNS, java.lang.String externalNetwork, java.lang.String ingressFloatingIP, java.lang.String ingressVIP, java.lang.String lbFloatingIP, java.lang.String machinesSubnet, java.lang.String octaviaSupport, java.lang.String region, java.lang.String trunkSupport) {
+    public Platform(java.lang.String apiFloatingIP, java.lang.String apiVIP, List<java.lang.String> apiVIPs, java.lang.String cloud, java.lang.String clusterOSImage, Map<String, String> clusterOSImageProperties, java.lang.String computeFlavor, MachinePool defaultMachinePlatform, List<java.lang.String> externalDNS, java.lang.String externalNetwork, java.lang.String ingressFloatingIP, java.lang.String ingressVIP, List<java.lang.String> ingressVIPs, java.lang.String lbFloatingIP, OpenStackPlatformLoadBalancer loadBalancer, java.lang.String machinesSubnet, java.lang.String octaviaSupport, java.lang.String region, java.lang.String trunkSupport) {
         super();
         this.apiFloatingIP = apiFloatingIP;
         this.apiVIP = apiVIP;
+        this.apiVIPs = apiVIPs;
         this.cloud = cloud;
         this.clusterOSImage = clusterOSImage;
         this.clusterOSImageProperties = clusterOSImageProperties;
@@ -147,7 +145,9 @@ public class Platform implements KubernetesResource
         this.externalNetwork = externalNetwork;
         this.ingressFloatingIP = ingressFloatingIP;
         this.ingressVIP = ingressVIP;
+        this.ingressVIPs = ingressVIPs;
         this.lbFloatingIP = lbFloatingIP;
+        this.loadBalancer = loadBalancer;
         this.machinesSubnet = machinesSubnet;
         this.octaviaSupport = octaviaSupport;
         this.region = region;
@@ -172,6 +172,16 @@ public class Platform implements KubernetesResource
     @JsonProperty("apiVIP")
     public void setApiVIP(java.lang.String apiVIP) {
         this.apiVIP = apiVIP;
+    }
+
+    @JsonProperty("apiVIPs")
+    public List<java.lang.String> getApiVIPs() {
+        return apiVIPs;
+    }
+
+    @JsonProperty("apiVIPs")
+    public void setApiVIPs(List<java.lang.String> apiVIPs) {
+        this.apiVIPs = apiVIPs;
     }
 
     @JsonProperty("cloud")
@@ -264,6 +274,16 @@ public class Platform implements KubernetesResource
         this.ingressVIP = ingressVIP;
     }
 
+    @JsonProperty("ingressVIPs")
+    public List<java.lang.String> getIngressVIPs() {
+        return ingressVIPs;
+    }
+
+    @JsonProperty("ingressVIPs")
+    public void setIngressVIPs(List<java.lang.String> ingressVIPs) {
+        this.ingressVIPs = ingressVIPs;
+    }
+
     @JsonProperty("lbFloatingIP")
     public java.lang.String getLbFloatingIP() {
         return lbFloatingIP;
@@ -272,6 +292,16 @@ public class Platform implements KubernetesResource
     @JsonProperty("lbFloatingIP")
     public void setLbFloatingIP(java.lang.String lbFloatingIP) {
         this.lbFloatingIP = lbFloatingIP;
+    }
+
+    @JsonProperty("loadBalancer")
+    public OpenStackPlatformLoadBalancer getLoadBalancer() {
+        return loadBalancer;
+    }
+
+    @JsonProperty("loadBalancer")
+    public void setLoadBalancer(OpenStackPlatformLoadBalancer loadBalancer) {
+        this.loadBalancer = loadBalancer;
     }
 
     @JsonProperty("machinesSubnet")

@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
@@ -41,94 +41,94 @@ public class BuildConfigExamples {
 
   @SuppressWarnings("java:S106")
   public static void main(String[] args) throws InterruptedException {
-    try(KubernetesClient kubernetesClient = new DefaultKubernetesClient()){
+    try (KubernetesClient kubernetesClient = new KubernetesClientBuilder().build()) {
       final OpenShiftClient client = kubernetesClient.adapt(OpenShiftClient.class);
       final String namespace;
       if (client.getNamespace() != null) {
         namespace = client.getNamespace();
         logger.info("Using configured namespace: {}", namespace);
       } else {
-        final Namespace ns = client.namespaces().create(
-          new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).addToLabels("this", "rocks").endMetadata().build()
-        );
+        final Namespace ns = client.namespaces().resource(
+            new NamespaceBuilder().withNewMetadata().withName(NAMESPACE).addToLabels("this", "rocks").endMetadata().build())
+            .create();
         namespace = ns.getMetadata().getName();
         logger.info("Created namespace: {}", namespace);
       }
 
-      client.serviceAccounts().inNamespace(namespace).create(
-        new ServiceAccountBuilder().withNewMetadata().withName("fabric8").endMetadata().build()
-      );
+      client.serviceAccounts().inNamespace(namespace).resource(
+          new ServiceAccountBuilder().withNewMetadata().withName("fabric8").endMetadata().build())
+          .create();
 
-      final ImageStream is = client.imageStreams().inNamespace(namespace).create(new ImageStreamBuilder()
-        .withNewMetadata()
-        .withName("example-camel-cdi")
-        .endMetadata()
-        .withNewSpec()
-        .addNewTag()
-        .withName("latest")
-        .endTag()
-        .withDockerImageRepository("fabric8/example-camel-cdi")
-        .endSpec()
-        .withNewStatus().withDockerImageRepository("").endStatus()
-        .build()
-      );
+      final ImageStream is = client.imageStreams().inNamespace(namespace).resource(new ImageStreamBuilder()
+          .withNewMetadata()
+          .withName("example-camel-cdi")
+          .endMetadata()
+          .withNewSpec()
+          .addNewTag()
+          .withName("latest")
+          .endTag()
+          .withDockerImageRepository("fabric8/example-camel-cdi")
+          .endSpec()
+          .withNewStatus().withDockerImageRepository("").endStatus()
+          .build())
+          .create();
       logger.info("Created image stream: {}", is.getMetadata().getName());
 
       final String buildConfigName = "custom-build-config";
-      final BuildConfig buildConfig = client.buildConfigs().inNamespace(namespace).create(new BuildConfigBuilder()
-        .withNewMetadata()
-        .withName(buildConfigName)
-        .endMetadata()
-        .withNewSpec()
-        .withServiceAccount("fabric8")
-        .withNewSource()
-        .withType("Git")
-        .withNewGit()
-        .withUri("https://github.com/fabric8io/example-camel-cdi.git")
-        .endGit()
-        .endSource()
-        .withNewResources()
-        .addToLimits("mykey", new Quantity("10"))
-        .addToRequests("mykey", new Quantity("10"))
-        .endResources()
-        .withNewStrategy()
-        .withType("Source")
-        .withNewSourceStrategy()
-        .withNewFrom().withName("java-sti:latest").withKind("DockerImage").endFrom()
-        .endSourceStrategy()
-        .endStrategy()
-        .withNewOutput()
-        .withNewTo().withKind("DockerImage").withName("example-camel-cdi:latest").endTo()
-        .endOutput()
-        .addNewTrigger()
-        .withType("GitHub")
-        .withNewGithub()
-        .withSecret("secret101")
-        .endGithub()
-        .endTrigger()
-        .endSpec()
-        .build()
-      );
+      final BuildConfig buildConfig = client.buildConfigs().inNamespace(namespace).resource(new BuildConfigBuilder()
+          .withNewMetadata()
+          .withName(buildConfigName)
+          .endMetadata()
+          .withNewSpec()
+          .withServiceAccount("fabric8")
+          .withNewSource()
+          .withType("Git")
+          .withNewGit()
+          .withUri("https://github.com/fabric8io/example-camel-cdi.git")
+          .endGit()
+          .endSource()
+          .withNewResources()
+          .addToLimits("mykey", new Quantity("10"))
+          .addToRequests("mykey", new Quantity("10"))
+          .endResources()
+          .withNewStrategy()
+          .withType("Source")
+          .withNewSourceStrategy()
+          .withNewFrom().withName("java-sti:latest").withKind("DockerImage").endFrom()
+          .endSourceStrategy()
+          .endStrategy()
+          .withNewOutput()
+          .withNewTo().withKind("DockerImage").withName("example-camel-cdi:latest").endTo()
+          .endOutput()
+          .addNewTrigger()
+          .withType("GitHub")
+          .withNewGithub()
+          .withSecret("secret101")
+          .endGithub()
+          .endTrigger()
+          .endSpec()
+          .build())
+          .create();
       logger.info("Created Build Config: {}", buildConfig.getMetadata().getName());
 
-      final Build build = client.buildConfigs().inNamespace(namespace).withName("custom-build-config").instantiate(new BuildRequestBuilder()
-        .withNewMetadata().withName(buildConfigName).endMetadata()
-        .build());
+      final Build build = client.buildConfigs().inNamespace(namespace).withName("custom-build-config")
+          .instantiate(new BuildRequestBuilder()
+              .withNewMetadata().withName(buildConfigName).endMetadata()
+              .build());
       logger.info("Instantiated Build: {}", build.getMetadata().getName());
 
       client.buildConfigs().inNamespace(namespace).withName(buildConfigName)
-        .withSecret("secret101")
-        .withType("github")
-        .trigger(new WebHookTriggerBuilder()
           .withSecret("secret101")
-          .build());
+          .withType("github")
+          .trigger(new WebHookTriggerBuilder()
+              .withSecret("secret101")
+              .build());
       logger.info("Triggered Build Config: {}", buildConfigName);
-
 
       Thread.sleep(6000);
 
       logger.info("Builds:");
-      for (Build b: client.builds().inNamespace(namespace).list().getItems()) {
+      for (Build b : client.builds().inNamespace(namespace).list().getItems()) {
         logger.info("\t\t\t{}", b.getMetadata().getName());
 
         logger.info("\t\t\t\t\t Log:");

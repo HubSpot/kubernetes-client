@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model.authorization.v1beta1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -60,11 +61,13 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class SubjectAccessReviewSpec implements KubernetesResource
 {
 
     @JsonProperty("extra")
-    private Map<String, ArrayList<String>> extra;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, ArrayList<String>> extra = new LinkedHashMap<String, ArrayList<String>>();
     @JsonProperty("group")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<java.lang.String> group = new ArrayList<java.lang.String>();
@@ -77,7 +80,7 @@ public class SubjectAccessReviewSpec implements KubernetesResource
     @JsonProperty("user")
     private java.lang.String user;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -86,15 +89,6 @@ public class SubjectAccessReviewSpec implements KubernetesResource
     public SubjectAccessReviewSpec() {
     }
 
-    /**
-     * 
-     * @param uid
-     * @param nonResourceAttributes
-     * @param extra
-     * @param resourceAttributes
-     * @param user
-     * @param group
-     */
     public SubjectAccessReviewSpec(Map<String, ArrayList<String>> extra, List<java.lang.String> group, NonResourceAttributes nonResourceAttributes, ResourceAttributes resourceAttributes, java.lang.String uid, java.lang.String user) {
         super();
         this.extra = extra;

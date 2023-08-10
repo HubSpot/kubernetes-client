@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.operator.v1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -35,6 +36,7 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "dnsManagementPolicy",
     "dnsName",
     "recordTTL",
     "recordType",
@@ -58,9 +60,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class DNSRecordSpec implements KubernetesResource
 {
 
+    @JsonProperty("dnsManagementPolicy")
+    private String dnsManagementPolicy;
     @JsonProperty("dnsName")
     private String dnsName;
     @JsonProperty("recordTTL")
@@ -68,9 +73,10 @@ public class DNSRecordSpec implements KubernetesResource
     @JsonProperty("recordType")
     private String recordType;
     @JsonProperty("targets")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> targets = new ArrayList<String>();
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -79,19 +85,23 @@ public class DNSRecordSpec implements KubernetesResource
     public DNSRecordSpec() {
     }
 
-    /**
-     * 
-     * @param recordTTL
-     * @param recordType
-     * @param dnsName
-     * @param targets
-     */
-    public DNSRecordSpec(String dnsName, Long recordTTL, String recordType, List<String> targets) {
+    public DNSRecordSpec(String dnsManagementPolicy, String dnsName, Long recordTTL, String recordType, List<String> targets) {
         super();
+        this.dnsManagementPolicy = dnsManagementPolicy;
         this.dnsName = dnsName;
         this.recordTTL = recordTTL;
         this.recordType = recordType;
         this.targets = targets;
+    }
+
+    @JsonProperty("dnsManagementPolicy")
+    public String getDnsManagementPolicy() {
+        return dnsManagementPolicy;
+    }
+
+    @JsonProperty("dnsManagementPolicy")
+    public void setDnsManagementPolicy(String dnsManagementPolicy) {
+        this.dnsManagementPolicy = dnsManagementPolicy;
     }
 
     @JsonProperty("dnsName")

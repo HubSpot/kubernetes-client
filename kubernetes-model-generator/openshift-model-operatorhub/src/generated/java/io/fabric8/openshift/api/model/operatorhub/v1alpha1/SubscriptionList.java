@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.operatorhub.v1alpha1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -28,6 +29,8 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
 import io.sundr.builder.annotations.Buildable;
 import io.sundr.builder.annotations.BuildableReference;
+import io.sundr.transform.annotations.TemplateTransformation;
+import io.sundr.transform.annotations.TemplateTransformations;
 import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import lombok.ToString;
@@ -59,8 +62,12 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1alpha1")
 @Group("operators.coreos.com")
+@Generated("jsonschema2pojo")
 public class SubscriptionList implements KubernetesResource, KubernetesResourceList<io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription>
 {
 
@@ -72,6 +79,7 @@ public class SubscriptionList implements KubernetesResource, KubernetesResourceL
     @JsonProperty("apiVersion")
     private String apiVersion = "operators.coreos.com/v1alpha1";
     @JsonProperty("items")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription> items = new ArrayList<io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription>();
     /**
      * 
@@ -83,7 +91,7 @@ public class SubscriptionList implements KubernetesResource, KubernetesResourceL
     @JsonProperty("metadata")
     private ListMeta metadata;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -92,13 +100,6 @@ public class SubscriptionList implements KubernetesResource, KubernetesResourceL
     public SubscriptionList() {
     }
 
-    /**
-     * 
-     * @param metadata
-     * @param apiVersion
-     * @param kind
-     * @param items
-     */
     public SubscriptionList(String apiVersion, List<io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription> items, String kind, ListMeta metadata) {
         super();
         this.apiVersion = apiVersion;

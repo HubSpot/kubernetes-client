@@ -15,13 +15,13 @@
  */
 package io.fabric8.openclustermanagement.client;
 
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.RequestConfig;
 import io.fabric8.kubernetes.client.WithRequestCallable;
 import io.fabric8.kubernetes.client.dsl.FunctionCallable;
+import io.fabric8.kubernetes.client.extension.ExtensionRootClientAdapter;
+import io.fabric8.kubernetes.client.extension.SupportTestingClient;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementAgentAPIGroupDSL;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementAppsAPIGroupDSL;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementClustersAPIGroupDSL;
@@ -29,33 +29,25 @@ import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementDiscover
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementOperatorAPIGroupDSL;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementPolicyAPIGroupDSL;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementSearchAPIGroupDSL;
-import okhttp3.OkHttpClient;
 
-public class DefaultOpenClusterManagementClient extends BaseClient implements NamespacedOpenClusterManagementClient {
+public class DefaultOpenClusterManagementClient extends ExtensionRootClientAdapter<DefaultOpenClusterManagementClient>
+    implements NamespacedOpenClusterManagementClient, SupportTestingClient {
+
   public DefaultOpenClusterManagementClient() {
     super();
   }
 
-  public DefaultOpenClusterManagementClient(Config configuration) {
-    super(configuration);
+  public DefaultOpenClusterManagementClient(Config config) {
+    super(config);
   }
 
-  public DefaultOpenClusterManagementClient(ClientContext clientContext) {
-    super(clientContext);
-  }
-
-  @Override
-  public NamespacedOpenClusterManagementClient inAnyNamespace() {
-    return inNamespace(null);
+  public DefaultOpenClusterManagementClient(Client client) {
+    super(client);
   }
 
   @Override
-  public NamespacedOpenClusterManagementClient inNamespace(String namespace) {
-    Config updated = new ConfigBuilder(getConfiguration())
-      .withNamespace(namespace)
-      .build();
-
-    return new DefaultOpenClusterManagementClient(newState(updated));
+  protected DefaultOpenClusterManagementClient newInstance(Client client) {
+    return new DefaultOpenClusterManagementClient(client);
   }
 
   @Override
@@ -101,5 +93,10 @@ public class DefaultOpenClusterManagementClient extends BaseClient implements Na
   @Override
   public OpenClusterManagementSearchAPIGroupDSL search() {
     return adapt(OpenClusterManagementSearchAPIGroupClient.class);
+  }
+
+  @Override
+  public boolean isSupported() {
+    return hasApiGroup("open-cluster-management.io", false);
   }
 }

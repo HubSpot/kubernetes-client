@@ -15,34 +15,30 @@
  */
 package io.fabric8.openclustermanagement.client;
 
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
-import io.fabric8.kubernetes.client.Handlers;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.extension.ClientAdapter;
 import io.fabric8.openclustermanagement.api.model.discovery.v1alpha1.DiscoveredCluster;
 import io.fabric8.openclustermanagement.api.model.discovery.v1alpha1.DiscoveredClusterList;
 import io.fabric8.openclustermanagement.api.model.discovery.v1alpha1.DiscoveryConfig;
 import io.fabric8.openclustermanagement.api.model.discovery.v1alpha1.DiscoveryConfigList;
 import io.fabric8.openclustermanagement.client.dsl.OpenClusterManagementDiscoveryAPIGroupDSL;
 
-public class OpenClusterManagementDiscoveryAPIGroupClient extends BaseClient implements OpenClusterManagementDiscoveryAPIGroupDSL {
+public class OpenClusterManagementDiscoveryAPIGroupClient extends ClientAdapter<OpenClusterManagementDiscoveryAPIGroupClient>
+    implements OpenClusterManagementDiscoveryAPIGroupDSL {
 
-  public OpenClusterManagementDiscoveryAPIGroupClient() {
-    super();
-  }
-
-  public OpenClusterManagementDiscoveryAPIGroupClient(ClientContext clientContext) {
-    super(clientContext);
+  @Override
+  public OpenClusterManagementDiscoveryAPIGroupClient newInstance() {
+    return new OpenClusterManagementDiscoveryAPIGroupClient();
   }
 
   @Override
   public MixedOperation<DiscoveredCluster, DiscoveredClusterList, Resource<DiscoveredCluster>> discoveredClusters() {
-    return Handlers.getOperation(DiscoveredCluster.class, DiscoveredClusterList.class, this);
+    return resources(DiscoveredCluster.class, DiscoveredClusterList.class);
   }
 
   @Override
   public MixedOperation<DiscoveryConfig, DiscoveryConfigList, Resource<DiscoveryConfig>> discoveryConfigs() {
-    return Handlers.getOperation(DiscoveryConfig.class, DiscoveryConfigList.class, this);
+    return resources(DiscoveryConfig.class, DiscoveryConfigList.class);
   }
 }

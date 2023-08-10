@@ -19,40 +19,31 @@ import io.fabric8.certmanager.client.dsl.V1APIGroupDSL;
 import io.fabric8.certmanager.client.dsl.V1alpha2APIGroupDSL;
 import io.fabric8.certmanager.client.dsl.V1alpha3APIGroupDSL;
 import io.fabric8.certmanager.client.dsl.V1beta1APIGroupDSL;
-import io.fabric8.kubernetes.client.BaseClient;
-import io.fabric8.kubernetes.client.ClientContext;
+import io.fabric8.kubernetes.client.Client;
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.RequestConfig;
 import io.fabric8.kubernetes.client.WithRequestCallable;
 import io.fabric8.kubernetes.client.dsl.FunctionCallable;
+import io.fabric8.kubernetes.client.extension.ExtensionRootClientAdapter;
 
-public class DefaultCertManagerClient extends BaseClient implements NamespacedCertManagerClient {
+public class DefaultCertManagerClient extends ExtensionRootClientAdapter<DefaultCertManagerClient>
+    implements NamespacedCertManagerClient {
 
   public DefaultCertManagerClient() {
     super();
   }
 
-  public DefaultCertManagerClient(Config configuration) {
-    super(configuration);
+  public DefaultCertManagerClient(Config config) {
+    super(config);
   }
 
-  public DefaultCertManagerClient(ClientContext clientContext) {
-    super(clientContext);
-  }
-
-  @Override
-  public NamespacedCertManagerClient inAnyNamespace() {
-    return inNamespace(null);
+  public DefaultCertManagerClient(Client client) {
+    super(client);
   }
 
   @Override
-  public NamespacedCertManagerClient inNamespace(String namespace) {
-    Config updated = new ConfigBuilder(getConfiguration())
-      .withNamespace(namespace)
-      .build();
-
-    return new DefaultCertManagerClient(newState(updated));
+  protected DefaultCertManagerClient newInstance(Client client) {
+    return new DefaultCertManagerClient(client);
   }
 
   @Override
@@ -61,7 +52,9 @@ public class DefaultCertManagerClient extends BaseClient implements NamespacedCe
   }
 
   @Override
-  public V1APIGroupDSL v1() { return adapt(V1APIGroupClient.class); }
+  public V1APIGroupDSL v1() {
+    return adapt(V1APIGroupClient.class);
+  }
 
   @Override
   public V1alpha2APIGroupDSL v1alpha2() {

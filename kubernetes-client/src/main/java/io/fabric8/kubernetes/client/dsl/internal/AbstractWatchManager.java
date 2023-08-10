@@ -15,42 +15,93 @@
  */
 package io.fabric8.kubernetes.client.dsl.internal;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.ListOptions;
+import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.api.model.StatusDetails;
+import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.Watcher.Action;
 import io.fabric8.kubernetes.client.WatcherException;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
 import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.utils.ExponentialBackoffIntervalCalculator;
-import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 import io.fabric8.kubernetes.client.utils.Utils;
+import io.fabric8.kubernetes.client.utils.internal.SerialExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledFuture;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 import static java.net.HttpURLConnection.HTTP_GONE;
 
 public abstract class AbstractWatchManager<T extends HasMetadata> implements Watch {
 
+  private static final class SerialWatcher<T> implements Watcher<T> {
+    private final Watcher<T> watcher;
+    SerialExecutor serialExecutor;
+
+    private SerialWatcher(Watcher<T> watcher, SerialExecutor serialExecutor) {
+      this.watcher = watcher;
+      this.serialExecutor = serialExecutor;
+    }
+
+    @Override
+    public void eventReceived(Action action, T resource) {
+      serialExecutor.execute(() -> watcher.eventReceived(action, resource));
+    }
+
+    @Override
+    public void onClose(WatcherException cause) {
+      serialExecutor.execute(() -> {
+        watcher.onClose(cause);
+        serialExecutor.shutdownNow();
+      });
+    }
+
+    @Override
+    public void onClose() {
+      serialExecutor.execute(() -> {
+        watcher.onClose();
+        serialExecutor.shutdownNow();
+      });
+    }
+
+    @Override
+    public boolean reconnecting() {
+      return watcher.reconnecting();
+    }
+  }
+
+  public static class WatchRequestState {
+
+    final AtomicBoolean reconnected = new AtomicBoolean();
+    final AtomicBoolean closed = new AtomicBoolean();
+    final CompletableFuture<Void> ended = new CompletableFuture<>();
+
+  }
+
   private static final Logger logger = LoggerFactory.getLogger(AbstractWatchManager.class);
+  private static final int INFO_LOG_CONNECTION_ERRORS = 10;
 
   final Watcher<T> watcher;
   final AtomicReference<String> resourceVersion;
@@ -58,62 +109,89 @@ public abstract class AbstractWatchManager<T extends HasMetadata> implements Wat
   final AtomicBoolean forceClosed;
   private final int reconnectLimit;
   private final ExponentialBackoffIntervalCalculator retryIntervalCalculator;
-  final AtomicInteger currentReconnectAttempt;
-  private ScheduledFuture<?> reconnectAttempt;
-  
-  protected final HttpClient client;
-  private BaseOperation<T, ?, ?> baseOperation;
-  private ListOptions listOptions;
-  private URL requestUrl;
+  private Future<?> reconnectAttempt;
 
-  private final AtomicBoolean reconnectPending = new AtomicBoolean(false);
-  
+  protected final HttpClient client;
+  protected BaseOperation<T, ?, ?> baseOperation;
+  private final ListOptions listOptions;
+  private final URL requestUrl;
+
   private final boolean receiveBookmarks;
 
+  volatile WatchRequestState latestRequestState;
+  private final Map<Class<?>, Integer> endErrors = new ConcurrentHashMap<>();
+  private AtomicInteger retryAfterSeconds = new AtomicInteger();
+
+  private int watchEndCheckMs = 120000;
+
   AbstractWatchManager(
-    Watcher<T> watcher, BaseOperation<T, ?, ?> baseOperation, ListOptions listOptions, int reconnectLimit, int reconnectInterval, int maxIntervalExponent, Supplier<HttpClient> clientSupplier
-  ) throws MalformedURLException {
-    this.watcher = watcher;
+      Watcher<T> watcher, BaseOperation<T, ?, ?> baseOperation, ListOptions listOptions, int reconnectLimit,
+      int reconnectInterval, HttpClient client) throws MalformedURLException {
+    // prevent the callbacks from happening in the httpclient thread
+    this.watcher = new SerialWatcher<>(watcher, new SerialExecutor(baseOperation.getOperationContext().getExecutor()));
     this.reconnectLimit = reconnectLimit;
-    this.retryIntervalCalculator = new ExponentialBackoffIntervalCalculator(reconnectInterval, maxIntervalExponent);
+    this.retryIntervalCalculator = new ExponentialBackoffIntervalCalculator(reconnectInterval, reconnectLimit);
     this.resourceVersion = new AtomicReference<>(listOptions.getResourceVersion());
-    this.currentReconnectAttempt = new AtomicInteger(0);
     this.forceClosed = new AtomicBoolean();
     this.receiveBookmarks = Boolean.TRUE.equals(listOptions.getAllowWatchBookmarks());
-    // opt into bookmarks by default 
+    // opt into bookmarks by default
     if (listOptions.getAllowWatchBookmarks() == null) {
       listOptions.setAllowWatchBookmarks(true);
     }
     this.baseOperation = baseOperation;
     this.requestUrl = baseOperation.getNamespacedUrl();
     this.listOptions = listOptions;
-    this.client = clientSupplier.get();
-    
-    runWatch();
+    this.client = client;
+
+    startWatch();
   }
-  
-  protected abstract void run(URL url, Map<String, String> headers);
-  
-  protected abstract void closeRequest();
-  
+
+  protected abstract void start(URL url, Map<String, String> headers, WatchRequestState state);
+
+  /**
+   * Attempt to gracefully close the current request.
+   * <p>
+   * If forceClosed has not been set, then it's expected that the watch will
+   * attempt to reconnect
+   */
+  public synchronized void closeRequest() {
+    WatchRequestState state = latestRequestState;
+    if (state != null && state.closed.compareAndSet(false, true)) {
+      logger.debug("Closing the current watch");
+      closeCurrentRequest();
+      CompletableFuture<Void> future = Utils.schedule(baseOperation.getOperationContext().getExecutor(),
+          () -> failSafeReconnect(state), watchEndCheckMs,
+          TimeUnit.MILLISECONDS);
+      state.ended.whenComplete((v, t) -> future.cancel(true));
+    }
+  }
+
+  private synchronized void failSafeReconnect(WatchRequestState state) {
+    if (state == latestRequestState && !forceClosed.get() && (reconnectAttempt == null || reconnectAttempt.isDone())) {
+      logger.error("The last watch has yet to terminate as expected, will force start another watch. "
+          + "Please report this to the Fabric8 Kubernetes Client development team.");
+      reconnect();
+    }
+  }
+
+  public void setWatchEndCheckMs(int watchEndCheckMs) {
+    this.watchEndCheckMs = watchEndCheckMs;
+  }
+
+  protected abstract void closeCurrentRequest();
+
   final void close(WatcherException cause) {
-    // proactively close the request (it will be called again in close)
-    // for reconnecting watchers, we may not complete onClose for a while
-    closeRequest();  
-    if (forceClosed.get()) {
+    if (!forceClosed.compareAndSet(false, true)) {
       logger.debug("Ignoring duplicate firing of onClose event");
-    } else { 
-      boolean success = false;
+    } else {
+      // proactively close the request (it will be called again in close)
+      closeRequest();
       try {
         watcher.onClose(cause);
-        success = true;
       } finally {
-        if (success || !watcher.reconnecting()) {
-          forceClosed.set(true);
-        }
+        close();
       }
     }
-    close();
   }
 
   final void closeEvent() {
@@ -129,85 +207,99 @@ public abstract class AbstractWatchManager<T extends HasMetadata> implements Wat
       reconnectAttempt.cancel(true);
     }
   }
-  
-  void scheduleReconnect() {
-    if (!reconnectPending.compareAndSet(false, true)) {
-      logger.debug("Reconnect already scheduled");
+
+  /**
+   * Called to reestablish the connection. Should only be called once per request.
+   */
+  void scheduleReconnect(WatchRequestState state) {
+    if (!state.reconnected.compareAndSet(false, true)) {
       return;
     }
-    
     if (isForceClosed()) {
-      logger.debug("Ignoring error for already closed/closing connection");
+      logger.debug("Ignoring already closed/closing connection");
       return;
     }
-    
+
     if (cannotReconnect()) {
       close(new WatcherException("Exhausted reconnects"));
       return;
     }
-    
-    logger.debug("Scheduling reconnect task");
-    
+
     long delay = nextReconnectInterval();
-    
+
+    logger.debug("Scheduling reconnect task in {} ms", delay);
+
     synchronized (this) {
-      reconnectAttempt = Utils.schedule(Utils.getCommonExecutorSerive(), () -> {
-        try {
-          runWatch();
-          if (isForceClosed()) {
-            closeRequest();
-          }
-        } catch (Exception e) {
-          // An unexpected error occurred and we didn't even get an onFailure callback.
-          logger.error("Exception in reconnect", e);
-          close(new WatcherException("Unhandled exception in reconnect attempt", e));
-        } finally {
-          reconnectPending.set(false);
-        }
-      }, delay, TimeUnit.MILLISECONDS);
+      reconnectAttempt = Utils.schedule(baseOperation.getOperationContext().getExecutor(), this::reconnect, delay,
+          TimeUnit.MILLISECONDS);
       if (isForceClosed()) {
         cancelReconnect();
       }
     }
   }
 
+  synchronized void reconnect() {
+    try {
+      startWatch();
+      if (isForceClosed()) {
+        closeRequest();
+      }
+    } catch (Exception e) {
+      // An unexpected error occurred and we didn't even get an onFailure callback.
+      logger.error("Exception in reconnect", e);
+      close(new WatcherException("Unhandled exception in reconnect attempt", e));
+    }
+  }
+
   final boolean cannotReconnect() {
-    return !watcher.reconnecting() && currentReconnectAttempt.get() >= reconnectLimit && reconnectLimit >= 0;
+    return !watcher.reconnecting() && retryIntervalCalculator.getCurrentReconnectAttempt() >= reconnectLimit
+        && reconnectLimit >= 0;
   }
 
   final long nextReconnectInterval() {
-    int exponentOfTwo = currentReconnectAttempt.getAndIncrement();
-    long ret = retryIntervalCalculator.getInterval(exponentOfTwo);
-    logger.debug("Current reconnect backoff is {} milliseconds (T{})", ret, exponentOfTwo);
-    return ret;
+    return Math.max(retryAfterSeconds.getAndSet(0) * 1000L, retryIntervalCalculator.nextReconnectInterval());
   }
-  
-  void resetReconnectAttempts() {
-    currentReconnectAttempt.set(0);
+
+  void resetReconnectAttempts(WatchRequestState state) {
+    if (state.closed.get()) {
+      return;
+    }
+    retryIntervalCalculator.resetReconnectAttempts();
   }
-  
+
   boolean isForceClosed() {
     return forceClosed.get();
   }
-  
+
   void eventReceived(Watcher.Action action, HasMetadata resource) {
     if (!receiveBookmarks && action == Action.BOOKMARK) {
       // the user didn't ask for bookmarks, just filter them
-      return; 
+      return;
     }
     // the WatchEvent deserialization is not specifically typed
     // modify the type here if needed
     if (resource != null && !baseOperation.getType().isAssignableFrom(resource.getClass())) {
-      resource = Serialization.jsonMapper().convertValue(resource, baseOperation.getType());
+      resource = this.baseOperation.getKubernetesSerialization().convertValue(resource, baseOperation.getType());
     }
-    watcher.eventReceived(action, (T)resource);
+    @SuppressWarnings("unchecked")
+    final T t = (T) resource;
+    try {
+      watcher.eventReceived(action, t);
+    } catch (Exception e) {
+      // for compatibility, this will just log the exception as was done in previous versions
+      // a case could be made for this to terminate the watch instead
+      logger.error("Unhandled exception encountered in watcher event handler", e);
+    }
   }
-  
+
   void updateResourceVersion(final String newResourceVersion) {
     resourceVersion.set(newResourceVersion);
   }
-  
-  protected void runWatch() {
+
+  /**
+   * Async start of the watch
+   */
+  protected void startWatch() {
     listOptions.setResourceVersion(resourceVersion.get());
     URL url = BaseOperation.appendListOptionParams(requestUrl, listOptions);
 
@@ -218,114 +310,139 @@ public abstract class AbstractWatchManager<T extends HasMetadata> implements Wat
 
     Map<String, String> headers = new HashMap<>();
     headers.put("Origin", origin);
-    
+
     logger.debug("Watching {}...", url);
-  
+
     closeRequest(); // only one can be active at a time
-    run(url, headers);
+    latestRequestState = new WatchRequestState();
+    start(url, headers, latestRequestState);
   }
-  
+
   @Override
   public void close() {
-    logger.debug("Force closing the watch {}", this);
+    logger.debug("Force closing the watch");
     closeEvent();
     closeRequest();
     cancelReconnect();
   }
 
-  private WatchEvent contextAwareWatchEventDeserializer(String messageSource) {
+  private WatchEvent contextAwareWatchEventDeserializer(String messageSource)
+      throws JsonProcessingException {
+    KubernetesSerialization kubernetesSerialization = this.baseOperation.getKubernetesSerialization();
     try {
-      return Serialization.unmarshal(messageSource, WatchEvent.class);
+      return kubernetesSerialization.unmarshal(messageSource, WatchEvent.class);
     } catch (Exception ex1) {
-      try {
-        JsonNode json = Serialization.jsonMapper().readTree(messageSource);
-        JsonNode objectJson = null;
-        if (json instanceof ObjectNode && json.has("object")) {
-          objectJson = ((ObjectNode) json).remove("object");
-        }
-
-        WatchEvent watchEvent = Serialization.jsonMapper().treeToValue(json, WatchEvent.class);
-        KubernetesResource object = Serialization.jsonMapper().treeToValue(objectJson, baseOperation.getType());
-
-        watchEvent.setObject(object);
-        return watchEvent;
-      } catch (JsonProcessingException ex2) {
-        throw new IllegalArgumentException("Failed to deserialize WatchEvent", ex2);
+      // TODO: this is not necessarily correct - it will force the object to be the expected type
+      // even though it is not (for example Status could be converted to the typed result)
+      JsonNode json = kubernetesSerialization.unmarshal(messageSource, JsonNode.class);
+      JsonNode objectJson = null;
+      if (json instanceof ObjectNode && json.has("object")) {
+        objectJson = ((ObjectNode) json).remove("object");
       }
+
+      WatchEvent watchEvent = kubernetesSerialization.convertValue(json, WatchEvent.class);
+      KubernetesResource object = kubernetesSerialization.convertValue(objectJson, baseOperation.getType());
+
+      watchEvent.setObject(object);
+      return watchEvent;
     }
   }
-  
-  protected WatchEvent readWatchEvent(String messageSource) {
-    WatchEvent event = contextAwareWatchEventDeserializer(messageSource);
-    KubernetesResource object = null;
-    if (event != null) {
-      object = event.getObject();
+
+  protected void onMessage(String message, WatchRequestState state) {
+    endErrors.clear();
+    if (state.closed.get() || forceClosed.get()) {
+      return;
     }
-    // when watching API Groups we don't get a WatchEvent resource
-    // so the object will be null
-    // so lets try parse the message as a KubernetesResource
-    // as it will probably be a list of resources like a BuildList
-    if (object == null) {
-      object = Serialization.unmarshal(messageSource, KubernetesResource.class);
-      if (event == null) {
-        event = new WatchEvent(object, "MODIFIED");
-      } else {
-        event.setObject(object);
-      }
-    }
-    if (event.getType() == null) {
-      event.setType("MODIFIED");
-    }
-    return event;
-  }
-  
-  protected void onMessage(String message) {
     try {
-      WatchEvent event = readWatchEvent(message);
+      WatchEvent event = contextAwareWatchEventDeserializer(message);
       Object object = event.getObject();
-      if (object instanceof Status) {
-        Status status = (Status) object;
+      Action action = Action.valueOf(event.getType());
+      if (action == Action.ERROR) {
+        if (object instanceof Status) {
+          Status status = (Status) object;
 
-        onStatus(status);
-      } else if (object instanceof KubernetesResourceList) {
-        // Dirty cast - should always be valid though
-        KubernetesResourceList list = (KubernetesResourceList) object;
-        updateResourceVersion(list.getMetadata().getResourceVersion());
-        Action action = Action.valueOf(event.getType());
-        List<HasMetadata> items = list.getItems();
-        if (items != null) {
-          for (HasMetadata item : items) {
-            eventReceived(action, item);
-          }
+          onStatus(status, state);
+        } else {
+          logger.error("Error received, but object is not a status - will retry");
+          closeRequest();
         }
       } else if (object instanceof HasMetadata) {
-        @SuppressWarnings("unchecked")
-        T obj = (T) object;
-        updateResourceVersion(obj.getMetadata().getResourceVersion());
-        Action action = Action.valueOf(event.getType());
-        eventReceived(action, obj);
+        HasMetadata hasMetadata = (HasMetadata) object;
+        updateResourceVersion(hasMetadata.getMetadata().getResourceVersion());
+        eventReceived(action, hasMetadata);
       } else {
-        logger.error("Unknown message received: {}", message);
+        final String msg = String.format("Invalid object received: %s", message);
+        close(new WatcherException(msg, null, message));
       }
     } catch (ClassCastException e) {
-      logger.error("Received wrong type of object for watch", e);
-    } catch (IllegalArgumentException e) {
-      logger.error("Invalid event type", e);
+      final String msg = "Received wrong type of object for watch";
+      close(new WatcherException(msg, e, message));
+    } catch (JsonProcessingException e) {
+      final String msg = "Couldn't deserialize watch event: " + message;
+      close(new WatcherException(msg, e, message));
     } catch (Exception e) {
-      logger.error("Unhandled exception encountered in watcher event handler", e);
+      final String msg = "Unexpected exception processing watch event";
+      close(new WatcherException(msg, e, message));
     }
   }
-  
-  protected boolean onStatus(Status status) {
+
+  protected boolean onStatus(Status status, WatchRequestState state) {
+    endErrors.clear();
+    if (state.closed.get()) {
+      return true;
+    }
     // The resource version no longer exists - this has to be handled by the caller.
-    if (status.getCode() == HTTP_GONE) {
+    if (Integer.valueOf(HTTP_GONE).equals(status.getCode())) {
       close(new WatcherException(status.getMessage(), new KubernetesClientException(status)));
       return true;
     }
 
-    eventReceived(Action.ERROR, null);
-    logger.error("Error received: {}", status);
+    logger.error("Error received: {}, will retry", status);
+    // save the after seconds for the retry attempt
+    retryAfterSeconds.set(Optional.ofNullable(status.getDetails()).map(StatusDetails::getRetryAfterSeconds).orElse(0));
+    closeRequest();
     return false;
+  }
+
+  void watchEnded(Throwable t, WatchRequestState state) {
+    state.ended.complete(null);
+    if (state != latestRequestState) {
+      // should not happen, but there is already some mitigation logic in the jetty client,
+      // so we'll guard against an erroneous error after the logical close which would cause
+      // a reconnect
+      if (t != null) {
+        logger.debug("Watch error received after the next watch started", t);
+      }
+      return;
+    }
+    if (t instanceof ProtocolException) {
+      // informers could generally try relisting in this case, but for now would need to override the execeptionHandler
+      close(new WatcherException("Could not process Watch response", t));
+      return;
+    }
+    try {
+      if (t != null) {
+        logEndError(t);
+      }
+    } finally {
+      scheduleReconnect(state);
+    }
+  }
+
+  private void logEndError(Throwable t) {
+    int occurrences = endErrors.compute(t.getClass(), (k, v) -> v == null ? 1 : v + 1);
+    if (t instanceof IOException || t instanceof KubernetesClientException) {
+      // could introspect the KubernetesClientException - it may represent something that should have elevated logging
+      if (occurrences > INFO_LOG_CONNECTION_ERRORS) {
+        logger.info("Watch connection error recieved {} times without progress, will reconnect if possible", occurrences, t);
+      } else {
+        logger.debug("Watch connection error, will reconnect if possible", t);
+      }
+    } else if (occurrences > 1) {
+      logger.info("Unknown Watch error received {} times without progress, will reconnect if possible", occurrences, t);
+    } else {
+      logger.debug("Unknown Watch error received, will reconnect if possible", t);
+    }
   }
 
 }

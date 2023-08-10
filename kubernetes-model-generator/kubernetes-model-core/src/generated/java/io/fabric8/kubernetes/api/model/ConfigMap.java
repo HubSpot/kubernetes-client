@@ -1,8 +1,9 @@
 
 package io.fabric8.kubernetes.api.model;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,11 +39,12 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@TemplateTransformations({
+    @TemplateTransformation(value = "/manifest.vm", outputPath = "META-INF/services/io.fabric8.kubernetes.api.model.KubernetesResource", gather = true)
+})
 @Version("v1")
 @Group("")
-@TemplateTransformations({
-    @TemplateTransformation(value = "/manifest.vm", outputPath = "core.properties", gather = true)
-})
+@Generated("jsonschema2pojo")
 public class ConfigMap implements HasMetadata, Namespaced
 {
 
@@ -54,9 +56,11 @@ public class ConfigMap implements HasMetadata, Namespaced
     @JsonProperty("apiVersion")
     private java.lang.String apiVersion = "v1";
     @JsonProperty("binaryData")
-    private Map<String, String> binaryData;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> binaryData = new LinkedHashMap<String, String>();
     @JsonProperty("data")
-    private Map<String, String> data;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> data = new LinkedHashMap<String, String>();
     @JsonProperty("immutable")
     private Boolean immutable;
     /**
@@ -69,7 +73,7 @@ public class ConfigMap implements HasMetadata, Namespaced
     @JsonProperty("metadata")
     private ObjectMeta metadata;
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -78,15 +82,6 @@ public class ConfigMap implements HasMetadata, Namespaced
     public ConfigMap() {
     }
 
-    /**
-     * 
-     * @param immutable
-     * @param metadata
-     * @param apiVersion
-     * @param data
-     * @param binaryData
-     * @param kind
-     */
     public ConfigMap(java.lang.String apiVersion, Map<String, String> binaryData, Map<String, String> data, Boolean immutable, java.lang.String kind, ObjectMeta metadata) {
         super();
         this.apiVersion = apiVersion;

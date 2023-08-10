@@ -2,9 +2,10 @@
 package io.fabric8.kubernetes.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -26,6 +27,7 @@ import lombok.experimental.Accessors;
     "metadata",
     "certificate-authority",
     "certificate-authority-data",
+    "disable-compression",
     "extensions",
     "insecure-skip-tls-verify",
     "proxy-url",
@@ -40,6 +42,7 @@ import lombok.experimental.Accessors;
     ""
 })
 @Buildable(editableEnabled = false, validationEnabled = false, generateBuilderPackage = true, lazyCollectionInitEnabled = false, builderPackage = "io.fabric8.kubernetes.api.builder")
+@Generated("jsonschema2pojo")
 public class Cluster implements KubernetesResource
 {
 
@@ -47,6 +50,8 @@ public class Cluster implements KubernetesResource
     private String certificateAuthority;
     @JsonProperty("certificate-authority-data")
     private String certificateAuthorityData;
+    @JsonProperty("disable-compression")
+    private Boolean disableCompression;
     @JsonProperty("extensions")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<NamedExtension> extensions = new ArrayList<NamedExtension>();
@@ -59,7 +64,7 @@ public class Cluster implements KubernetesResource
     @JsonProperty("tls-server-name")
     private String tlsServerName;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -68,20 +73,11 @@ public class Cluster implements KubernetesResource
     public Cluster() {
     }
 
-    /**
-     * 
-     * @param server
-     * @param extensions
-     * @param insecureSkipTlsVerify
-     * @param proxyUrl
-     * @param certificateAuthorityData
-     * @param certificateAuthority
-     * @param tlsServerName
-     */
-    public Cluster(String certificateAuthority, String certificateAuthorityData, List<NamedExtension> extensions, Boolean insecureSkipTlsVerify, String proxyUrl, String server, String tlsServerName) {
+    public Cluster(String certificateAuthority, String certificateAuthorityData, Boolean disableCompression, List<NamedExtension> extensions, Boolean insecureSkipTlsVerify, String proxyUrl, String server, String tlsServerName) {
         super();
         this.certificateAuthority = certificateAuthority;
         this.certificateAuthorityData = certificateAuthorityData;
+        this.disableCompression = disableCompression;
         this.extensions = extensions;
         this.insecureSkipTlsVerify = insecureSkipTlsVerify;
         this.proxyUrl = proxyUrl;
@@ -107,6 +103,16 @@ public class Cluster implements KubernetesResource
     @JsonProperty("certificate-authority-data")
     public void setCertificateAuthorityData(String certificateAuthorityData) {
         this.certificateAuthorityData = certificateAuthorityData;
+    }
+
+    @JsonProperty("disable-compression")
+    public Boolean getDisableCompression() {
+        return disableCompression;
+    }
+
+    @JsonProperty("disable-compression")
+    public void setDisableCompression(Boolean disableCompression) {
+        this.disableCompression = disableCompression;
     }
 
     @JsonProperty("extensions")

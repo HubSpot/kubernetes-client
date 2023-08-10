@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.operator.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +34,8 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "features",
+    "mtu",
     "networkType"
 })
 @ToString
@@ -53,13 +56,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class NetworkMigration implements KubernetesResource
 {
 
+    @JsonProperty("features")
+    private FeaturesMigration features;
+    @JsonProperty("mtu")
+    private MTUMigration mtu;
     @JsonProperty("networkType")
     private String networkType;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -68,13 +76,31 @@ public class NetworkMigration implements KubernetesResource
     public NetworkMigration() {
     }
 
-    /**
-     * 
-     * @param networkType
-     */
-    public NetworkMigration(String networkType) {
+    public NetworkMigration(FeaturesMigration features, MTUMigration mtu, String networkType) {
         super();
+        this.features = features;
+        this.mtu = mtu;
         this.networkType = networkType;
+    }
+
+    @JsonProperty("features")
+    public FeaturesMigration getFeatures() {
+        return features;
+    }
+
+    @JsonProperty("features")
+    public void setFeatures(FeaturesMigration features) {
+        this.features = features;
+    }
+
+    @JsonProperty("mtu")
+    public MTUMigration getMtu() {
+        return mtu;
+    }
+
+    @JsonProperty("mtu")
+    public void setMtu(MTUMigration mtu) {
+        this.mtu = mtu;
     }
 
     @JsonProperty("networkType")

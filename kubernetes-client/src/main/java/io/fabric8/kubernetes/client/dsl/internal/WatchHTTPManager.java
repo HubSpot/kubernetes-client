@@ -15,96 +15,81 @@
  */
 package io.fabric8.kubernetes.client.dsl.internal;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ListOptions;
+import io.fabric8.kubernetes.api.model.Status;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.base.BaseOperation;
-import io.fabric8.kubernetes.client.dsl.base.OperationSupport;
+import io.fabric8.kubernetes.client.http.AsyncBody;
 import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.http.HttpRequest;
 import io.fabric8.kubernetes.client.http.HttpResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class WatchHTTPManager<T extends HasMetadata, L extends KubernetesResourceList<T>> extends AbstractWatchManager<T> {
-  private static final Logger logger = LoggerFactory.getLogger(WatchHTTPManager.class);
-  private CompletableFuture<HttpResponse<InputStream>> call;
-  
+  private CompletableFuture<HttpResponse<AsyncBody>> call;
+  private volatile AsyncBody body;
+
   public WatchHTTPManager(final HttpClient client,
-                          final BaseOperation<T, L, ?> baseOperation,
-                          final ListOptions listOptions, final Watcher<T> watcher, final int reconnectInterval,
-                          final int reconnectLimit, long connectTimeout)
-    throws MalformedURLException {
-    // Default max 32x slowdown from base interval
-    this(client, baseOperation, listOptions, watcher, reconnectInterval, reconnectLimit, connectTimeout, 5);
+      final BaseOperation<T, L, ?> baseOperation,
+      final ListOptions listOptions, final Watcher<T> watcher, final int reconnectInterval,
+      final int reconnectLimit)
+      throws MalformedURLException {
+    super(watcher, baseOperation, listOptions, reconnectLimit, reconnectInterval, client);
   }
-  
-  public WatchHTTPManager(final HttpClient client,
-                          final BaseOperation<T, L, ?> baseOperation,
-                          final ListOptions listOptions, final Watcher<T> watcher, final int reconnectInterval,
-                          final int reconnectLimit, long connectTimeout, int maxIntervalExponent)
-    throws MalformedURLException {
-    
-    super(
-        watcher, baseOperation, listOptions, reconnectLimit, reconnectInterval, maxIntervalExponent,
-        () -> client.newBuilder()
-            .connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-            .readTimeout(0, TimeUnit.MILLISECONDS)
-            .forStreaming()
-            .build());
-    
-  }
-  
+
   @Override
-  protected synchronized void run(URL url, Map<String, String> headers) {
-    HttpRequest.Builder builder = client.newHttpRequestBuilder().url(url);
+  protected synchronized void start(URL url, Map<String, String> headers, WatchRequestState state) {
+    HttpRequest.Builder builder = client.newHttpRequestBuilder().url(url).forStreaming();
     headers.forEach(builder::header);
-    call = client.sendAsync(builder.build(), InputStream.class);
-    call.whenComplete((response, t) -> {
-      if (!call.isCancelled() && t != null) {
-        logger.info("Watch connection failed. reason: {}", t.getMessage());
-      }
-      if (response != null) {
-        try (InputStream body = response.body()){
-          if (!response.isSuccessful()) {
-            if (onStatus(OperationSupport.createStatus(response.code(), response.message()))) {
-              return; // terminal state
-            }
+    StringBuffer buffer = new StringBuffer();
+    call = client.consumeBytes(builder.build(), (b, a) -> {
+      for (ByteBuffer content : b) {
+        for (char c : StandardCharsets.UTF_8.decode(content).array()) {
+          if (c == '\n') {
+            onMessage(buffer.toString(), state);
+            buffer.setLength(0);
           } else {
-            resetReconnectAttempts();
-            BufferedReader source = new BufferedReader(new InputStreamReader(body, StandardCharsets.UTF_8));
-            String message = null;
-            while ((message = source.readLine()) != null) {
-              onMessage(message);
-            }
+            buffer.append(c);
           }
-        } catch (Exception e) {
-          logger.info("Watch terminated unexpectedly. reason: {}", e.getMessage());
         }
       }
-      
-      if (!call.isCancelled()) {
-        scheduleReconnect();
+      a.consume();
+    });
+    call.whenComplete((response, t) -> {
+      if (t != null) {
+        this.watchEnded(t, state);
+      }
+      if (response != null) {
+        body = response.body();
+        if (!response.isSuccessful()) {
+          Status status = OperationSupport.createStatus(response.code(), response.message());
+          if (onStatus(status, state)) {
+            return; // terminal state
+          }
+          watchEnded(new KubernetesClientException(status), state);
+        } else {
+          resetReconnectAttempts(state);
+          body.consume();
+          body.done().whenComplete((v, e) -> watchEnded(e, state));
+        }
       }
     });
   }
-  
+
   @Override
-  protected synchronized void closeRequest() {
-    if (call != null) {
-      call.cancel(true);
-      call = null;
-    }
+  protected synchronized void closeCurrentRequest() {
+    Optional.ofNullable(call).ifPresent(theFuture -> {
+      theFuture.cancel(true);
+    });
+    Optional.ofNullable(body).ifPresent(AsyncBody::cancel);
   }
 }

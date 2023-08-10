@@ -19,10 +19,9 @@ SHELL := /bin/bash
 all: build
 
 build: gobuild
-	pushd ../model-triggers && \
-	mvn clean install -o && \
-	popd
+	mvn -f ../model-triggers-v1alpha1/pom.xml -Pgenerate clean install -DskipTests -o
+	mvn -f ../model-triggers-v1beta1/pom.xml -Pgenerate clean install -DskipTests -o
 
 gobuild:
-	go mod vendor
-	CGO_ENABLED=0 GO111MODULE=on GO15VENDOREXPERIMENT=1 go run -mod=vendor -a ./cmd/generate/generate.go > ../model-triggers/src/main/resources/schema/tekton-schema-triggers.json
+	go run ./cmd/generate/generate-v1alpha1.go > ../model-triggers-v1alpha1/src/main/resources/schema/tekton-schema-triggers.json
+	go run ./cmd/generate/generate-v1beta1.go > ../model-triggers-v1beta1/src/main/resources/schema/tekton-schema-triggers.json

@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.hive.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,7 @@ import lombok.experimental.Accessors;
     "aws",
     "azure",
     "gcp",
+    "ibmcloud",
     "openstack",
     "ovirt",
     "vsphere"
@@ -58,6 +60,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class ClusterDeprovisionPlatform implements KubernetesResource
 {
 
@@ -67,6 +70,8 @@ public class ClusterDeprovisionPlatform implements KubernetesResource
     private AzureClusterDeprovision azure;
     @JsonProperty("gcp")
     private GCPClusterDeprovision gcp;
+    @JsonProperty("ibmcloud")
+    private IBMClusterDeprovision ibmcloud;
     @JsonProperty("openstack")
     private OpenStackClusterDeprovision openstack;
     @JsonProperty("ovirt")
@@ -74,7 +79,7 @@ public class ClusterDeprovisionPlatform implements KubernetesResource
     @JsonProperty("vsphere")
     private VSphereClusterDeprovision vsphere;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -83,20 +88,12 @@ public class ClusterDeprovisionPlatform implements KubernetesResource
     public ClusterDeprovisionPlatform() {
     }
 
-    /**
-     * 
-     * @param vsphere
-     * @param gcp
-     * @param ovirt
-     * @param openstack
-     * @param aws
-     * @param azure
-     */
-    public ClusterDeprovisionPlatform(AWSClusterDeprovision aws, AzureClusterDeprovision azure, GCPClusterDeprovision gcp, OpenStackClusterDeprovision openstack, OvirtClusterDeprovision ovirt, VSphereClusterDeprovision vsphere) {
+    public ClusterDeprovisionPlatform(AWSClusterDeprovision aws, AzureClusterDeprovision azure, GCPClusterDeprovision gcp, IBMClusterDeprovision ibmcloud, OpenStackClusterDeprovision openstack, OvirtClusterDeprovision ovirt, VSphereClusterDeprovision vsphere) {
         super();
         this.aws = aws;
         this.azure = azure;
         this.gcp = gcp;
+        this.ibmcloud = ibmcloud;
         this.openstack = openstack;
         this.ovirt = ovirt;
         this.vsphere = vsphere;
@@ -130,6 +127,16 @@ public class ClusterDeprovisionPlatform implements KubernetesResource
     @JsonProperty("gcp")
     public void setGcp(GCPClusterDeprovision gcp) {
         this.gcp = gcp;
+    }
+
+    @JsonProperty("ibmcloud")
+    public IBMClusterDeprovision getIbmcloud() {
+        return ibmcloud;
+    }
+
+    @JsonProperty("ibmcloud")
+    public void setIbmcloud(IBMClusterDeprovision ibmcloud) {
+        this.ibmcloud = ibmcloud;
     }
 
     @JsonProperty("openstack")

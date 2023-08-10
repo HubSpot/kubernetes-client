@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -62,6 +63,7 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class DeploymentConfigSpec implements KubernetesResource
 {
 
@@ -74,7 +76,8 @@ public class DeploymentConfigSpec implements KubernetesResource
     @JsonProperty("revisionHistoryLimit")
     private Integer revisionHistoryLimit;
     @JsonProperty("selector")
-    private Map<String, String> selector;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private Map<String, String> selector = new LinkedHashMap<String, String>();
     @JsonProperty("strategy")
     private DeploymentStrategy strategy;
     @JsonProperty("template")
@@ -82,9 +85,10 @@ public class DeploymentConfigSpec implements KubernetesResource
     @JsonProperty("test")
     private Boolean test;
     @JsonProperty("triggers")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<DeploymentTriggerPolicy> triggers = new ArrayList<DeploymentTriggerPolicy>();
     @JsonIgnore
-    private Map<java.lang.String, Object> additionalProperties = new HashMap<java.lang.String, Object>();
+    private Map<java.lang.String, Object> additionalProperties = new LinkedHashMap<java.lang.String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -93,18 +97,6 @@ public class DeploymentConfigSpec implements KubernetesResource
     public DeploymentConfigSpec() {
     }
 
-    /**
-     * 
-     * @param template
-     * @param paused
-     * @param test
-     * @param replicas
-     * @param revisionHistoryLimit
-     * @param selector
-     * @param minReadySeconds
-     * @param strategy
-     * @param triggers
-     */
     public DeploymentConfigSpec(Integer minReadySeconds, Boolean paused, Integer replicas, Integer revisionHistoryLimit, Map<String, String> selector, DeploymentStrategy strategy, io.fabric8.kubernetes.api.model.PodTemplateSpec template, Boolean test, List<DeploymentTriggerPolicy> triggers) {
         super();
         this.minReadySeconds = minReadySeconds;

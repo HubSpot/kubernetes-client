@@ -2,9 +2,10 @@
 package io.fabric8.openshift.api.model.monitoring.v1alpha1;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,7 @@ import lombok.experimental.Accessors;
     "kind",
     "metadata",
     "inhibitRules",
+    "muteTimeIntervals",
     "receivers",
     "route"
 })
@@ -57,18 +59,23 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class AlertmanagerConfigSpec implements KubernetesResource
 {
 
     @JsonProperty("inhibitRules")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<InhibitRule> inhibitRules = new ArrayList<InhibitRule>();
+    @JsonProperty("muteTimeIntervals")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private List<MuteTimeInterval> muteTimeIntervals = new ArrayList<MuteTimeInterval>();
     @JsonProperty("receivers")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<Receiver> receivers = new ArrayList<Receiver>();
     @JsonProperty("route")
     private Route route;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -77,15 +84,10 @@ public class AlertmanagerConfigSpec implements KubernetesResource
     public AlertmanagerConfigSpec() {
     }
 
-    /**
-     * 
-     * @param route
-     * @param receivers
-     * @param inhibitRules
-     */
-    public AlertmanagerConfigSpec(List<InhibitRule> inhibitRules, List<Receiver> receivers, Route route) {
+    public AlertmanagerConfigSpec(List<InhibitRule> inhibitRules, List<MuteTimeInterval> muteTimeIntervals, List<Receiver> receivers, Route route) {
         super();
         this.inhibitRules = inhibitRules;
+        this.muteTimeIntervals = muteTimeIntervals;
         this.receivers = receivers;
         this.route = route;
     }
@@ -98,6 +100,16 @@ public class AlertmanagerConfigSpec implements KubernetesResource
     @JsonProperty("inhibitRules")
     public void setInhibitRules(List<InhibitRule> inhibitRules) {
         this.inhibitRules = inhibitRules;
+    }
+
+    @JsonProperty("muteTimeIntervals")
+    public List<MuteTimeInterval> getMuteTimeIntervals() {
+        return muteTimeIntervals;
+    }
+
+    @JsonProperty("muteTimeIntervals")
+    public void setMuteTimeIntervals(List<MuteTimeInterval> muteTimeIntervals) {
+        this.muteTimeIntervals = muteTimeIntervals;
     }
 
     @JsonProperty("receivers")

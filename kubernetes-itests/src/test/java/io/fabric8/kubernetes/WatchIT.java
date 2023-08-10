@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
@@ -27,12 +28,7 @@ import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
-import org.arquillian.cube.kubernetes.api.Session;
-import org.arquillian.cube.kubernetes.impl.requirement.RequiresKubernetes;
-import org.arquillian.cube.requirement.ArquillianConditionalRunner;
-import org.jboss.arquillian.test.api.ArquillianResource;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,37 +36,30 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@RunWith(ArquillianConditionalRunner.class)
-@RequiresKubernetes
-public class WatchIT {
+class WatchIT {
 
-  @ArquillianResource
   KubernetesClient client;
-
-  @ArquillianResource
-  Session session;
 
   private static final Logger logger = LoggerFactory.getLogger(WatchIT.class);
 
   @Test
-  public void testWatch() throws InterruptedException {
-    String currentNamespace = session.getNamespace();
+  void testWatch() throws InterruptedException {
     Pod pod1 = new PodBuilder()
-      .withNewMetadata().withName("sample-watch-pod").endMetadata()
-      .withNewSpec()
-      .addNewContainer().withName("nginx").withImage("nginx").endContainer()
-      .endSpec()
-      .build();
+        .withNewMetadata().withName("sample-watch-pod").endMetadata()
+        .withNewSpec()
+        .addNewContainer().withName("nginx").withImage("nginx").endContainer()
+        .endSpec()
+        .build();
 
-    client.pods().inNamespace(currentNamespace).create(pod1);
+    client.pods().create(pod1);
 
     final CountDownLatch eventLatch = new CountDownLatch(1);
     final CountDownLatch modifyLatch = new CountDownLatch(1);
     final CountDownLatch closeLatch = new CountDownLatch(1);
-    Watch watch = client.pods().inNamespace(currentNamespace).withName("sample-watch-pod").watch(new Watcher<Pod>() {
+    Watch watch = client.pods().withName("sample-watch-pod").watch(new Watcher<Pod>() {
       @Override
       public void eventReceived(Action action, Pod pod) {
         eventLatch.countDown();
@@ -93,7 +82,7 @@ public class WatchIT {
     });
 
     client.pods()
-        .inNamespace(currentNamespace)
+
         .withName("sample-watch-pod")
         .patch(PatchContext.of(PatchType.STRATEGIC_MERGE), new PodBuilder()
             .withNewMetadata()
@@ -108,11 +97,10 @@ public class WatchIT {
   }
 
   @Test
-  public void testWatchFailureHandling() throws InterruptedException {
-    String currentNamespace = session.getNamespace();
+  void testWatchFailureHandling() throws InterruptedException {
     String name = "sample-configmap-watch";
 
-    Resource<ConfigMap> configMapClient = client.configMaps().inNamespace(currentNamespace).withName(name);
+    Resource<ConfigMap> configMapClient = client.configMaps().withName(name);
 
     configMapClient.create(new ConfigMapBuilder().withNewMetadata().withName(name).endMetadata().build());
 
@@ -133,9 +121,9 @@ public class WatchIT {
           }
           try {
             // introduce a delay to cause the ping to terminate the connection
-            // if this doesn't work reliably, then an alternative would be to
-            // restart the apiserver
-            Thread.sleep(10000);
+            // and that holds the thread for longer than the request timeout
+            Thread.sleep(Config.DEFAULT_REQUEST_TIMEOUT);
+            // TODO: could use withRequestConfig to use a shorter timeout
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new AssertionError(e);
@@ -165,14 +153,14 @@ public class WatchIT {
             .build());
 
     configMapClient
-    .patch(PatchContext.of(PatchType.STRATEGIC_MERGE), new ConfigMapBuilder()
-        .withNewMetadata()
-        .addToLabels("foo", "bar1")
-        .endMetadata()
-        .build());
+        .patch(PatchContext.of(PatchType.STRATEGIC_MERGE), new ConfigMapBuilder()
+            .withNewMetadata()
+            .addToLabels("foo", "bar1")
+            .endMetadata()
+            .build());
 
     assertTrue(eventLatch.await(10, TimeUnit.SECONDS));
-    assertTrue(modifyLatch.await(15, TimeUnit.SECONDS));
+    assertTrue(modifyLatch.await(30, TimeUnit.SECONDS));
     assertFalse(concurrent.get());
     watch.close();
     assertTrue(closeLatch.await(30, TimeUnit.SECONDS));

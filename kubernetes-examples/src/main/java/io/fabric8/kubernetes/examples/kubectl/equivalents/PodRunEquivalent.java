@@ -15,8 +15,8 @@
  */
 package io.fabric8.kubernetes.examples.kubectl.equivalents;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 
 /**
  * This sample code is Java equivalent to `kubectl run`. It runs
@@ -24,11 +24,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
  */
 public class PodRunEquivalent {
   public static void main(String[] args) {
-    try (final KubernetesClient k8s = new DefaultKubernetesClient()) {
-      k8s.run().inNamespace("default")
-        .withImage("nginx:mainline-alpine")
-        .withName("my-pod")
-        .done();
+    try (final KubernetesClient k8s = new KubernetesClientBuilder().build()) {
+      k8s.run().inNamespace("default").withNewRunConfig()
+          .withImage("nginx:mainline-alpine")
+          .withName("my-pod")
+          .done();
     }
   }
 }

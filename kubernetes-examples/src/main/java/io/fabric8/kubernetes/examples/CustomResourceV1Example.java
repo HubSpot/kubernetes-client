@@ -15,14 +15,14 @@
  */
 package io.fabric8.kubernetes.examples;
 
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaPropsBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.CustomResourceList;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
@@ -35,7 +35,7 @@ public class CustomResourceV1Example {
 
   @SuppressWarnings("java:S106")
   public static void main(String... args) {
-    try (KubernetesClient kc = new DefaultKubernetesClient()) {
+    try (KubernetesClient kc = new KubernetesClientBuilder().build()) {
       // @formatter:off
       final CustomResourceDefinition crd = CustomResourceDefinitionContext.v1CRDFromCustomResourceType(Show.class)
         .editSpec().editVersion(0)
@@ -51,19 +51,18 @@ public class CustomResourceV1Example {
           .endOpenAPIV3Schema().endSchema()
         .endVersion().endSpec().build();
       // @formatter:on
-      kc.apiextensions().v1().customResourceDefinitions().createOrReplace(crd);
+      kc.apiextensions().v1().customResourceDefinitions().resource(crd).createOrReplace();
       System.out.println("Created custom shows.example.com Kubernetes API");
-      final NonNamespaceOperation<Show, ShowList, Resource<Show>> shows =
-        kc.customResources(Show.class, ShowList.class)
-        .inNamespace("default");
+      final NonNamespaceOperation<Show, ShowList, Resource<Show>> shows = kc.resources(Show.class, ShowList.class)
+          .inNamespace("default");
       shows.list();
-      shows.createOrReplace(new Show("breaking-bad", new ShowSpec("Breaking Bad", 10)));
-      shows.createOrReplace(new Show("better-call-saul", new ShowSpec("Better call Saul", 8)));
-      shows.createOrReplace(new Show("the-wire", new ShowSpec("The Wire", 10)));
+      shows.resource(new Show("breaking-bad", new ShowSpec("Breaking Bad", 10))).createOrReplace();
+      shows.resource(new Show("better-call-saul", new ShowSpec("Better call Saul", 8))).createOrReplace();
+      shows.resource(new Show("the-wire", new ShowSpec("The Wire", 10))).createOrReplace();
       System.out.println("Added three shows");
       shows.list().getItems()
-        .forEach(s -> System.out.printf(" - %s%n", s.getSpec().name));
-      final Show theWire = shows.withName("the-wire").fromServer().get();
+          .forEach(s -> System.out.printf(" - %s%n", s.getSpec().name));
+      final Show theWire = shows.withName("the-wire").get();
       System.out.printf("The Wire Score is: %s%n", theWire.getSpec().score);
     }
   }
@@ -76,13 +75,15 @@ public class CustomResourceV1Example {
     public Show() {
       super();
     }
+
     public Show(String metaName, ShowSpec spec) {
       setMetadata(new ObjectMetaBuilder().withName(metaName).build());
       setSpec(spec);
     }
   }
 
-  public static final class ShowList extends CustomResourceList<Show> {}
+  public static final class ShowList extends DefaultKubernetesResourceList<Show> {
+  }
 
   @SuppressWarnings("unused")
   public static final class ShowSpec implements Serializable {

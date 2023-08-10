@@ -1,8 +1,9 @@
 
 package io.fabric8.openshift.api.model.installer.azure.v1;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.annotation.Generated;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -33,6 +34,7 @@ import lombok.experimental.Accessors;
     "apiVersion",
     "kind",
     "metadata",
+    "diskEncryptionSet",
     "diskSizeGB",
     "diskType"
 })
@@ -54,15 +56,18 @@ import lombok.experimental.Accessors;
     @BuildableReference(LocalObjectReference.class),
     @BuildableReference(PersistentVolumeClaim.class)
 })
+@Generated("jsonschema2pojo")
 public class OSDisk implements KubernetesResource
 {
 
+    @JsonProperty("diskEncryptionSet")
+    private DiskEncryptionSet diskEncryptionSet;
     @JsonProperty("diskSizeGB")
     private Integer diskSizeGB;
     @JsonProperty("diskType")
     private String diskType;
     @JsonIgnore
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
+    private Map<String, Object> additionalProperties = new LinkedHashMap<String, Object>();
 
     /**
      * No args constructor for use in serialization
@@ -71,15 +76,21 @@ public class OSDisk implements KubernetesResource
     public OSDisk() {
     }
 
-    /**
-     * 
-     * @param diskType
-     * @param diskSizeGB
-     */
-    public OSDisk(Integer diskSizeGB, String diskType) {
+    public OSDisk(DiskEncryptionSet diskEncryptionSet, Integer diskSizeGB, String diskType) {
         super();
+        this.diskEncryptionSet = diskEncryptionSet;
         this.diskSizeGB = diskSizeGB;
         this.diskType = diskType;
+    }
+
+    @JsonProperty("diskEncryptionSet")
+    public DiskEncryptionSet getDiskEncryptionSet() {
+        return diskEncryptionSet;
+    }
+
+    @JsonProperty("diskEncryptionSet")
+    public void setDiskEncryptionSet(DiskEncryptionSet diskEncryptionSet) {
+        this.diskEncryptionSet = diskEncryptionSet;
     }
 
     @JsonProperty("diskSizeGB")

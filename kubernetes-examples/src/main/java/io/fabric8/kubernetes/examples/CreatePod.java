@@ -20,8 +20,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import org.slf4j.Logger;
@@ -57,22 +57,22 @@ public class CreatePod {
       builder.withOauthToken(args[1]);
     }
     Config config = builder.build();
-    try (final KubernetesClient client = new DefaultKubernetesClient(config)) {
+    try (final KubernetesClient client = new KubernetesClientBuilder().withConfig(config).build()) {
       if (namespace == null) {
         namespace = client.getNamespace();
       }
 
-      List<HasMetadata> resources = client.load(new FileInputStream(fileName)).get();
+      List<HasMetadata> resources = client.load(new FileInputStream(fileName)).items();
       if (resources.isEmpty()) {
         logger.error("No resources loaded from file: {}", fileName);
         return;
       }
       HasMetadata resource = resources.get(0);
-      if (resource instanceof Pod){
+      if (resource instanceof Pod) {
         Pod pod = (Pod) resource;
         logger.info("Creating pod in namespace {}", namespace);
-        NonNamespaceOperation<Pod, PodList, PodResource<Pod>> pods = client.pods().inNamespace(namespace);
-        Pod result = pods.create(pod);
+        NonNamespaceOperation<Pod, PodList, PodResource> pods = client.pods().inNamespace(namespace);
+        Pod result = pods.resource(pod).create();
         logger.info("Created pod {}", result.getMetadata().getName());
       } else {
         logger.error("Loaded resource is not a Pod! {}", resource);
