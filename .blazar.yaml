@@ -6,6 +6,7 @@ enabled: true
 env:
   SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
+  MAVEN_VERSION: "3.8.4"
   MAVEN_ARGS: -DskipTests -am -pl kubernetes-server-mock,kubernetes-model-generator,kubernetes-model-generator/kubernetes-model-apiextensions,kubernetes-client
 
 buildResources:
