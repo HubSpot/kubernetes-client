@@ -6,7 +6,7 @@ enabled: true
 env:
   SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
   MAVEN_OPTS: -Xmx4096m
-  MAVEN_ARGS: -DskipTests -am -pl kubernetes-server-mock,kubernetes-model-generator,kubernetes-model-generator/kubernetes-model-apiextensions,kubernetes-client
+  MAVEN_ARGS: -DskipTests -am -pl kubernetes-server-mock,kubernetes-model-generator,kubernetes-model-generator/kubernetes-model-apiextensions,kubernetes-client,crd-generator/api,crd-generator/apt
 
 buildResources:
   cpus: 2
