@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.fabric8.kubernetes.client.internal.PatchUtils.patchMapper;
 
@@ -281,7 +282,10 @@ public class OperationSupport {
       deleteOptions.setDryRun(Collections.singletonList("All"));
     }
 
-    HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder().delete(JSON, JSON_MAPPER.writeValueAsString(deleteOptions)).url(requestUrl);
+    String deleteOptionsBody = JSON_MAPPER.writeValueAsString(deleteOptions);
+    LOG.debug("Executing delete for {} with body {}", requestUrl, deleteOptionsBody);
+
+    HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder().delete(JSON, deleteOptionsBody).url(requestUrl);
     handleResponse(requestBuilder, null, Collections.<String, String>emptyMap());
   }
 
