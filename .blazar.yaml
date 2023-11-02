@@ -1,6 +1,6 @@
 buildpack:
   name: Blazar-Buildpack-Java-single-module
-  branch: kubernetes_client_changes
+
 enabled: true
 
 env:
