@@ -15,31 +15,47 @@
  */
 package io.fabric8.crd.generator;
 
+import static io.sundr.model.utils.Types.BOOLEAN_REF;
+import static io.sundr.model.utils.Types.DOUBLE_REF;
+import static io.sundr.model.utils.Types.INT_REF;
+import static io.sundr.model.utils.Types.LONG_REF;
+import static io.sundr.model.utils.Types.STRING_REF;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import io.fabric8.crd.generator.annotation.SchemaSwap;
+
+import io.fabric8.crd.generator.utils.Properties;
 import io.fabric8.crd.generator.utils.Types;
 import io.fabric8.kubernetes.api.model.Duration;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.sundr.builder.internal.functions.TypeAs;
-import io.sundr.model.*;
+import io.sundr.model.AnnotationRef;
+import io.sundr.model.ClassRef;
+import io.sundr.model.Method;
+import io.sundr.model.PrimitiveRefBuilder;
+import io.sundr.model.Property;
+import io.sundr.model.TypeDef;
+import io.sundr.model.TypeRef;
 import io.sundr.utils.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static io.sundr.model.utils.Types.BOOLEAN_REF;
-
-import static io.sundr.model.utils.Types.STRING_REF;
-
-import static io.sundr.model.utils.Types.INT_REF;
-
-import static io.sundr.model.utils.Types.LONG_REF;
-
-import static io.sundr.model.utils.Types.DOUBLE_REF;
 
 /**
  * Encapsulates the common logic supporting OpenAPI schema generation for CRD generation.
@@ -237,7 +253,8 @@ public abstract class AbstractJsonSchema<T, B> {
     // index potential accessors by name for faster lookup
     final Map<String, Method> accessors = indexPotentialAccessors(definition);
 
-    for (Property property : definition.getProperties()) {
+    List<Property> visibleProperties = Properties.getVisibleProperties(definition);
+    for (Property property : visibleProperties) {
       String name = property.getName();
       if (property.isStatic() || ignores.contains(name)) {
         LOGGER.debug("Ignoring property {}", name);
@@ -485,6 +502,9 @@ public abstract class AbstractJsonSchema<T, B> {
 
   private boolean isPotentialAccessor(Method method) {
     final String name = method.getName();
+    if (!method.isPublic() || method.isStatic() || method.isTransient()) {
+      return false;
+    }
     return name.startsWith("is") || name.startsWith("get") || name.startsWith("set");
   }
 
@@ -589,7 +609,7 @@ public abstract class AbstractJsonSchema<T, B> {
 
           // check if we're dealing with an enum
           if (def.isEnum()) {
-            final JsonNode[] enumValues = def.getProperties().stream()
+            final JsonNode[] enumValues = Properties.getVisibleProperties(def).stream()
               .map(this::extractUpdatedNameFromJacksonPropertyIfPresent)
               .filter(n -> !n.startsWith("$"))
               .map(JsonNodeFactory.instance::textNode)

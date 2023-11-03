@@ -15,6 +15,7 @@
  */
 package io.fabric8.crd.generator.visitor;
 
+import io.fabric8.crd.generator.utils.Properties;
 import io.fabric8.crd.generator.utils.Types;
 import io.sundr.builder.TypedVisitor;
 import io.sundr.model.ClassRef;
@@ -56,7 +57,7 @@ public class AnnotatedMultiPropertyPathDetector extends TypedVisitor<TypeDefBuil
   @Override
   public void visit(TypeDefBuilder builder) {
     TypeDef type = builder.build();
-    final List<Property> props = type.getProperties();
+    final List<Property> props = Properties.getVisibleProperties(type);
     for (Property p : props) {
         if (parents.contains(p)) {
           continue;
@@ -75,7 +76,7 @@ public class AnnotatedMultiPropertyPathDetector extends TypedVisitor<TypeDefBuil
         if (!parents.contains(p)) {
           ClassRef classRef = (ClassRef) p.getTypeRef();
           TypeDef propertyType = Types.typeDefFrom(classRef);
-          if (!propertyType.isEnum()) {
+          if (!(propertyType.isEnum() || propertyType.getFullyQualifiedName().startsWith("java."))) {
             List<Property> newParents = new ArrayList<>(parents);
             newParents.add(p);
             new TypeDefBuilder(propertyType)

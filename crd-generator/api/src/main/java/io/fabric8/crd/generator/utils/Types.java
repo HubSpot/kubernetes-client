@@ -15,23 +15,40 @@
  */
 package io.fabric8.crd.generator.utils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.sundr.adapter.api.AdapterContext;
 import io.sundr.adapter.api.Adapters;
-import io.sundr.adapter.apt.AptAdapter;
-import io.sundr.adapter.apt.AptContext;
 import io.sundr.builder.TypedVisitor;
-import io.sundr.model.*;
+import io.sundr.model.ClassRef;
+import io.sundr.model.ClassRefBuilder;
+import io.sundr.model.Method;
+import io.sundr.model.PrimitiveRef;
+import io.sundr.model.Property;
+import io.sundr.model.PropertyBuilder;
+import io.sundr.model.TypeDef;
+import io.sundr.model.TypeDefBuilder;
+import io.sundr.model.TypeParamDef;
+import io.sundr.model.TypeParamRef;
+import io.sundr.model.TypeRef;
+import io.sundr.model.VoidRef;
+import io.sundr.model.WildcardRef;
 import io.sundr.model.functions.GetDefinition;
 import io.sundr.model.repo.DefinitionRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 public class Types {
@@ -60,11 +77,12 @@ public class Types {
     final List<ClassRef> classRefs = new ArrayList<>(Types.projectSuperClasses(definition));
     // resolve properties
     final List<Property> properties = Types.projectProperties(definition);
+    final List<Method> methods = Types.projectMethods(definition);
     // re-create TypeDef with all the needed information
     return new TypeDef(definition.getKind(), definition.getPackageName(),
       definition.getName(), definition.getComments(), definition.getAnnotations(), classRefs,
       definition.getImplementsList(), definition.getParameters(), properties,
-      definition.getConstructors(), definition.getMethods(), definition.getOuterTypeName(),
+      definition.getConstructors(), methods, definition.getOuterTypeName(),
       definition.getInnerTypes(), definition.getModifiers(), definition.getAttributes());
   }
 
@@ -159,23 +177,30 @@ public class Types {
   private static List<Property> projectProperties(TypeDef typeDef) {
     final String fqn = typeDef.getFullyQualifiedName();
     return Stream.concat(
-        typeDef.getProperties().stream().filter(p -> {
-          // enums have self-referential static properties for each enum case so we cannot ignore them
-          if (typeDef.isEnum()) {
-            final TypeRef typeRef = p.getTypeRef();
-            if (typeRef instanceof ClassRef && fqn.equals(((ClassRef) typeRef).getFullyQualifiedName())) {
-              // we're dealing with an enum case so keep it
-              return true;
+        typeDef.getProperties()
+          .stream()
+          .filter(p -> {
+            if (p.isTransient()) {
+              return false;
             }
-          }
-          // otherwise exclude all static properties
-          return !p.isStatic();
-        }),
+
+            // enums have self-referential static properties for each enum case so we cannot ignore them
+            if (typeDef.isEnum()) {
+              final TypeRef typeRef = p.getTypeRef();
+              if (typeRef instanceof ClassRef && fqn.equals(((ClassRef) typeRef).getFullyQualifiedName())) {
+                // we're dealing with an enum case so keep it
+                return true;
+              }
+            }
+            // otherwise exclude all static and transient properties
+            return !p.isStatic();
+          }),
         typeDef.getExtendsList().stream()
           .filter(e -> !e.getFullyQualifiedName().startsWith("java."))
           .flatMap(e -> projectProperties(projectDefinition(e))
             .stream()
-            .filter(p -> filterCustomResourceProperties(e).test(p)))
+            .filter(p -> filterCustomResourceProperties(e).test(p))
+          )
       )
 
       .collect(Collectors.toList());
@@ -186,6 +211,49 @@ public class Types {
     return p -> !p.isStatic() &&
       (!ref.getFullyQualifiedName().equals(CUSTOM_RESOURCE_NAME) ||
         (p.getName().equals("spec") || p.getName().equals("status")));
+  }
+
+  /**
+   * All non-static methods (including inherited).
+   *
+   * @param typeDef The type.
+   * @return A list with all methods.
+   */
+  private static List<Method> projectMethods(TypeDef typeDef) {
+    final String fqn = typeDef.getFullyQualifiedName();
+    return Stream.concat(
+        typeDef.getMethods()
+          .stream()
+          .filter(m -> {
+            if (m.isTransient()) {
+              return false;
+            }
+            // enums have self-referential static properties for each enum case so we cannot ignore them
+            if (typeDef.isEnum()) {
+              TypeRef typeRef = m.getReturnType();
+              if (typeRef instanceof ClassRef && fqn.equals(((ClassRef) typeRef).getFullyQualifiedName())) {
+                // we're dealing with an enum case so keep it
+                return true;
+              }
+            }
+            // otherwise exclude all static properties
+            return !m.isStatic();
+          }),
+        typeDef.getExtendsList()
+          .stream()
+          .filter(e -> !e.getFullyQualifiedName().startsWith("java."))
+          .flatMap(e -> projectMethods(projectDefinition(e))
+            .stream()
+            .filter(m -> filterCustomResourceMethods(e).test(m))
+          )
+      )
+      .collect(Collectors.toList());
+  }
+
+  private static Predicate<Method> filterCustomResourceMethods(ClassRef ref) {
+    return m -> !m.isStatic() &&
+      (!ref.getFullyQualifiedName().equals(CUSTOM_RESOURCE_NAME) ||
+        (m.getName().equals("getSpec") || m.getName().equals("getStatus")));
   }
 
 
@@ -201,7 +269,7 @@ public class Types {
     }
 
     visited.add(def.getFullyQualifiedName());
-    for (Property property : def.getProperties()) {
+    for (Property property : Properties.getVisibleProperties(def)) {
       TypeRef typeRef = property.getTypeRef();
       if (typeRef instanceof ClassRef) {
         final TypeDef typeDef = typeDefFrom((ClassRef) typeRef);
@@ -308,7 +376,7 @@ public class Types {
    * @return the an optional property.
    */
   public static Optional<Property> findStatusProperty(TypeDef typeDef) {
-    return typeDef.getProperties().stream()
+    return Properties.getVisibleProperties(typeDef).stream()
       .filter(Types::isStatusProperty)
       .findFirst();
   }

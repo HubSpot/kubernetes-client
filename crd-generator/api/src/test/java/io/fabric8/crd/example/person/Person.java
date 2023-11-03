@@ -20,15 +20,24 @@ import java.util.Optional;
 
 public class Person {
 
-  private String firstName;
-  private Optional<String> middleName;
-  private String lastName;
-  private int birthYear;
-  private List<String> hobbies;
-  private AddressList addresses;
-  private Type type;
+  public String firstName;
+  public Optional<String> middleName;
+  public String lastName;
+  public int birthYear;
+  public List<String> hobbies;
+  public AddressList addresses;
+  public Type type;
+  public transient Foo transientFoo;
+
+  protected static Foo builder() {
+    return new Foo();
+  }
 
   public enum Type {
     crazy, crazier
+  }
+
+  public static class Foo {
+    public static String bar;
   }
 }

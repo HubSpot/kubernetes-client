@@ -25,15 +25,15 @@ import javax.validation.constraints.NotNull;
 public class AnnotatedSpec {
   @JsonProperty("from-field")
   @JsonPropertyDescription("from-field-description")
-  private String field;
+  public String field;
   private int foo;
   @JsonProperty
-  private String unnamed;
+  public String unnamed;
   @NotNull
   private boolean emptySetter;
-  private AnnotatedEnum anEnum;
+  public AnnotatedEnum anEnum;
   @Min(0) // a non-string value attribute
-  private int sizedField;
+  public int sizedField;
 
   @JsonIgnore
   private int ignoredFoo;
@@ -59,6 +59,10 @@ public class AnnotatedSpec {
   @JsonProperty
   public void setEmptySetter(boolean emptySetter) {
     this.emptySetter = emptySetter;
+  }
+
+  public boolean isEmptySetter() {
+    return emptySetter;
   }
 
   public enum AnnotatedEnum {

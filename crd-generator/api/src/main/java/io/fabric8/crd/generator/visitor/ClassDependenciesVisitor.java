@@ -15,16 +15,25 @@
  */
 package io.fabric8.crd.generator.visitor;
 
+import static io.sundr.model.Attributeable.ALSO_IMPORT;
+
 import io.fabric8.crd.generator.utils.Types;
 import io.sundr.builder.TypedVisitor;
+import io.sundr.model.AnnotationRef;
 import io.sundr.model.ClassRef;
+import io.sundr.model.Method;
+import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
 import io.sundr.model.TypeDefBuilder;
+import io.sundr.model.TypeParamDef;
 import io.sundr.model.TypeRef;
 import io.sundr.model.utils.Collections;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -54,7 +63,7 @@ public class ClassDependenciesVisitor extends TypedVisitor<TypeDefBuilder> {
     }
 
     // process all references to see if they need to be added or not
-    type.getReferences().forEach(c -> {
+    getAccessibleReferences(type).forEach(c -> {
       final String fqn = c.getFullyQualifiedName();
       if (ignore(fqn)) {
         return;
@@ -103,5 +112,59 @@ public class ClassDependenciesVisitor extends TypedVisitor<TypeDefBuilder> {
     return crdNameToCrClass.get(crdName).stream()
       .flatMap(crClassName -> traversedClasses.get(crClassName).stream())
       .collect(Collectors.toSet());
+  }
+
+  private static List<ClassRef> getAccessibleReferences(TypeDef def) {
+    final List<ClassRef> refs = new ArrayList<>();
+
+    for (AnnotationRef a : def.getAnnotations()) {
+      refs.addAll(a.getReferences());
+    }
+
+    for (ClassRef i : def.getImplementsList()) {
+      refs.addAll(i.getReferences());
+    }
+
+    for (ClassRef e : def.getExtendsList()) {
+      refs.addAll(e.getReferences());
+    }
+
+    for (Property property : def.getProperties()) {
+      refs.addAll(property.getReferences());
+    }
+
+    for (Method method : def.getConstructors()) {
+      if (method.isPublic()) {
+        refs.addAll(method.getReferences());
+      }
+    }
+
+    for (Method method : def.getMethods()) {
+      if (method.isPublic()) {
+        refs.addAll(method.getReferences());
+      }
+    }
+
+    for (TypeParamDef typeParamDef : def.getParameters()) {
+      for (ClassRef bound : typeParamDef.getBounds()) {
+        refs.addAll(bound.getReferences());
+      }
+    }
+
+    for (TypeDef innerType : def.getInnerTypes()) {
+      if (innerType.isPublic()) {
+        refs.addAll(innerType.getReferences());
+      }
+    }
+
+    if (def.getAttributes().containsKey(ALSO_IMPORT)) {
+      Object obj = def.getAttributes().get(ALSO_IMPORT);
+      if (obj instanceof ClassRef) {
+        refs.add((ClassRef) obj);
+      } else if (obj instanceof Collection) {
+        refs.addAll((Collection<? extends ClassRef>) obj);
+      }
+    }
+    return refs;
   }
 }
