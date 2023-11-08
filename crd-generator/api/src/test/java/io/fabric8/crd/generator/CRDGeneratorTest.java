@@ -265,6 +265,7 @@ class CRDGeneratorTest {
     });
   }
 
+
   @Test
   void mapPropertyShouldHaveCorrectValueType() {
     outputCRDIfFailed(ContainingMaps.class, (customResource) -> {
