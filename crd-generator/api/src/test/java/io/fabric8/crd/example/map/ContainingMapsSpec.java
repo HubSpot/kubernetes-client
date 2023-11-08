@@ -18,8 +18,6 @@ package io.fabric8.crd.example.map;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-
 public class ContainingMapsSpec {
 
   private Map<String, List<String>> test = null;
@@ -34,46 +32,6 @@ public class ContainingMapsSpec {
     return test2;
   }
 
-  public enum UpdateRiskLevel {
-    EXPERIMENTAL(0),
-    LOW(20),
-    MEDIUM(40),
-    HIGH(60);
-
-    private final int priority;
-
-    UpdateRiskLevel(int priority) {
-      this.priority = priority;
-    }
-
-    public int getPriority() {
-      return priority;
-    }
-
-    @JsonCreator
-    public static UpdateRiskLevel fromString(String name) {
-      return UpdateRiskLevel.valueOf(name.toUpperCase());
-    }
-  }
-
-  public static class Bar {
-    private int anInt;
-    static Bar getDefault(UpdateRiskLevel riskLevel) {
-      switch (riskLevel) {
-        case EXPERIMENTAL:
-        case LOW:
-        case MEDIUM:
-        case HIGH:
-          return new Bar();
-        default:
-          throw new RuntimeException("unknown risk level " + riskLevel.name());
-      }
-    }
-
-    public Bar() {}
-  }
-
-
-  public Map<UpdateRiskLevel, Bar> mapWithEnumKey;
+  public Map<UpdateRiskLevel, RiskLevelSettings> mapWithEnumKey;
 
 }
