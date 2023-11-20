@@ -275,7 +275,7 @@ class CRDGeneratorTest {
       final Map<String, JSONSchemaProps> specProps = version.getSchema().getOpenAPIV3Schema()
         .getProperties().get("spec").getProperties();
 
-      assertEquals(2, specProps.size());
+      assertEquals(3, specProps.size());
 
       checkMapProp(specProps, "test", "array");
       String arrayType = specProps.get("test").getAdditionalProperties().getSchema().getItems().getSchema().getType();
