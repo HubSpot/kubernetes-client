@@ -24,6 +24,6 @@ public class SpecReplicasPathDetector extends AnnotatedPropertyPathDetector {
     this(DOT);
   }
 	public SpecReplicasPathDetector(String prefix) {
-		super(prefix, SpecReplicas.class.getSimpleName(), new ArrayList<>());
+		super(prefix, SpecReplicas.class.getSimpleName());
 	}
 }

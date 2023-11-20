@@ -17,15 +17,21 @@ package io.fabric8.crd.generator.visitor;
 
 import io.fabric8.crd.generator.utils.Types;
 import io.sundr.builder.TypedVisitor;
+import io.sundr.model.AnnotationRef;
 import io.sundr.model.ClassRef;
 import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
 import io.sundr.model.TypeDefBuilder;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static io.fabric8.crd.generator.AbstractJsonSchema.ANNOTATION_JSON_IGNORE;
 
 public class AnnotatedPropertyPathDetector extends TypedVisitor<TypeDefBuilder> {
 
@@ -35,59 +41,74 @@ public class AnnotatedPropertyPathDetector extends TypedVisitor<TypeDefBuilder> 
   private final String prefix;
   private final String annotationName;
   private final List<Property> parents;
-  private final AtomicReference<Optional<String>> reference;
+  private final AtomicReference<String> reference;
+  private final Deque<Runnable> toRun;
 
   public AnnotatedPropertyPathDetector(String prefix, String annotationName) {
-    this(prefix, annotationName, new ArrayList<>());
+    this(prefix, annotationName, new ArrayList<>(), new AtomicReference<>(), new ArrayDeque<>());
   }
 
-  public AnnotatedPropertyPathDetector(String prefix, String annotationName, List<Property> parents) {
-    this(prefix, annotationName, parents, new AtomicReference<>(Optional.empty()));
-  }
-
-  public AnnotatedPropertyPathDetector(String prefix, String annotationName, List<Property> parents, AtomicReference<Optional<String>> reference) {
+  public AnnotatedPropertyPathDetector(String prefix, String annotationName, List<Property> parents,
+                                       AtomicReference<String> reference, Deque<Runnable> toRun) {
     this.prefix = prefix;
     this.annotationName = annotationName;
     this.parents = parents;
     this.reference = reference;
+    this.toRun = toRun;
+  }
+
+  private static boolean excludePropertyProcessing(Property p) {
+    for (AnnotationRef annotation : p.getAnnotations()) {
+      if (annotation.getClassRef().getFullyQualifiedName().equals(ANNOTATION_JSON_IGNORE)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
   public void visit(TypeDefBuilder builder) {
     TypeDef type = builder.build();
     final List<Property> properties = type.getProperties();
+    visitProperties(properties);
+  }
+
+  private void visitProperties(List<Property> properties) {
     for (Property p : properties) {
       if (parents.contains(p)) {
-          continue;
-        }
+        continue;
+      }
 
-        List<Property> newParents = new ArrayList<>(parents);
-        boolean match = p.getAnnotations().stream().anyMatch(a -> a.getClassRef().getName().equals(annotationName));
+      List<Property> newParents = new ArrayList<>(parents);
+      boolean match = false;
+      for (AnnotationRef annotation : p.getAnnotations()) {
+        match = annotation.getClassRef().getName().equals(annotationName);
         if (match) {
           newParents.add(p);
-          reference.set(Optional.of(newParents.stream().map(Property::getName).collect(Collectors.joining(DOT, prefix, ""))));
+          reference.set(newParents.stream().map(Property::getName).collect(Collectors.joining(DOT, prefix, "")));
           return;
         }
+      }
+
+      if (p.getTypeRef() instanceof ClassRef && !excludePropertyProcessing(p)) {
+        ClassRef classRef = (ClassRef) p.getTypeRef();
+        TypeDef propertyType = Types.typeDefFrom(classRef);
+        if (!propertyType.isEnum() && !classRef.getPackageName().startsWith("java.")) {
+          newParents.add(p);
+          new TypeDefBuilder(propertyType)
+            .accept(new AnnotatedPropertyPathDetector(prefix, annotationName, newParents, reference, toRun));
+        }
+      }
     }
 
-    properties.stream()
-      .filter(p -> p.getTypeRef() instanceof ClassRef)
-      .forEach(p -> {
-        if (!parents.contains(p)) {
-          ClassRef classRef = (ClassRef) p.getTypeRef();
-          TypeDef propertyType = Types.typeDefFrom(classRef);
-          if (!propertyType.isEnum()) {
-            List<Property> newParents = new ArrayList<>(parents);
-            newParents.add(p);
-            new TypeDefBuilder(propertyType)
-              .accept(new AnnotatedPropertyPathDetector(prefix, annotationName, newParents, reference))
-              .build();
-          }
-        }
-      });
+    if (parents.isEmpty()) {
+      while (!toRun.isEmpty() && reference.get() == null) {
+        toRun.pop().run();
+      }
+    }
   }
 
   public Optional<String> getPath() {
-    return reference.get();
+    return Optional.ofNullable(reference.get());
   }
 }

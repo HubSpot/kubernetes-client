@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class StatusReplicasPathDetector extends AnnotatedPropertyPathDetector {
 
 	public StatusReplicasPathDetector(String prefix) {
-    super(prefix, StatusReplicas.class.getSimpleName(), new ArrayList<>());
+    super(prefix, StatusReplicas.class.getSimpleName());
 
   }
 

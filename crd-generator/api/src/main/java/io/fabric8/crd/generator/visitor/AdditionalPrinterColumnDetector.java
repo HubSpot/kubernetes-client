@@ -25,7 +25,7 @@ public class AdditionalPrinterColumnDetector extends AnnotatedMultiPropertyPathD
   }
 
   public AdditionalPrinterColumnDetector(String prefix) {
-    super(prefix, PrinterColumn.class.getSimpleName(), new ArrayList<>());
+    super(prefix, PrinterColumn.class.getSimpleName());
   }
 }
 
