@@ -15,6 +15,7 @@
  */
 package io.fabric8.crd.example.map;
 
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,5 +32,11 @@ public class ContainingMapsSpec {
   public Map<String, Map<String, List<Boolean>>> getTest2() {
     return test2;
   }
+
+  public enum Foo {
+    BAR
+  }
+
+  private EnumMap<Foo, String> enumToStringMap;
 
 }

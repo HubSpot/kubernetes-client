@@ -25,6 +25,6 @@ public class LabelSelectorPathDetector extends AnnotatedPropertyPathDetector {
   }
 
 	public LabelSelectorPathDetector(String prefix) {
-		super(prefix, LabelSelector.class.getSimpleName(), new ArrayList<>());
+		super(prefix, LabelSelector.class.getSimpleName());
 	}
 }
