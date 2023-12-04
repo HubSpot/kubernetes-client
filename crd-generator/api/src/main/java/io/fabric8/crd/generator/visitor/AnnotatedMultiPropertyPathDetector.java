@@ -59,7 +59,7 @@ public class AnnotatedMultiPropertyPathDetector extends TypedVisitor<TypeDefBuil
 
   private boolean excludePropertyProcessing(Property p) {
     return p.getAnnotations().stream()
-        .anyMatch(ann -> ann.getClassRef().getFullyQualifiedName().equals(ANNOTATION_JSON_IGNORE));
+      .anyMatch(ann -> ann.getClassRef().getFullyQualifiedName().equals(ANNOTATION_JSON_IGNORE))  || p.isTransient();
   }
 
   @Override
