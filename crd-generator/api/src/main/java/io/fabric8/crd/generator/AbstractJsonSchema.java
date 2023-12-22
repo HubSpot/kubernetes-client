@@ -30,6 +30,7 @@ import io.sundr.model.Method;
 import io.sundr.model.PrimitiveRefBuilder;
 import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
+import io.sundr.model.TypeParamRef;
 import io.sundr.model.TypeRef;
 import io.sundr.utils.Strings;
 import org.slf4j.Logger;
@@ -213,7 +214,7 @@ public abstract class AbstractJsonSchema<T, B> {
    */
   protected T internalFrom(TypeDef definition, String... ignore) {
     InternalSchemaSwaps schemaSwaps = new InternalSchemaSwaps();
-    return internalFromImpl(definition, new HashSet<>(), schemaSwaps, ignore);
+    return internalFromImpl(definition, new HashSet<>(), schemaSwaps, new ParameterMap(new HashMap<>()), ignore);
   }
 
   private static ClassRef extractClassRef(Object type) {
@@ -267,7 +268,7 @@ public abstract class AbstractJsonSchema<T, B> {
     }
   }
 
-  private T internalFromImpl(TypeDef definition, Set<String> visited, InternalSchemaSwaps schemaSwaps, String... ignore) {
+  private T internalFromImpl(TypeDef definition, Set<String> visited, InternalSchemaSwaps schemaSwaps, ParameterMap parameterMap, String... ignore) {
     Set<String> ignores = ignore.length > 0 ? new LinkedHashSet<>(Arrays.asList(ignore))
         : Collections
             .emptySet();
@@ -304,7 +305,7 @@ public abstract class AbstractJsonSchema<T, B> {
         // hack to prevent cycle detection - this may need improved at some point should stackoverflows be encountered
         visited.clear();
       }
-      final PropertyFacade facade = new PropertyFacade(property, accessors, swapResult.classRef);
+      final PropertyFacade facade = new PropertyFacade(property, accessors, swapResult.classRef, parameterMap);
       final Property possiblyRenamedProperty = facade.process();
       name = possiblyRenamedProperty.getName();
 
@@ -313,7 +314,7 @@ public abstract class AbstractJsonSchema<T, B> {
       } else if (facade.ignored) {
         continue;
       }
-      final T schema = internalFromImpl(name, possiblyRenamedProperty.getTypeRef(), visited, schemaSwaps);
+      final T schema = internalFromImpl(name, possiblyRenamedProperty.getTypeRef(), visited, schemaSwaps, parameterMap);
       if (facade.preserveUnknownFields) {
         preserveUnknownFields = true;
       }
@@ -350,6 +351,46 @@ public abstract class AbstractJsonSchema<T, B> {
         .filter(this::isPotentialAccessor)
         .forEach(m -> accessors.put(m.getName(), m));
     return accessors;
+  }
+
+  private static class ParameterMap {
+    final Map<String, TypeRef> mappings;
+
+    ParameterMap(Map<String, TypeRef> mappings) {
+      this.mappings = mappings;
+    }
+
+    TypeRef exchange(TypeRef original){
+      return exchange(original, true);
+    }
+
+    TypeRef exchange(TypeRef original, boolean throwOnFailedLookup){
+      if (original instanceof TypeParamRef) {
+        String name = original.getName();
+        TypeRef ref = mappings.get(name);
+        if(ref != null) {
+          return ref;
+        }
+        if(throwOnFailedLookup) {
+          throw new RuntimeException(String.format("Could not find type mapping for parametrized type %s", name));
+        }
+      }
+      return original;
+    }
+
+    static ParameterMap from(ClassRef classRef, ParameterMap parentMappings) {
+      TypeDef def = Types.typeDefFrom(classRef);
+
+      Map<String, TypeRef> mappings = new HashMap<>();
+      for(int i=0; i<def.getParameters().size(); i++) {
+        mappings.put(
+          def.getParameters().get(i).getName(),
+          parentMappings.exchange(classRef.getArguments().get(i))
+        );
+      }
+
+      return new ParameterMap(mappings);
+    }
   }
 
   private static class PropertyOrAccessor {
@@ -496,6 +537,7 @@ public abstract class AbstractJsonSchema<T, B> {
 
   private static class PropertyFacade {
     private final List<PropertyOrAccessor> propertyOrAccessors = new ArrayList<>(4);
+    private final ParameterMap parameterMap;
     private String renamedTo;
     private String description;
     private String defaultValue;
@@ -511,8 +553,9 @@ public abstract class AbstractJsonSchema<T, B> {
     private String descriptionContributedBy;
     private TypeRef schemaFrom;
 
-    public PropertyFacade(Property property, Map<String, Method> potentialAccessors, ClassRef schemaSwap) {
+    public PropertyFacade(Property property, Map<String, Method> potentialAccessors, ClassRef schemaSwap,  ParameterMap parameterMap) {
       original = property;
+      this.parameterMap = parameterMap;
       final String capitalized = property.getNameCapitalized();
       final String name = property.getName();
       propertyOrAccessors.add(PropertyOrAccessor.fromProperty(property));
@@ -580,7 +623,7 @@ public abstract class AbstractJsonSchema<T, B> {
         }
       });
 
-      TypeRef typeRef = schemaFrom != null ? schemaFrom : original.getTypeRef();
+      TypeRef typeRef = schemaFrom != null ? schemaFrom : parameterMap.exchange(original.getTypeRef());
       String finalName = renamedTo != null ? renamedTo : original.getName();
 
       return new Property(original.getAnnotations(), typeRef, finalName,
@@ -666,17 +709,17 @@ public abstract class AbstractJsonSchema<T, B> {
    * @return the structural schema associated with the specified property
    */
   public T internalFrom(String name, TypeRef typeRef) {
-    return internalFromImpl(name, typeRef, new HashSet<>(), new InternalSchemaSwaps());
+    return internalFromImpl(name, typeRef, new HashSet<>(), new InternalSchemaSwaps(), new ParameterMap(new HashMap<>()));
   }
 
-  private T internalFromImpl(String name, TypeRef typeRef, Set<String> visited, InternalSchemaSwaps schemaSwaps) {
+  private T internalFromImpl(String name, TypeRef typeRef, Set<String> visited, InternalSchemaSwaps schemaSwaps, ParameterMap parameterMap) {
     // Note that ordering of the checks here is meaningful: we need to check for complex types last
     // in case some "complex" types are handled specifically
     if (typeRef.getDimensions() > 0 || io.sundr.model.utils.Collections.isCollection(typeRef)) { // Handle Collections & Arrays
       //noinspection unchecked
       final TypeRef collectionType = TypeAs.combine(TypeAs.UNWRAP_ARRAY_OF, TypeAs.UNWRAP_COLLECTION_OF)
           .apply(typeRef);
-      final T schema = internalFromImpl(name, collectionType, visited, schemaSwaps);
+      final T schema = internalFromImpl(name, parameterMap.exchange(collectionType), visited, schemaSwaps, parameterMap);
       return arrayLikeProperty(schema);
     } else if (io.sundr.model.utils.Collections.IS_MAP.apply(typeRef)) { // Handle Maps
       final TypeRef keyType = TypeAs.UNWRAP_MAP_KEY_OF.apply(typeRef);
@@ -686,17 +729,17 @@ public abstract class AbstractJsonSchema<T, B> {
       }
 
       final TypeRef valueType = TypeAs.UNWRAP_MAP_VALUE_OF.apply(typeRef);
-      T schema = internalFromImpl(name, valueType, visited, schemaSwaps);
+      T schema = internalFromImpl(name, parameterMap.exchange(valueType, false), visited, schemaSwaps, parameterMap);
       if (schema == null) {
         LOGGER.warn(
             "Property '{}' with '{}' value type is mapped to 'object' because its CRD representation cannot be extracted.",
             name, typeRef);
-        schema = internalFromImpl(name, OBJECT_REF, visited, schemaSwaps);
+        schema = internalFromImpl(name, OBJECT_REF, visited, schemaSwaps, parameterMap);
       }
 
       return mapLikeProperty(schema);
     } else if (io.sundr.model.utils.Optionals.isOptional(typeRef)) { // Handle Optionals
-      return internalFromImpl(name, TypeAs.UNWRAP_OPTIONAL_OF.apply(typeRef), visited, schemaSwaps);
+      return internalFromImpl(name, parameterMap.exchange(TypeAs.UNWRAP_OPTIONAL_OF.apply(typeRef)), visited, schemaSwaps, parameterMap);
     } else {
       final String typeName = COMMON_MAPPINGS.get(typeRef);
       if (typeName != null) { // we have a type that we handle specifically
@@ -721,7 +764,7 @@ public abstract class AbstractJsonSchema<T, B> {
                 .toArray(JsonNode[]::new);
             return enumProperty(enumValues);
           } else if (!classRef.getFullyQualifiedName().equals(VOID.getName())) {
-            return resolveNestedClass(name, def, visited, schemaSwaps);
+            return resolveNestedClass(name, classRef, visited, schemaSwaps, parameterMap);
           }
 
         }
@@ -733,7 +776,8 @@ public abstract class AbstractJsonSchema<T, B> {
   // Flag to detect cycles
   private boolean resolving = false;
 
-  private T resolveNestedClass(String name, TypeDef def, Set<String> visited, InternalSchemaSwaps schemaSwaps) {
+  private T resolveNestedClass(String name, ClassRef classRef, Set<String> visited, InternalSchemaSwaps schemaSwaps, ParameterMap parameterMap) {
+    TypeDef def = Types.typeDefFrom(classRef);
     if (!resolving) {
       visited.clear();
       resolving = true;
@@ -746,7 +790,7 @@ public abstract class AbstractJsonSchema<T, B> {
       visited.add(visitedName);
     }
 
-    T res = internalFromImpl(def, visited, schemaSwaps);
+    T res = internalFromImpl(def, visited, schemaSwaps, ParameterMap.from(classRef, parameterMap));
     resolving = false;
     return res;
   }

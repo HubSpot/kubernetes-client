@@ -27,11 +27,13 @@ import io.fabric8.crd.example.extraction.IncorrectExtraction;
 import io.fabric8.crd.example.extraction.IncorrectExtraction2;
 import io.fabric8.crd.example.extraction.MultipleSchemaSwaps;
 import io.fabric8.crd.example.extraction.NestedSchemaSwap;
+import io.fabric8.crd.example.generic.ResourceWithGeneric;
 import io.fabric8.crd.example.json.ContainingJson;
 import io.fabric8.crd.example.person.Person;
 import io.fabric8.crd.generator.utils.Types;
 import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaPropsOrArray;
 import io.sundr.model.TypeDef;
 import org.junit.jupiter.api.Test;
 
@@ -387,5 +389,50 @@ class JsonSchemaTest {
     JSONSchemaProps property = properties.get(name);
     assertNotNull(property, "Property " + name + " should exist");
     assertEquals(expectedType, property.getType(), "Property " + name + " should have expected type");
+  }
+
+  @Test
+  void shouldProcessGenericClasses() {
+    TypeDef resourceWithGeneric = Types.typeDefFrom(ResourceWithGeneric.class);
+    JSONSchemaProps schema = JsonSchema.from(resourceWithGeneric);
+    assertNotNull(schema);
+
+    Map<String, JSONSchemaProps> properties = schema.getProperties();
+    assertEquals(2, properties.size());
+
+    final JSONSchemaProps specSchema = properties.get("spec");
+    Map<String, JSONSchemaProps> spec = specSchema.getProperties();
+    assertEquals(3, spec.size());
+
+    JSONSchemaProps foo = spec.get("foo");
+    assertNotNull(foo);
+    Map<String, JSONSchemaProps> fooProps = foo.getProperties();
+    assertNotNull(fooProps);
+    assertEquals("string", fooProps.get("bar").getType());
+
+    JSONSchemaProps baz = spec.get("baz");
+    assertNotNull(baz);
+    Map<String, JSONSchemaProps> bazProps = baz.getProperties();
+    assertNotNull(bazProps);
+    assertEquals("integer", bazProps.get("bar").getType());
+
+    JSONSchemaProps qux = spec.get("qux");
+    assertNotNull(qux);
+    Map<String, JSONSchemaProps> quxProps = qux.getProperties();
+    assertEquals(2, quxProps.size());
+
+    JSONSchemaProps quux = quxProps.get("quux");
+    assertNotNull(quux);
+    Map<String, JSONSchemaProps> quuxProps = quux.getProperties();
+    assertNotNull(quuxProps);
+    assertEquals("string", quuxProps.get("bar").getType());
+
+    JSONSchemaProps corge = quxProps.get("corge");
+    assertNotNull(corge);
+    JSONSchemaPropsOrArray corgeItems = corge.getItems();
+    assertNotNull(corgeItems);
+    JSONSchemaProps corgeItemsProps = corgeItems.getSchema();
+    assertNotNull(corgeItemsProps);
+    assertEquals("string", corgeItemsProps.getType());
   }
 }
