@@ -1,0 +1,18 @@
+buildpack:
+  name: Blazar-Buildpack-Java-single-module
+
+enabled: true
+
+env:
+  SET_VERSION_OVERRIDE: $GIT_BRANCH-SNAPSHOT
+  MAVEN_OPTS: -Xmx4096m
+  MAVEN_BUILD_ARGS: -DskipTests -am -pl junit/kubernetes-server-mock,kubernetes-model-generator,kubernetes-client,crd-generator/api,crd-generator/apt,generator-annotations
+
+buildResources:
+  cpus: 2
+  memoryMb: 5120
+
+
+provides:
+  - name: kubernetes-client
+    version: $GIT_BRANCH-SNAPSHOT
