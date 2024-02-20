@@ -177,7 +177,9 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
             new ListOptionsBuilder()
                 // if caching is allowed, start with 0 - meaning any cached version is fine for the initial listing
                 .withResourceVersion(isCachedListing(continueVal) ? "0" : null)
-                .withLimit(listerWatcher.getLimit()).withContinue(continueVal)
+                .withLimit(listerWatcher.getLimit())
+                .withContinue(continueVal)
+                .withAllowWatchBookmarks(false)
                 .build());
 
     return futureResult.thenCompose(result -> {
@@ -217,6 +219,7 @@ public class Reflector<T extends HasMetadata, L extends KubernetesResourceList<T
             // so instead we'll terminate below and set a fail-safe here
             // .withTimeoutSeconds((long) ((Math.random() + 1) * minTimeout))
             .withTimeoutSeconds(minTimeout * 2)
+            .withAllowWatchBookmarks(false)
             .build(),
         watcher);
 
