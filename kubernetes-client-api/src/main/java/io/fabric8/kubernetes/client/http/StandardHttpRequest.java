@@ -204,7 +204,7 @@ public class StandardHttpRequest extends StandardHttpHeaders implements HttpRequ
 
     @Override
     public HttpRequest.Builder timeout(long timeout, TimeUnit unit) {
-      this.timeout = Duration.ofNanos(unit.toNanos(timeout));
+      this.timeout = timeout > 0 ? Duration.ofNanos(unit.toNanos(timeout)) : null;
       return this;
     }
 
