@@ -65,7 +65,8 @@ public class CRDGenerator {
       .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
       .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
       .configure(SerializationFeature.INDENT_OUTPUT, true)
-      .withConfigOverride(Map.class, configOverride -> configOverride.setInclude(construct(NON_NULL, NON_NULL)))
+      .configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false)
+      .configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false)
       .serializationInclusion(NON_EMPTY)
       .build();
 
