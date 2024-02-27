@@ -58,7 +58,7 @@ public class GoIntegerDeserializer extends StdDeserializer<Integer> implements C
         return Integer.valueOf(matcher.group(2), 8);
       }
     }
-    return _parseInteger(ctxt, value);
+    return _parseIntPrimitive(ctxt, value);
   }
 
   @Override
