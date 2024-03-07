@@ -421,7 +421,11 @@ public abstract class BaseClient implements Client {
   }
 
   public void removeFromCloseable(AutoCloseable closeable) {
-    this.closable.remove(closeable);
+    synchronized (closeable) {
+      if (!this.closed.isDone()) {
+        this.closable.remove(closeable);
+      }
+    }
   }
 
 }
