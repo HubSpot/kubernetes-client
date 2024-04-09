@@ -204,7 +204,7 @@ public class KubernetesMockServer extends DefaultMockServer implements Resetable
     responses.clear();
   }
 
-  protected Config initConfig() {
+  public Config initConfig() {
     return new ConfigBuilder(Config.empty())
         .withMasterUrl(url("/"))
         .withTrustCerts(true)
