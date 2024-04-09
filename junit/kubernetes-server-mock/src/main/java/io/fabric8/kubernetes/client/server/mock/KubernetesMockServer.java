@@ -204,7 +204,7 @@ public class KubernetesMockServer extends DefaultMockServer implements Resetable
     responses.clear();
   }
 
-  protected Config initConfig() {
+  public Config initConfig() {
     final NamedContext mockServerContext = new NamedContextBuilder()
         .withName("fabric8-mock-server-context")
         .withNewContext()
