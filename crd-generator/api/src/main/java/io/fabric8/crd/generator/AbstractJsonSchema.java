@@ -325,7 +325,7 @@ public abstract class AbstractJsonSchema<T, B> {
         continue;
       }
       final T schema = internalFromImpl(name, possiblyRenamedProperty.getTypeRef(), visited, schemaSwaps, parameterMap);
-      if (facade.preserveUnknownFields) {
+      if (facade.isJsonAny) {
         preserveUnknownFields = true;
       }
 
@@ -345,7 +345,7 @@ public abstract class AbstractJsonSchema<T, B> {
           facade.pattern,
           facade.nullable,
           facade.required,
-          facade.preserveUnknownFields);
+          facade.preserveUnknownFields || facade.isJsonAny);
 
       addProperty(possiblyRenamedProperty, builder, possiblyUpdatedSchema, options);
     }
@@ -416,6 +416,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private boolean nullable;
     private boolean required;
     private boolean ignored;
+    private boolean isJsonAny;
     private boolean preserveUnknownFields;
     private String description;
     private TypeRef schemaFrom;
@@ -478,6 +479,8 @@ public abstract class AbstractJsonSchema<T, B> {
             break;
           case ANNOTATION_JSON_ANY_GETTER:
           case ANNOTATION_JSON_ANY_SETTER:
+            isJsonAny = true;
+            break;
           case ANNOTATION_PERSERVE_UNKNOWN_FIELDS:
             preserveUnknownFields = true;
             break;
@@ -518,6 +521,10 @@ public abstract class AbstractJsonSchema<T, B> {
 
     public boolean isIgnored() {
       return ignored;
+    }
+
+    public boolean isJsonAny() {
+      return isJsonAny;
     }
 
     public boolean isPreserveUnknownFields() {
@@ -564,6 +571,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private boolean nullable;
     private boolean required;
     private boolean ignored;
+    private boolean isJsonAny;
     private boolean preserveUnknownFields;
     private final Property original;
     private String nameContributedBy;
@@ -644,6 +652,7 @@ public abstract class AbstractJsonSchema<T, B> {
           ignored = true;
         }
 
+        isJsonAny = p.isJsonAny() || isJsonAny;
         preserveUnknownFields = p.isPreserveUnknownFields() || preserveUnknownFields;
 
         if (p.contributeSchemaFrom()) {
