@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.client.KubernetesClientException;
@@ -52,7 +53,9 @@ public class Serialization {
 
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
   static {
-    JSON_MAPPER.registerModules(new JavaTimeModule(), UNMATCHED_FIELD_TYPE_MODULE);
+    JSON_MAPPER
+      .registerModules(new JavaTimeModule(), UNMATCHED_FIELD_TYPE_MODULE)
+      .registerModule(new Jdk8Module());
   }
 
   private static final ObjectMapper YAML_MAPPER = new ObjectMapper(
