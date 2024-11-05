@@ -508,7 +508,10 @@ public abstract class AbstractJsonSchema<T, B> {
             break;
           case ANNOTATION_JSON_FORMAT:
             if (schemaFrom == null) {
-              schemaFrom = JSON_FORMAT_SHAPE_MAPPING.get((JsonFormat.Shape) a.getParameters().get(JSON_FORMAT_SHAPE));
+              Object object = a.getParameters().get(JSON_FORMAT_SHAPE);
+              if (object instanceof JsonFormat.Shape) {
+                schemaFrom = JSON_FORMAT_SHAPE_MAPPING.get((JsonFormat.Shape) object);
+              }
             }
             break;
           case ANNOTATION_JSON_PROPERTY:
