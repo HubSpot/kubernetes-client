@@ -26,4 +26,6 @@ public class ExtractionSpec {
   @PreserveUnknownFields
   private Foo bar;
 
+  private Qux qux;
+
 }
