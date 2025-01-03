@@ -205,6 +205,12 @@ class JsonSchemaTest {
 
     assertEquals("object", fooField.getType());
     assertTrue(fooField.getXKubernetesPreserveUnknownFields());
+
+    Map<String, JSONSchemaProps> fooProperties =  fooField.getProperties();
+    JSONSchemaProps configAsMapField = fooProperties.get("configAsMap");
+
+    assertNotNull(configAsMapField);
+    assertTrue(configAsMapField.getXKubernetesPreserveUnknownFields());
   }
 
   @Test
@@ -214,7 +220,7 @@ class JsonSchemaTest {
     assertNotNull(schema);
     Map<String, JSONSchemaProps> properties = assertSchemaHasNumberOfProperties(schema, 2);
     final JSONSchemaProps specSchema = properties.get("spec");
-    Map<String, JSONSchemaProps> spec = assertSchemaHasNumberOfProperties(specSchema, 2);
+    Map<String, JSONSchemaProps> spec = assertSchemaHasNumberOfProperties(specSchema, 3);
 
     // check typed SchemaFrom
     JSONSchemaProps foo = spec.get("foo");
@@ -240,6 +246,13 @@ class JsonSchemaTest {
 
     // you can exclude fields
     assertNull(barProps.get("baz"));
+
+    // verify that x-kubernetes-preserve-unknown-fields isn't on parent object when
+    // nested object is annotated with @PreserveUnknownFields
+    JSONSchemaProps qux = spec.get("qux");
+    Map<String, JSONSchemaProps> quxProps = qux.getProperties();
+    assertTrue(quxProps.get("foo").getXKubernetesPreserveUnknownFields());
+    assertNull(qux.getXKubernetesPreserveUnknownFields());
   }
 
   @Test
