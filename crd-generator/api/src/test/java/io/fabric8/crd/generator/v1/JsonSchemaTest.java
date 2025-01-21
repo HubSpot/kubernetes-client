@@ -31,6 +31,8 @@ import io.fabric8.crd.example.extraction.NestedSchemaSwap;
 import io.fabric8.crd.example.generic.ResourceWithGeneric;
 import io.fabric8.crd.example.json.ContainingJson;
 import io.fabric8.crd.example.person.Person;
+import io.fabric8.crd.example.serialization.AnnotatedSerializationExample;
+import io.fabric8.crd.example.serialization.SerializationExample;
 import io.fabric8.crd.generator.utils.Types;
 import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
@@ -444,5 +446,31 @@ class JsonSchemaTest {
     JSONSchemaProps corgeItemsProps = corgeItems.getSchema();
     assertNotNull(corgeItemsProps);
     assertEquals("string", corgeItemsProps.getType());
+  }
+
+  @Test
+  void shouldProduceDeserializableNames() {
+    TypeDef serializationExample = Types.typeDefFrom(SerializationExample.class);
+    JSONSchemaProps schema = JsonSchema.from(serializationExample);
+    assertNotNull(schema);
+
+    Map<String, JSONSchemaProps> properties = schema.getProperties();
+    assertEquals(3, properties.size());
+
+    assertTrue(properties.containsKey("url"));
+    assertTrue(properties.containsKey("fooBar"));
+    assertTrue(properties.containsKey("normalCase"));
+  }
+
+  @Test
+  void itShouldNotChangeAnnotatedNames() {
+    TypeDef annotatedSerializationExample = Types.typeDefFrom(AnnotatedSerializationExample.class);
+    JSONSchemaProps schema = JsonSchema.from(annotatedSerializationExample);
+    assertNotNull(schema);
+
+    Map<String, JSONSchemaProps> properties = schema.getProperties();
+    assertEquals(1, properties.size());
+
+    assertTrue(properties.containsKey("fOoBar"));
   }
 }
