@@ -517,7 +517,7 @@ public abstract class AbstractJsonSchema<T, B> {
             break;
           case ANNOTATION_JSON_PROPERTY:
             final String nameFromAnnotation = (String) a.getParameters().get(VALUE);
-            if (!Strings.isNullOrEmpty(nameFromAnnotation) && !propertyName.equals(nameFromAnnotation)) {
+            if (!Strings.isNullOrEmpty(nameFromAnnotation)) {
               renamedTo = nameFromAnnotation;
             }
             break;
@@ -711,11 +711,37 @@ public abstract class AbstractJsonSchema<T, B> {
         }
       });
 
+      String caseCorrectedPropertyName = getCaseCorrectedPropertyName();
+      if(renamedTo == null && !original.getName().equals(caseCorrectedPropertyName) ) {
+        renamedTo = caseCorrectedPropertyName;
+      }
+
       TypeRef typeRef = schemaFrom != null ? schemaFrom : parameterMap.exchange(original.getTypeRef());
       String finalName = renamedTo != null ? renamedTo : original.getName();
 
       return new Property(original.getAnnotations(), typeRef, finalName,
           original.getComments(), false, false, original.getModifiers(), original.getAttributes());
+    }
+
+    private  String getCaseCorrectedPropertyName() {
+      String capitalizedOriginalPropertyName = original.getNameCapitalized();
+      StringBuilder newPropertyNameBuilder = new StringBuilder();
+
+      int index;
+      for (index = 0;index<capitalizedOriginalPropertyName.length();index++) {
+        char charAtIndex = capitalizedOriginalPropertyName.charAt(index);
+        if(Character.isUpperCase(charAtIndex)) {
+          newPropertyNameBuilder.append(Character.toLowerCase(charAtIndex));
+        } else {
+          break;
+        }
+      }
+
+      if(index<capitalizedOriginalPropertyName.length()) {
+        newPropertyNameBuilder.append(capitalizedOriginalPropertyName.substring(index));
+      }
+
+      return newPropertyNameBuilder.toString();
     }
   }
 
