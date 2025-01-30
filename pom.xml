@@ -100,7 +100,7 @@
     <maven-core.version>3.9.7</maven-core.version>
     <maven-plugin-annotations.version>3.13.0</maven-plugin-annotations.version>
     <vertx.version>4.5.8</vertx.version>
-    <zjsonpatch.version>0.3.0</zjsonpatch.version>
+    <zjsonpatch.version>7.1.0</zjsonpatch.version>
 
     <!-- API versions -->
     <jsr305.version>3.0.2</jsr305.version>
