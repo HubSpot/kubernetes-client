@@ -656,6 +656,10 @@ public abstract class AbstractJsonSchema<T, B> {
       if (method != null) {
         propertyOrAccessors.add(PropertyOrAccessor.fromMethod(method, name));
       }
+      method = potentialAccessors.get(name);
+      if (method != null) {
+        propertyOrAccessors.add(PropertyOrAccessor.fromMethod(method, name));
+      }
       schemaFrom = schemaSwap;
       defaultValue = null;
       min = null;
