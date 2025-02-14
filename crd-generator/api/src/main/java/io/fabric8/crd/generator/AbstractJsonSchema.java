@@ -129,6 +129,7 @@ public abstract class AbstractJsonSchema<T, B> {
   public static final String ANNOTATION_SCHEMA_SWAPS = "io.fabric8.crd.generator.annotation.SchemaSwaps";
   public static final String ANNOTATION_VALIDATION_RULE = "io.fabric8.generator.annotation.ValidationRule";
   public static final String ANNOTATION_VALIDATION_RULES = "io.fabric8.generator.annotation.ValidationRules";
+  public static final String ANNOTATION_RENAME = "io.fabric8.crd.generator.annotation.Rename";
 
   public static final String JSON_NODE_TYPE = "com.fasterxml.jackson.databind.JsonNode";
   public static final String ANY_TYPE = "io.fabric8.kubernetes.api.model.AnyType";
@@ -516,6 +517,7 @@ public abstract class AbstractJsonSchema<T, B> {
             }
             break;
           case ANNOTATION_JSON_PROPERTY:
+          case ANNOTATION_RENAME:
             final String nameFromAnnotation = (String) a.getParameters().get(VALUE);
             if (!Strings.isNullOrEmpty(nameFromAnnotation)) {
               renamedTo = nameFromAnnotation;
