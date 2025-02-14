@@ -109,7 +109,7 @@ class JsonSchemaTest {
     assertNotNull(schema);
     Map<String, JSONSchemaProps> properties = assertSchemaHasNumberOfProperties(schema, 2);
     final JSONSchemaProps specSchema = properties.get("spec");
-    Map<String, JSONSchemaProps> spec = assertSchemaHasNumberOfProperties(specSchema, 20);
+    Map<String, JSONSchemaProps> spec = assertSchemaHasNumberOfProperties(specSchema, 21);
 
     // check descriptions are present
     assertTrue(spec.containsKey("from-field"));
@@ -178,6 +178,10 @@ class JsonSchemaTest {
     assertNull(kubernetesValidationsRepeatedRules.get(1).getMessage());
     assertNull(kubernetesValidationsRepeatedRules.get(1).getMessageExpression());
     assertNull(kubernetesValidationsRepeatedRules.get(1).getOptionalOldSelf());
+
+    // check descriptions are present
+    assertTrue(spec.containsKey("renamedField"));
+    assertFalse(spec.containsKey("fieldToRename"));
   }
 
   @Test

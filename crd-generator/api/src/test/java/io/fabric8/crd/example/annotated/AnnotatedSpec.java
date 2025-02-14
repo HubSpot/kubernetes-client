@@ -19,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
+import io.fabric8.crd.generator.annotation.Rename;
 import io.fabric8.generator.annotation.Default;
 import io.fabric8.generator.annotation.Max;
 import io.fabric8.generator.annotation.Min;
@@ -180,4 +182,7 @@ public class AnnotatedSpec {
   public enum AnotherEnum {
     ONE
   }
+
+  @Rename("renamedField")
+  private String fieldToRename;
 }
