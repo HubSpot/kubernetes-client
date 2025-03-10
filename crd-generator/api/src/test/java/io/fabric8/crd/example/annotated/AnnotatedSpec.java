@@ -15,11 +15,14 @@
  */
 package io.fabric8.crd.example.annotated;
 
+import java.time.ZonedDateTime;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
+import io.fabric8.crd.generator.annotation.Format;
 import io.fabric8.crd.generator.annotation.Rename;
 import io.fabric8.generator.annotation.Default;
 import io.fabric8.generator.annotation.Max;
@@ -29,8 +32,6 @@ import io.fabric8.generator.annotation.Pattern;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.generator.annotation.ValidationRule;
 import lombok.Data;
-
-import java.time.ZonedDateTime;
 
 @Data
 public class AnnotatedSpec {
@@ -58,6 +59,7 @@ public class AnnotatedSpec {
   private String num;
   private String numInt;
   private String numFloat;
+  @Format("date-time")
   private ZonedDateTime issuedAt;
 
   @JsonIgnore

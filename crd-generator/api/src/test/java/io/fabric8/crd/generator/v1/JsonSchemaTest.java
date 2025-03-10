@@ -15,9 +15,25 @@
  */
 package io.fabric8.crd.generator.v1;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Test;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+
 import io.fabric8.crd.example.annotated.Annotated;
 import io.fabric8.crd.example.basic.Basic;
 import io.fabric8.crd.example.extraction.CollectionCyclicSchemaSwap;
@@ -37,23 +53,9 @@ import io.fabric8.crd.generator.utils.Types;
 import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaPropsBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.ValidationRule;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaPropsOrArray;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.ValidationRule;
 import io.sundr.model.TypeDef;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonSchemaTest {
 
@@ -138,7 +140,7 @@ class JsonSchemaTest {
     assertEquals(type.apply("string").build(), spec.get("num"));
     assertEquals(type.apply("string").build(), spec.get("numFloat"));
     assertEquals(type.apply("string").build(), spec.get("numInt"));
-    assertEquals(type.apply("string").build(), spec.get("issuedAt"));
+    assertEquals(type.apply("string").withFormat("date-time").build(), spec.get("issuedAt"));
 
     // check required list, should register properties with their modified name if needed
     final List<String> required = specSchema.getRequired();
@@ -476,5 +478,21 @@ class JsonSchemaTest {
     assertEquals(1, properties.size());
 
     assertTrue(properties.containsKey("fOoBar"));
+  }
+
+  @Test
+  void shouldSetFormatFromFormatAnnotation() {
+    TypeDef annotated = Types.typeDefFrom(Annotated.class);
+    JSONSchemaProps schema = JsonSchema.from(annotated);
+    assertNotNull(schema);
+    Map<String, JSONSchemaProps> properties = assertSchemaHasNumberOfProperties(schema, 2);
+    final JSONSchemaProps specSchema = properties.get("spec");
+    Map<String, JSONSchemaProps> spec = specSchema.getProperties();
+
+    // Check that the issuedAt field has the correct format
+    assertTrue(spec.containsKey("issuedAt"));
+    JSONSchemaProps issuedAtProp = spec.get("issuedAt");
+    assertEquals("date-time", issuedAtProp.getFormat());
+    assertEquals("string", issuedAtProp.getType());
   }
 }
