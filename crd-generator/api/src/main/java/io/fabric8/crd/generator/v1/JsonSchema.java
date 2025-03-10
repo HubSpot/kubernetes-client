@@ -80,6 +80,7 @@ public class JsonSchema extends AbstractJsonSchema<JSONSchemaProps, JSONSchemaPr
       options.getMin().ifPresent(schema::setMinimum);
       options.getMax().ifPresent(schema::setMaximum);
       options.getPattern().ifPresent(schema::setPattern);
+      options.getFormat().ifPresent(schema::setFormat);
 
       List<ValidationRule> validationRulesFromProperty = options.getValidationRules().stream()
           .map(this::mapValidationRule)
