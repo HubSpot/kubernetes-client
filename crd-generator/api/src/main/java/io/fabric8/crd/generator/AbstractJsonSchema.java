@@ -15,34 +15,13 @@
  */
 package io.fabric8.crd.generator;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
-import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
-import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema.Items;
-import io.fabric8.crd.generator.InternalSchemaSwaps.SwapResult;
-import io.fabric8.crd.generator.annotation.SchemaSwap;
-import io.fabric8.crd.generator.utils.Types;
-import io.fabric8.generator.annotation.ValidationRule;
-import io.fabric8.kubernetes.api.model.Duration;
-import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
-import io.sundr.builder.internal.functions.TypeAs;
-import io.sundr.model.AnnotationRef;
-import io.sundr.model.ClassRef;
-import io.sundr.model.Method;
-import io.sundr.model.PrimitiveRefBuilder;
-import io.sundr.model.Property;
-import io.sundr.model.TypeDef;
-import io.sundr.model.TypeParamRef;
-import io.sundr.model.TypeRef;
-import io.sundr.model.functions.GetDefinition;
-import io.sundr.utils.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static io.sundr.model.utils.Types.BOOLEAN_REF;
+import static io.sundr.model.utils.Types.DOUBLE_REF;
+import static io.sundr.model.utils.Types.FLOAT_REF;
+import static io.sundr.model.utils.Types.INT_REF;
+import static io.sundr.model.utils.Types.LONG_REF;
+import static io.sundr.model.utils.Types.STRING_REF;
+import static io.sundr.model.utils.Types.VOID;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -62,13 +41,36 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static io.sundr.model.utils.Types.BOOLEAN_REF;
-import static io.sundr.model.utils.Types.DOUBLE_REF;
-import static io.sundr.model.utils.Types.FLOAT_REF;
-import static io.sundr.model.utils.Types.INT_REF;
-import static io.sundr.model.utils.Types.LONG_REF;
-import static io.sundr.model.utils.Types.STRING_REF;
-import static io.sundr.model.utils.Types.VOID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
+import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
+import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema.Items;
+
+import io.fabric8.crd.generator.InternalSchemaSwaps.SwapResult;
+import io.fabric8.crd.generator.annotation.SchemaSwap;
+import io.fabric8.crd.generator.utils.Types;
+import io.fabric8.generator.annotation.ValidationRule;
+import io.fabric8.kubernetes.api.model.Duration;
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
+import io.sundr.builder.internal.functions.TypeAs;
+import io.sundr.model.AnnotationRef;
+import io.sundr.model.ClassRef;
+import io.sundr.model.Method;
+import io.sundr.model.PrimitiveRefBuilder;
+import io.sundr.model.Property;
+import io.sundr.model.TypeDef;
+import io.sundr.model.TypeParamRef;
+import io.sundr.model.TypeRef;
+import io.sundr.model.functions.GetDefinition;
+import io.sundr.utils.Strings;
 
 /**
  * Encapsulates the common logic supporting OpenAPI schema generation for CRD generation.
@@ -130,8 +132,9 @@ public abstract class AbstractJsonSchema<T, B> {
   public static final String ANNOTATION_VALIDATION_RULE = "io.fabric8.generator.annotation.ValidationRule";
   public static final String ANNOTATION_VALIDATION_RULES = "io.fabric8.generator.annotation.ValidationRules";
   public static final String ANNOTATION_RENAME = "io.fabric8.crd.generator.annotation.Rename";
+  public static final String ANNOTATION_FORMAT = "io.fabric8.crd.generator.annotation.Format";
 
-  public static final String JSON_NODE_TYPE = "com.fasterxml.jackson.databind.JsonNode";
+  public static  final String JSON_NODE_TYPE = "com.fasterxml.jackson.databind.JsonNode";
   public static final String ANY_TYPE = "io.fabric8.kubernetes.api.model.AnyType";
 
   private static final JsonSchemaGenerator GENERATOR;
@@ -176,33 +179,28 @@ public abstract class AbstractJsonSchema<T, B> {
     final Double min;
     final Double max;
     final String pattern;
+    final String format;
     final boolean nullable;
     final boolean required;
     final boolean preserveUnknownFields;
     final List<KubernetesValidationRule> validationRules;
 
     SchemaPropsOptions() {
-      defaultValue = null;
-      min = null;
-      max = null;
-      pattern = null;
-      nullable = false;
-      required = false;
-      preserveUnknownFields = false;
-      validationRules = null;
+      this(null, null, null, null, null, Collections.emptyList(), false, false, false);
     }
 
     public SchemaPropsOptions(String defaultValue, Double min, Double max, String pattern,
-        List<KubernetesValidationRule> validationRules,
+        String format, List<KubernetesValidationRule> validationRules,
         boolean nullable, boolean required, boolean preserveUnknownFields) {
       this.defaultValue = defaultValue;
       this.min = min;
       this.max = max;
       this.pattern = pattern;
+      this.format = format;
+      this.validationRules = validationRules;
       this.nullable = nullable;
       this.required = required;
       this.preserveUnknownFields = preserveUnknownFields;
-      this.validationRules = validationRules;
     }
 
     public Optional<String> getDefault() {
@@ -219,6 +217,10 @@ public abstract class AbstractJsonSchema<T, B> {
 
     public Optional<String> getPattern() {
       return Optional.ofNullable(pattern);
+    }
+
+    public Optional<String> getFormat() {
+      return Optional.ofNullable(format);
     }
 
     public boolean isNullable() {
@@ -381,6 +383,7 @@ public abstract class AbstractJsonSchema<T, B> {
           facade.min,
           facade.max,
           facade.pattern,
+          facade.format,
           facade.validationRules,
           facade.nullable,
           facade.required,
@@ -464,6 +467,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private Double max;
     private String pattern;
     private List<KubernetesValidationRule> validationRules;
+    private String format;
     private boolean nullable;
     private boolean required;
     private boolean ignored;
@@ -514,6 +518,12 @@ public abstract class AbstractJsonSchema<T, B> {
               if (object instanceof JsonFormat.Shape) {
                 schemaFrom = JSON_FORMAT_SHAPE_MAPPING.get((JsonFormat.Shape) object);
               }
+            }
+            break;
+          case ANNOTATION_FORMAT:
+            final String format = (String) a.getParameters().get(VALUE);
+            if (!Strings.isNullOrEmpty(format)) {
+              this.format = format;
             }
             break;
           case ANNOTATION_JSON_PROPERTY:
@@ -574,6 +584,10 @@ public abstract class AbstractJsonSchema<T, B> {
       return Optional.ofNullable(pattern);
     }
 
+    public Optional<String> getFormat() {
+      return Optional.ofNullable(format);
+    }
+
     public Optional<List<KubernetesValidationRule>> getValidationRules() {
       return Optional.ofNullable(validationRules);
     }
@@ -629,6 +643,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private Double min;
     private Double max;
     private String pattern;
+    private String format;
     private boolean nullable;
     private boolean required;
     private boolean ignored;
@@ -697,6 +712,9 @@ public abstract class AbstractJsonSchema<T, B> {
         min = p.getMin().orElse(min);
         max = p.getMax().orElse(max);
         pattern = p.getPattern().orElse(pattern);
+        if (p.format != null && format == null) {
+          format = p.format;
+        }
         p.getValidationRules().ifPresent(rules -> validationRules.addAll(rules));
 
         if (p.isNullable()) {
