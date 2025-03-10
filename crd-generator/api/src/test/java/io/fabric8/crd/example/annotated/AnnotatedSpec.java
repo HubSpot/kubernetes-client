@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 
+import io.fabric8.crd.generator.annotation.Format;
 import io.fabric8.crd.generator.annotation.Rename;
 import io.fabric8.generator.annotation.Default;
 import io.fabric8.generator.annotation.Max;
@@ -58,6 +59,7 @@ public class AnnotatedSpec {
   private String num;
   private String numInt;
   private String numFloat;
+  @Format("date-time")
   private ZonedDateTime issuedAt;
 
   @JsonIgnore

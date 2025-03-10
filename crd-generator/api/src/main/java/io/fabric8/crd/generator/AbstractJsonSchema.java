@@ -130,6 +130,7 @@ public abstract class AbstractJsonSchema<T, B> {
   public static final String ANNOTATION_VALIDATION_RULE = "io.fabric8.generator.annotation.ValidationRule";
   public static final String ANNOTATION_VALIDATION_RULES = "io.fabric8.generator.annotation.ValidationRules";
   public static final String ANNOTATION_RENAME = "io.fabric8.crd.generator.annotation.Rename";
+  public static final String ANNOTATION_FORMAT = "io.fabric8.crd.generator.annotation.Format";
 
   public static final String JSON_NODE_TYPE = "com.fasterxml.jackson.databind.JsonNode";
   public static final String ANY_TYPE = "io.fabric8.kubernetes.api.model.AnyType";
@@ -176,6 +177,7 @@ public abstract class AbstractJsonSchema<T, B> {
     final Double min;
     final Double max;
     final String pattern;
+    final String format;
     final boolean nullable;
     final boolean required;
     final boolean preserveUnknownFields;
@@ -190,15 +192,17 @@ public abstract class AbstractJsonSchema<T, B> {
       required = false;
       preserveUnknownFields = false;
       validationRules = null;
+      format = null;
     }
 
     public SchemaPropsOptions(String defaultValue, Double min, Double max, String pattern,
-        List<KubernetesValidationRule> validationRules,
+        String format, List<KubernetesValidationRule> validationRules,
         boolean nullable, boolean required, boolean preserveUnknownFields) {
       this.defaultValue = defaultValue;
       this.min = min;
       this.max = max;
       this.pattern = pattern;
+      this.format = format;
       this.nullable = nullable;
       this.required = required;
       this.preserveUnknownFields = preserveUnknownFields;
@@ -219,6 +223,10 @@ public abstract class AbstractJsonSchema<T, B> {
 
     public Optional<String> getPattern() {
       return Optional.ofNullable(pattern);
+    }
+
+    public Optional<String> getFormat() {
+      return Optional.ofNullable(format);
     }
 
     public boolean isNullable() {
@@ -381,6 +389,7 @@ public abstract class AbstractJsonSchema<T, B> {
           facade.min,
           facade.max,
           facade.pattern,
+          facade.format,
           facade.validationRules,
           facade.nullable,
           facade.required,
@@ -464,6 +473,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private Double max;
     private String pattern;
     private List<KubernetesValidationRule> validationRules;
+    private String format;
     private boolean nullable;
     private boolean required;
     private boolean ignored;
@@ -514,6 +524,12 @@ public abstract class AbstractJsonSchema<T, B> {
               if (object instanceof JsonFormat.Shape) {
                 schemaFrom = JSON_FORMAT_SHAPE_MAPPING.get((JsonFormat.Shape) object);
               }
+            }
+            break;
+          case ANNOTATION_FORMAT:
+            final String format = (String) a.getParameters().get(VALUE);
+            if (!Strings.isNullOrEmpty(format)) {
+              this.format = format;
             }
             break;
           case ANNOTATION_JSON_PROPERTY:
@@ -574,6 +590,10 @@ public abstract class AbstractJsonSchema<T, B> {
       return Optional.ofNullable(pattern);
     }
 
+    public Optional<String> getFormat() {
+      return Optional.ofNullable(format);
+    }
+
     public Optional<List<KubernetesValidationRule>> getValidationRules() {
       return Optional.ofNullable(validationRules);
     }
@@ -629,6 +649,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private Double min;
     private Double max;
     private String pattern;
+    private String format;
     private boolean nullable;
     private boolean required;
     private boolean ignored;
@@ -697,6 +718,9 @@ public abstract class AbstractJsonSchema<T, B> {
         min = p.getMin().orElse(min);
         max = p.getMax().orElse(max);
         pattern = p.getPattern().orElse(pattern);
+        if (p.getFormat().isPresent() && format == null) {
+          format = p.getFormat().get();
+        }
         p.getValidationRules().ifPresent(rules -> validationRules.addAll(rules));
 
         if (p.isNullable()) {
