@@ -15,7 +15,6 @@
  */
 package io.fabric8.crd.generator;
 
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,7 +22,6 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchema;
 import com.fasterxml.jackson.module.jsonSchema.JsonSchemaGenerator;
 import com.fasterxml.jackson.module.jsonSchema.types.ArraySchema.Items;
-
 import io.fabric8.crd.generator.InternalSchemaSwaps.SwapResult;
 import io.fabric8.crd.generator.annotation.SchemaSwap;
 import io.fabric8.crd.generator.utils.Types;
@@ -70,6 +68,7 @@ import static io.sundr.model.utils.Types.FLOAT_REF;
 import static io.sundr.model.utils.Types.INT_REF;
 import static io.sundr.model.utils.Types.LONG_REF;
 import static io.sundr.model.utils.Types.STRING_REF;
+import static io.sundr.model.utils.Types.VOID;
 
 /**
  * Encapsulates the common logic supporting OpenAPI schema generation for CRD generation.

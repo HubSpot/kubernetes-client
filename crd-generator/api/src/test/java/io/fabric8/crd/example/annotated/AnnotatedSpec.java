@@ -15,7 +15,6 @@
  */
 package io.fabric8.crd.example.annotated;
 
-import java.time.ZonedDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -32,6 +31,8 @@ import io.fabric8.generator.annotation.Pattern;
 import io.fabric8.generator.annotation.Required;
 import io.fabric8.generator.annotation.ValidationRule;
 import lombok.Data;
+
+import java.time.ZonedDateTime;
 
 @Data
 public class AnnotatedSpec {
