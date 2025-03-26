@@ -15,34 +15,6 @@
  */
 package io.fabric8.crd.generator;
 
-import static io.sundr.model.utils.Types.BOOLEAN_REF;
-import static io.sundr.model.utils.Types.DOUBLE_REF;
-import static io.sundr.model.utils.Types.FLOAT_REF;
-import static io.sundr.model.utils.Types.INT_REF;
-import static io.sundr.model.utils.Types.LONG_REF;
-import static io.sundr.model.utils.Types.STRING_REF;
-import static io.sundr.model.utils.Types.VOID;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,6 +43,33 @@ import io.sundr.model.TypeParamRef;
 import io.sundr.model.TypeRef;
 import io.sundr.model.functions.GetDefinition;
 import io.sundr.utils.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static io.sundr.model.utils.Types.BOOLEAN_REF;
+import static io.sundr.model.utils.Types.DOUBLE_REF;
+import static io.sundr.model.utils.Types.FLOAT_REF;
+import static io.sundr.model.utils.Types.INT_REF;
+import static io.sundr.model.utils.Types.LONG_REF;
+import static io.sundr.model.utils.Types.STRING_REF;
 
 /**
  * Encapsulates the common logic supporting OpenAPI schema generation for CRD generation.
@@ -134,7 +133,7 @@ public abstract class AbstractJsonSchema<T, B> {
   public static final String ANNOTATION_RENAME = "io.fabric8.crd.generator.annotation.Rename";
   public static final String ANNOTATION_FORMAT = "io.fabric8.crd.generator.annotation.Format";
 
-  public static  final String JSON_NODE_TYPE = "com.fasterxml.jackson.databind.JsonNode";
+  public static final String JSON_NODE_TYPE = "com.fasterxml.jackson.databind.JsonNode";
   public static final String ANY_TYPE = "io.fabric8.kubernetes.api.model.AnyType";
 
   private static final JsonSchemaGenerator GENERATOR;
@@ -186,7 +185,15 @@ public abstract class AbstractJsonSchema<T, B> {
     final List<KubernetesValidationRule> validationRules;
 
     SchemaPropsOptions() {
-      this(null, null, null, null, null, Collections.emptyList(), false, false, false);
+      defaultValue = null;
+      min = null;
+      max = null;
+      pattern = null;
+      nullable = false;
+      required = false;
+      preserveUnknownFields = false;
+      validationRules = null;
+      format = null;
     }
 
     public SchemaPropsOptions(String defaultValue, Double min, Double max, String pattern,
@@ -712,8 +719,8 @@ public abstract class AbstractJsonSchema<T, B> {
         min = p.getMin().orElse(min);
         max = p.getMax().orElse(max);
         pattern = p.getPattern().orElse(pattern);
-        if (p.format != null && format == null) {
-          format = p.format;
+        if (p.getFormat().isPresent() && format == null) {
+          format = p.getFormat().get();
         }
         p.getValidationRules().ifPresent(rules -> validationRules.addAll(rules));
 
