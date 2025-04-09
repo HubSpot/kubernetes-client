@@ -203,10 +203,10 @@ public abstract class AbstractJsonSchema<T, B> {
       this.max = max;
       this.pattern = pattern;
       this.format = format;
-      this.validationRules = validationRules;
       this.nullable = nullable;
       this.required = required;
       this.preserveUnknownFields = preserveUnknownFields;
+      this.validationRules = validationRules;
     }
 
     public Optional<String> getDefault() {
