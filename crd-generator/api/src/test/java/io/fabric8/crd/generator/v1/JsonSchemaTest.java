@@ -138,7 +138,7 @@ class JsonSchemaTest {
     assertEquals(type.apply("string").build(), spec.get("num"));
     assertEquals(type.apply("string").build(), spec.get("numFloat"));
     assertEquals(type.apply("string").build(), spec.get("numInt"));
-    assertEquals(type.apply("string").build(), spec.get("issuedAt"));
+    assertEquals(type.apply("string").withFormat("date-time").build(), spec.get("issuedAt"));
 
     // check required list, should register properties with their modified name if needed
     final List<String> required = specSchema.getRequired();
@@ -476,5 +476,21 @@ class JsonSchemaTest {
     assertEquals(1, properties.size());
 
     assertTrue(properties.containsKey("fOoBar"));
+  }
+
+  @Test
+  void shouldSetFormatFromFormatAnnotation() {
+    TypeDef annotated = Types.typeDefFrom(Annotated.class);
+    JSONSchemaProps schema = JsonSchema.from(annotated);
+    assertNotNull(schema);
+    Map<String, JSONSchemaProps> properties = assertSchemaHasNumberOfProperties(schema, 2);
+    final JSONSchemaProps specSchema = properties.get("spec");
+    Map<String, JSONSchemaProps> spec = specSchema.getProperties();
+
+    // Check that the issuedAt field has the correct format
+    assertTrue(spec.containsKey("issuedAt"));
+    JSONSchemaProps issuedAtProp = spec.get("issuedAt");
+    assertEquals("date-time", issuedAtProp.getFormat());
+    assertEquals("string", issuedAtProp.getType());
   }
 }
