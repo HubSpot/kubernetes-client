@@ -300,6 +300,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
   @Override
   public final T createOrReplace() {
+    System.out.println("Hello from the createOrReplace method, you depending on a test branch.");
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }
