@@ -177,6 +177,16 @@ public class NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicableListImp
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
+  
+  @Override
+  public List<HasMetadata> createOrReplaceWithFieldManager() {
+    List<? extends Resource<HasMetadata>> operations = getResources();
+
+    return operations.stream()
+        .map(Resource::createOrReplaceWithFieldManager)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+  }
 
   @Override
   public List<StatusDetails> delete() {
