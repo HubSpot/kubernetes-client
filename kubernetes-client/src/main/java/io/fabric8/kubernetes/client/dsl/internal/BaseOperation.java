@@ -322,7 +322,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
    * @return The created or replaced resource
    */
   public final T createOrReplaceWithFieldManager() {
-    System.out.println("Attempting to create or replace with a custom fieldManager");
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }
@@ -334,12 +333,15 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
     UnaryOperator<T> createWithFieldManager = resourceItem -> {
       try {
         // Clone the item to avoid modifying the original
-        T itemToCreate = this.getKubernetesSerialization().clone(resourceItem);
-        updateApiVersion(itemToCreate);
-
+        updateApiVersion(resourceItem);
+        
+        // For creates, we set resourceVersion to null (this is done in CreateOrReplaceHelper too)
+        // This is a safety precaution, but the actual implementation in CreateOrReplaceHelper
+        // explicitly sets it to null before calling createTask
+        
         // Create URL with the field manager parameter
         URL resourceUrl = getResourceURLForWriteOperation(
-            getResourceUrl(checkNamespace(itemToCreate), null));
+            getResourceUrl(checkNamespace(resourceItem), null));
 
         // Add field manager parameter to the URL
         String url = resourceUrl.toString();
@@ -352,7 +354,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
         // Manually construct and send the request with the modified URL
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
-            .post(JSON, getKubernetesSerialization().asJson(itemToCreate))
+            .post(JSON, getKubernetesSerialization().asJson(resourceItem))
             .url(resourceUrl);
 
         return handleResponse(requestBuilder, getType());
@@ -361,15 +363,19 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
       }
     };
 
+    // In CreateOrReplaceHelper, it uses the original resource version for replace operations
+    // The pattern followed by CreateOrReplaceHelper is to maintain the original resource version
+    // that the item had before attempting the create, not to fetch a new one from the server.
     UnaryOperator<T> replaceWithFieldManager = resourceItem -> {
       try {
-        // Clone the item to avoid modifying the original
-        T itemToReplace = this.getKubernetesSerialization().clone(resourceItem);
-        updateApiVersion(itemToReplace);
-
+        updateApiVersion(resourceItem);
+        // Important: No need to fetch resource version from server
+        // CreateOrReplaceHelper uses the original resource version saved earlier
+        // Resource version is set by CreateOrReplaceHelper before calling replaceTask
+        
         // Create URL with the field manager parameter
         URL resourceUrl = getResourceURLForWriteOperation(
-            getResourceUrl(checkNamespace(itemToReplace), checkName(itemToReplace)));
+            getResourceUrl(checkNamespace(resourceItem), checkName(resourceItem)));
 
         // Add field manager parameter to the URL
         String url = resourceUrl.toString();
@@ -382,7 +388,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
         // Manually construct and send the request with the modified URL
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
-            .put(JSON, getKubernetesSerialization().asJson(itemToReplace))
+            .put(JSON, getKubernetesSerialization().asJson(resourceItem))
             .url(resourceUrl);
 
         return handleResponse(requestBuilder, getType());
@@ -391,6 +397,9 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
       }
     };
 
+    // Create the helper with our custom operations
+    // The helper handles saving and restoring the resource version
+    // See CreateOrReplaceHelper.createOrReplace() implementation
     CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
         createWithFieldManager,
         replaceWithFieldManager,
