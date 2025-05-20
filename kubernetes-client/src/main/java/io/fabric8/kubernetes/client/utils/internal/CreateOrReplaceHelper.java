@@ -72,7 +72,7 @@ public class CreateOrReplaceHelper<T extends HasMetadata> {
   }
 
   private T replace(T item, String resourceVersion) {
-    System.out.println("Trying to replace " + item.getMetadata().getName() + " with version " + resourceVersion);
+    System.out.println("mbc: Trying to replace " + item.getMetadata().getName() + " with version " + resourceVersion);
     KubernetesResourceUtil.setResourceVersion(item, resourceVersion);
     return replaceTask.apply(item);
   }

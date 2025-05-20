@@ -150,7 +150,9 @@ public class HasMetadataOperation<T extends HasMetadata, L extends KubernetesRes
    * base replace operation, which is effectively a forced update with retries
    */
   protected T handleReplace(T item) {
+    System.out.println("mbc: In handle replace");
     String fixedResourceVersion = getResourceVersion();
+    System.out.println("mbc: Got fixed resource version " + fixedResourceVersion);
     Exception caught = null;
     int maxTries = 10;
     item = clone(item);
@@ -165,6 +167,7 @@ public class HasMetadataOperation<T extends HasMetadata, L extends KubernetesRes
       }
     }
     String existingResourceVersion = KubernetesResourceUtil.getResourceVersion(item);
+    System.out.println("mbc: Got existing resource version " + existingResourceVersion);
     for (int i = 0; i < maxTries; i++) {
       try {
         final String resourceVersion;
@@ -181,6 +184,7 @@ public class HasMetadataOperation<T extends HasMetadata, L extends KubernetesRes
         final UnaryOperator<T> visitor = resource -> {
           try {
             resource.getMetadata().setResourceVersion(resourceVersion);
+            System.out.println("mbc: Attempting update with resource version: " + resourceVersion);
             return handleUpdate(resource);
           } catch (Exception e) {
             throw KubernetesClientException.launderThrowable(forOperationType(REPLACE_OPERATION), e);

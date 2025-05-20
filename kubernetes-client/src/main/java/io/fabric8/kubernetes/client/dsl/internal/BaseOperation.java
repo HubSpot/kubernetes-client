@@ -316,8 +316,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
   /**
    * Creates or replaces the resource with a custom field manager.
-   * This is an extension of the createOrReplace method that explicitly sets
-   * a field manager in the request to the Kubernetes API.
    *
    * @return The created or replaced resource
    */
@@ -325,10 +323,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }
-
-    // Create a customized version of the resource
-    R resource = resource(item);
-
+    /*
     // Define custom create/replace functions that add the field manager parameter to the URL
     UnaryOperator<T> createWithFieldManager = resourceItem -> {
       try {
@@ -397,17 +392,35 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         throw KubernetesClientException.launderThrowable(forOperationType("replace"), e);
       }
     };
+     */
 
-    // Create the helper with our custom operations
-    // The helper handles saving and restoring the resource version
-    // See CreateOrReplaceHelper.createOrReplace() implementation
+    R resource = resource(item);
+
+    /*
     CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
         createWithFieldManager,
         replaceWithFieldManager,
         m -> resource.waitUntilCondition(Objects::nonNull, 1, TimeUnit.SECONDS),
         m -> resource.fromServer().get(), this.getKubernetesSerialization());
+     */
+    System.out.println("mbc: Using old create or replace helper but setting field manager");
+    String oldFieldManager = context.fieldManager;
+    System.out.println("mbc: old field manager: " + oldFieldManager);
+    context.fieldManager = "mbc-field-manager-override-hack";
+    CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
+      resource::create,
+      resource::replace,
+      m -> resource.waitUntilCondition(Objects::nonNull, 1, TimeUnit.SECONDS),
+      m -> resource.fromServer().get(), this.getKubernetesSerialization());
 
-    return createOrReplaceHelper.createOrReplace(item);
+    T ret = createOrReplaceHelper.createOrReplace(item);
+
+    // Reset field manager
+    // TODO: Is this threadsafe? Necessary at all? Or do we instantiate a new BaseOperation every time a command is
+    // TOOD: run (which means we don't even need to reset it here)?
+    context.fieldManager = oldFieldManager;
+
+    return ret;
   }
 
   @Override
