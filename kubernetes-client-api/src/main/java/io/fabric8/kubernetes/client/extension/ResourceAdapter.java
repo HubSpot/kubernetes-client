@@ -123,6 +123,11 @@ public class ResourceAdapter<T> implements Resource<T> {
   public T createOrReplace() {
     return resource.createOrReplace();
   }
+  
+  @Override
+  public T createOrReplaceWithFieldManager() {
+    return resource.createOrReplaceWithFieldManager();
+  }
 
   @Override
   public T editStatus(UnaryOperator<T> function) {
