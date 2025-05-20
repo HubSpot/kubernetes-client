@@ -352,6 +352,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         }
         resourceUrl = new URL(url);
 
+        System.out.println("mbc: Attempting CREATE with url: " + url);
         // Manually construct and send the request with the modified URL
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
             .post(JSON, getKubernetesSerialization().asJson(resourceItem))
@@ -386,6 +387,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         }
         resourceUrl = new URL(url);
 
+        System.out.println("mbc: Attempting REPLACE with url: " + url);
         // Manually construct and send the request with the modified URL
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
             .put(JSON, getKubernetesSerialization().asJson(resourceItem))
