@@ -33,10 +33,7 @@ public interface CreateOrReplaceable<T> extends Replaceable<T> {
   T createOrReplace();
   
   /**
-   * Creates a provided resource in a Kubernetes Cluster with a specific field manager. 
-   * If creation fails with a HTTP_CONFLICT, it tries to replace resource.
-   * This is a variation of createOrReplace that explicitly sets the fieldManager
-   * query parameter when communicating with the Kubernetes API.
+   * Creates a provided resource in a Kubernetes Cluster with a specific field manager.
    *
    * @param fieldManager the field manager to use
    * @return created item returned in kubernetes api response

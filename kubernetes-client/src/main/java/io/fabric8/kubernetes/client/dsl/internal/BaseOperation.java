@@ -321,7 +321,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
    * @return The created or replaced resource
    */
   public final T createOrReplaceWithFieldManager(String fieldManager) {
-    System.out.println("Client dep version: 1");
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }
@@ -342,8 +341,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         }
         resourceUrl = new URL(url);
 
-        System.out.println("mbc: Attempting CREATE with url: " + url);
-
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
             .post(JSON, getKubernetesSerialization().asJson(resourceItem))
             .url(resourceUrl);
@@ -360,7 +357,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         updateApiVersion(resourceItem);
 
         // Borrowed from HasMetadataOperation::handleReplace
-        // TODO: item vs resourceItem?
         String existingResourceVersion = KubernetesResourceUtil.getResourceVersion(item);
         String fixedResourceVersion = getResourceVersion();
         final String resourceVersion;
@@ -369,12 +365,10 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         } else if (existingResourceVersion != null) {
           // if a resourceVersion is already there, use it
           resourceVersion = existingResourceVersion;
-          System.out.println("mbc: Using existingResourceVersion: " + resourceVersion);
         } else {
           T got = requireFromServer();
           resourceVersion = KubernetesResourceUtil.getResourceVersion(got);
         }
-        System.out.println("mbc: Using resource version" + resourceVersion);
         resourceItem.getMetadata().setResourceVersion(resourceVersion);
 
         // Set fieldManager...
@@ -387,8 +381,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
           url += "?fieldManager=" + fieldManager;
         }
         resourceUrl = new URL(url);
-
-        System.out.println("mbc: Attempting REPLACE with url: " + url);
 
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
             .put(JSON, getKubernetesSerialization().asJson(resourceItem))
