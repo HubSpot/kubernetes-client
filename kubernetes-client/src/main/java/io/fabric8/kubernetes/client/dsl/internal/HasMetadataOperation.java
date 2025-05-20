@@ -97,6 +97,7 @@ public class HasMetadataOperation<T extends HasMetadata, L extends KubernetesRes
 
   @Override
   public T replace() {
+    System.out.println("mbc: in HasMetadataOperation::replace");
     return handleReplace(getItem());
   }
 

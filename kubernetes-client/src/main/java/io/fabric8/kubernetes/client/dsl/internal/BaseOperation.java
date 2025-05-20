@@ -320,24 +320,19 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
    * @return The created or replaced resource
    */
   public final T createOrReplaceWithFieldManager() {
+    System.out.println("Client dep version: 1");
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }
-    /*
-    // Define custom create/replace functions that add the field manager parameter to the URL
+
     UnaryOperator<T> createWithFieldManager = resourceItem -> {
       try {
+        // We do this everywhere else
         updateApiVersion(resourceItem);
-        
-        // For creates, we set resourceVersion to null (this is done in CreateOrReplaceHelper too)
-        // This is a safety precaution, but the actual implementation in CreateOrReplaceHelper
-        // explicitly sets it to null before calling createTask
-        
-        // Create URL with the field manager parameter
+
+        // Set the (for now) hardcoded field manager query param
         URL resourceUrl = getResourceURLForWriteOperation(
             getResourceUrl(checkNamespace(resourceItem), null));
-
-        // Add field manager parameter to the URL
         String url = resourceUrl.toString();
         if (url.contains("?")) {
           url += "&fieldManager=mbc-foo-bar-field-manager";
@@ -347,7 +342,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         resourceUrl = new URL(url);
 
         System.out.println("mbc: Attempting CREATE with url: " + url);
-        // Manually construct and send the request with the modified URL
+
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
             .post(JSON, getKubernetesSerialization().asJson(resourceItem))
             .url(resourceUrl);
@@ -358,21 +353,32 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
       }
     };
 
-    // In CreateOrReplaceHelper, it uses the original resource version for replace operations
-    // The pattern followed by CreateOrReplaceHelper is to maintain the original resource version
-    // that the item had before attempting the create, not to fetch a new one from the server.
+    // Alternative to HasMetadataOperation::replace as called in createOrReplace
     UnaryOperator<T> replaceWithFieldManager = resourceItem -> {
       try {
         updateApiVersion(resourceItem);
-        // Important: No need to fetch resource version from server
-        // CreateOrReplaceHelper uses the original resource version saved earlier
-        // Resource version is set by CreateOrReplaceHelper before calling replaceTask
-        
-        // Create URL with the field manager parameter
+
+        // Borrowed from HasMetadataOperation::handleReplace
+        // TODO: item vs resourceItem?
+        String existingResourceVersion = KubernetesResourceUtil.getResourceVersion(item);
+        String fixedResourceVersion = getResourceVersion();
+        final String resourceVersion;
+        if (fixedResourceVersion != null) {
+          resourceVersion = fixedResourceVersion;
+        } else if (existingResourceVersion != null) {
+          // if a resourceVersion is already there, use it
+          resourceVersion = existingResourceVersion;
+          System.out.println("mbc: Using existingResourceVersion: " + resourceVersion);
+        } else {
+          T got = requireFromServer();
+          resourceVersion = KubernetesResourceUtil.getResourceVersion(got);
+        }
+        System.out.println("mbc: Using resource version" + resourceVersion);
+        resourceItem.getMetadata().setResourceVersion(resourceVersion);
+
+        // Set fieldManager...
         URL resourceUrl = getResourceURLForWriteOperation(
             getResourceUrl(checkNamespace(resourceItem), checkName(resourceItem)));
-
-        // Add field manager parameter to the URL
         String url = resourceUrl.toString();
         if (url.contains("?")) {
           url += "&fieldManager=mbc-foo-bar-field-manager";
@@ -382,7 +388,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         resourceUrl = new URL(url);
 
         System.out.println("mbc: Attempting REPLACE with url: " + url);
-        // Manually construct and send the request with the modified URL
+
         HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
             .put(JSON, getKubernetesSerialization().asJson(resourceItem))
             .url(resourceUrl);
@@ -392,35 +398,16 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         throw KubernetesClientException.launderThrowable(forOperationType("replace"), e);
       }
     };
-     */
 
     R resource = resource(item);
 
-    /*
     CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
         createWithFieldManager,
         replaceWithFieldManager,
         m -> resource.waitUntilCondition(Objects::nonNull, 1, TimeUnit.SECONDS),
         m -> resource.fromServer().get(), this.getKubernetesSerialization());
-     */
-    System.out.println("mbc: Using old create or replace helper but setting field manager");
-    String oldFieldManager = context.fieldManager;
-    System.out.println("mbc: old field manager: " + oldFieldManager);
-    context.fieldManager = "mbc-field-manager-override-hack";
-    CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
-      resource::create,
-      resource::replace,
-      m -> resource.waitUntilCondition(Objects::nonNull, 1, TimeUnit.SECONDS),
-      m -> resource.fromServer().get(), this.getKubernetesSerialization());
 
-    T ret = createOrReplaceHelper.createOrReplace(item);
-
-    // Reset field manager
-    // TODO: Is this threadsafe? Necessary at all? Or do we instantiate a new BaseOperation every time a command is
-    // TOOD: run (which means we don't even need to reset it here)?
-    context.fieldManager = oldFieldManager;
-
-    return ret;
+    return createOrReplaceHelper.createOrReplace(item);
   }
 
   @Override
