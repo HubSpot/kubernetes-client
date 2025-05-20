@@ -43,11 +43,13 @@ public class CreateOrReplaceHelper<T extends HasMetadata> {
 
   public T createOrReplace(T item) {
     String resourceVersion = KubernetesResourceUtil.getResourceVersion(item);
+    System.out.println("mbc: Got resourceVersion " + resourceVersion);
     final CompletableFuture<T> future = new CompletableFuture<>();
     int nTries = 0;
     item = serialization.clone(item);
     while (!future.isDone() && nTries < CREATE_OR_REPLACE_RETRIES) {
       try {
+        System.out.println("mbc: Trying to create or replace " + item.getMetadata().getName() + " attempt " + nTries);
         // Create
         KubernetesResourceUtil.setResourceVersion(item, null);
         return createTask.apply(item);
@@ -62,7 +64,7 @@ public class CreateOrReplaceHelper<T extends HasMetadata> {
         } else if (exception.getCode() != HttpURLConnection.HTTP_CONFLICT) {
           throw exception;
         }
-
+        System.out.println("mbc: Giving up on create, going to replace instead.");
         future.complete(replace(item, resourceVersion));
       }
     }
@@ -70,6 +72,7 @@ public class CreateOrReplaceHelper<T extends HasMetadata> {
   }
 
   private T replace(T item, String resourceVersion) {
+    System.out.println("Trying to replace " + item.getMetadata().getName() + " with version " + resourceVersion);
     KubernetesResourceUtil.setResourceVersion(item, resourceVersion);
     return replaceTask.apply(item);
   }

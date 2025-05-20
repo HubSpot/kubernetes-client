@@ -332,7 +332,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
     // Define custom create/replace functions that add the field manager parameter to the URL
     UnaryOperator<T> createWithFieldManager = resourceItem -> {
       try {
-        // Clone the item to avoid modifying the original
         updateApiVersion(resourceItem);
         
         // For creates, we set resourceVersion to null (this is done in CreateOrReplaceHelper too)
