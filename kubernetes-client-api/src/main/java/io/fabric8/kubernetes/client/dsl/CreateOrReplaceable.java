@@ -38,9 +38,10 @@ public interface CreateOrReplaceable<T> extends Replaceable<T> {
    * This is a variation of createOrReplace that explicitly sets the fieldManager
    * query parameter when communicating with the Kubernetes API.
    *
+   * @param fieldManager the field manager to use
    * @return created item returned in kubernetes api response
    */
-  T createOrReplaceWithFieldManager();
+  T createOrReplaceWithFieldManager(String fieldManager);
 
   /**
    * Creates an item

@@ -317,9 +317,10 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
   /**
    * Creates or replaces the resource with a custom field manager.
    *
+   * @param fieldManager The field manager to use for the operation
    * @return The created or replaced resource
    */
-  public final T createOrReplaceWithFieldManager() {
+  public final T createOrReplaceWithFieldManager(String fieldManager) {
     System.out.println("Client dep version: 1");
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
@@ -330,14 +331,14 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
         // We do this everywhere else
         updateApiVersion(resourceItem);
 
-        // Set the (for now) hardcoded field manager query param
+        // Set the field manager query param
         URL resourceUrl = getResourceURLForWriteOperation(
             getResourceUrl(checkNamespace(resourceItem), null));
         String url = resourceUrl.toString();
         if (url.contains("?")) {
-          url += "&fieldManager=mbc-foo-bar-field-manager";
+          url += "&fieldManager=" + fieldManager;
         } else {
-          url += "?fieldManager=mbc-foo-bar-field-manager";
+          url += "?fieldManager=" + fieldManager;
         }
         resourceUrl = new URL(url);
 
@@ -381,9 +382,9 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
             getResourceUrl(checkNamespace(resourceItem), checkName(resourceItem)));
         String url = resourceUrl.toString();
         if (url.contains("?")) {
-          url += "&fieldManager=mbc-foo-bar-field-manager";
+          url += "&fieldManager=" + fieldManager;
         } else {
-          url += "?fieldManager=mbc-foo-bar-field-manager";
+          url += "?fieldManager=" + fieldManager;
         }
         resourceUrl = new URL(url);
 
@@ -409,6 +410,7 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
     return createOrReplaceHelper.createOrReplace(item);
   }
+  
 
   @Override
   public T createOr(Function<NonDeletingOperation<T>, T> conflictAction) {

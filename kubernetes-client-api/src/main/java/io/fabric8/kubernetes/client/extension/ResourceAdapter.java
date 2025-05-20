@@ -125,8 +125,8 @@ public class ResourceAdapter<T> implements Resource<T> {
   }
   
   @Override
-  public T createOrReplaceWithFieldManager() {
-    return resource.createOrReplaceWithFieldManager();
+  public T createOrReplaceWithFieldManager(String fieldManager) {
+    return resource.createOrReplaceWithFieldManager(fieldManager);
   }
 
   @Override

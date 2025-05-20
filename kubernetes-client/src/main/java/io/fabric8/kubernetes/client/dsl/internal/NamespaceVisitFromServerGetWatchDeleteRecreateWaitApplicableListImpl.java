@@ -179,14 +179,15 @@ public class NamespaceVisitFromServerGetWatchDeleteRecreateWaitApplicableListImp
   }
   
   @Override
-  public List<HasMetadata> createOrReplaceWithFieldManager() {
+  public List<HasMetadata> createOrReplaceWithFieldManager(String fieldManager) {
     List<? extends Resource<HasMetadata>> operations = getResources();
 
     return operations.stream()
-        .map(Resource::createOrReplaceWithFieldManager)
+        .map(resource -> resource.createOrReplaceWithFieldManager(fieldManager))
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
+
 
   @Override
   public List<StatusDetails> delete() {
