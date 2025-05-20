@@ -300,7 +300,6 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
   @Override
   public final T createOrReplace() {
-    System.out.println("Hello from the createOrReplace method, you depending on a test branch.");
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }
@@ -309,6 +308,92 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
     CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
         resource::create,
         resource::replace,
+        m -> resource.waitUntilCondition(Objects::nonNull, 1, TimeUnit.SECONDS),
+        m -> resource.fromServer().get(), this.getKubernetesSerialization());
+
+    return createOrReplaceHelper.createOrReplace(item);
+  }
+
+  /**
+   * Creates or replaces the resource with a custom field manager.
+   * This is an extension of the createOrReplace method that explicitly sets
+   * a field manager in the request to the Kubernetes API.
+   *
+   * @return The created or replaced resource
+   */
+  public final T createOrReplaceWithFieldManager() {
+    System.out.println("Attempting to create or replace with a custom fieldManager");
+    if (item == null) {
+      throw new IllegalArgumentException("Nothing to create.");
+    }
+
+    // Create a customized version of the resource
+    R resource = resource(item);
+
+    // Define custom create/replace functions that add the field manager parameter to the URL
+    UnaryOperator<T> createWithFieldManager = resourceItem -> {
+      try {
+        // Clone the item to avoid modifying the original
+        T itemToCreate = this.getKubernetesSerialization().clone(resourceItem);
+        updateApiVersion(itemToCreate);
+
+        // Create URL with the field manager parameter
+        URL resourceUrl = getResourceURLForWriteOperation(
+            getResourceUrl(checkNamespace(itemToCreate), null));
+
+        // Add field manager parameter to the URL
+        String url = resourceUrl.toString();
+        if (url.contains("?")) {
+          url += "&fieldManager=mbc-foo-bar-field-manager";
+        } else {
+          url += "?fieldManager=mbc-foo-bar-field-manager";
+        }
+        resourceUrl = new URL(url);
+
+        // Manually construct and send the request with the modified URL
+        HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
+            .post(JSON, getKubernetesSerialization().asJson(itemToCreate))
+            .url(resourceUrl);
+
+        return handleResponse(requestBuilder, getType());
+      } catch (IOException e) {
+        throw KubernetesClientException.launderThrowable(forOperationType("create"), e);
+      }
+    };
+
+    UnaryOperator<T> replaceWithFieldManager = resourceItem -> {
+      try {
+        // Clone the item to avoid modifying the original
+        T itemToReplace = this.getKubernetesSerialization().clone(resourceItem);
+        updateApiVersion(itemToReplace);
+
+        // Create URL with the field manager parameter
+        URL resourceUrl = getResourceURLForWriteOperation(
+            getResourceUrl(checkNamespace(itemToReplace), checkName(itemToReplace)));
+
+        // Add field manager parameter to the URL
+        String url = resourceUrl.toString();
+        if (url.contains("?")) {
+          url += "&fieldManager=mbc-foo-bar-field-manager";
+        } else {
+          url += "?fieldManager=mbc-foo-bar-field-manager";
+        }
+        resourceUrl = new URL(url);
+
+        // Manually construct and send the request with the modified URL
+        HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
+            .put(JSON, getKubernetesSerialization().asJson(itemToReplace))
+            .url(resourceUrl);
+
+        return handleResponse(requestBuilder, getType());
+      } catch (IOException e) {
+        throw KubernetesClientException.launderThrowable(forOperationType("replace"), e);
+      }
+    };
+
+    CreateOrReplaceHelper<T> createOrReplaceHelper = new CreateOrReplaceHelper<>(
+        createWithFieldManager,
+        replaceWithFieldManager,
         m -> resource.waitUntilCondition(Objects::nonNull, 1, TimeUnit.SECONDS),
         m -> resource.fromServer().get(), this.getKubernetesSerialization());
 
