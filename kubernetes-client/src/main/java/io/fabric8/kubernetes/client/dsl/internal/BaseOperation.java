@@ -300,6 +300,8 @@ public class BaseOperation<T extends HasMetadata, L extends KubernetesResourceLi
 
   @Override
   public final T createOrReplace() {
+    System.out.println("Version: 2, in createOrReplace");
+    System.out.println("fieldManagerOverride: " + config.getFieldManagerOverride());
     if (item == null) {
       throw new IllegalArgumentException("Nothing to create.");
     }

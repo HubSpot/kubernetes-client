@@ -1354,8 +1354,8 @@ public class Config {
     return fieldManagerOverride;
   }
 
-  public void setFieldManagerOverride(String filedManagerOverride) {
-    this.fieldManagerOverride = filedManagerOverride;
+  public void setFieldManagerOverride(String fieldManagerOverride) {
+    this.fieldManagerOverride = fieldManagerOverride;
   }
 
   @JsonProperty("trustCerts")
