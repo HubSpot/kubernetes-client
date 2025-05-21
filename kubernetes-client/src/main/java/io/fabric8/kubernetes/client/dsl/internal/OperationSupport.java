@@ -352,9 +352,22 @@ public class OperationSupport {
    */
   protected <T> T handleUpdate(T updated, Class<T> type) throws IOException {
     updated = correctNamespace(updated);
+
+    URL resourceUrl = getResourceURLForWriteOperation(getResourceUrl(checkNamespace(updated), checkName(updated)));
+    if (config.getFieldManagerOverride() != null) {
+      // TODO: Can probably do this with methods on URL rather than string concatenation
+      String url = resourceUrl.toString();
+      if (url.contains("?")) {
+        url += "&fieldManager=" + config.getFieldManagerOverride();
+      } else {
+        url += "?fieldManager=" + config.getFieldManagerOverride();
+      }
+      resourceUrl = new URL(url);
+    }
+    System.out.println("mbc: In handleUpdate, resource URL: " + resourceUrl);
     HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
         .put(JSON, getKubernetesSerialization().asJson(updated))
-        .url(getResourceURLForWriteOperation(getResourceUrl(checkNamespace(updated), checkName(updated))));
+        .url(resourceUrl);
     return handleResponse(requestBuilder, type);
   }
 
