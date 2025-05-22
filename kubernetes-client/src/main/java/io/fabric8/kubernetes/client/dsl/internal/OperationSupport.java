@@ -341,10 +341,9 @@ public class OperationSupport {
    */
   protected <T, I> T handleCreate(I resource, Class<T> outputType) throws InterruptedException, IOException {
     resource = correctNamespace(resource);
-    URL resourceUrl = getResourceURLForWriteOperation(getResourceUrl(checkNamespace(resource), null));
     HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
         .post(JSON, getKubernetesSerialization().asJson(resource))
-        .url(resourceUrl);
+        .url(getResourceURLForWriteOperation(getResourceUrl(checkNamespace(resource), null)));
     return handleResponse(requestBuilder, outputType);
   }
 
@@ -360,13 +359,9 @@ public class OperationSupport {
    */
   protected <T> T handleUpdate(T updated, Class<T> type) throws IOException {
     updated = correctNamespace(updated);
-
-    URL resourceUrl = getResourceURLForWriteOperation(getResourceUrl(checkNamespace(updated), checkName(updated)));
-
-    System.out.println("mbc: In handleUpdate, resource URL: " + resourceUrl);
     HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
         .put(JSON, getKubernetesSerialization().asJson(updated))
-        .url(resourceUrl);
+        .url(getResourceURLForWriteOperation(getResourceUrl(checkNamespace(updated), checkName(updated))));
     return handleResponse(requestBuilder, type);
   }
 
