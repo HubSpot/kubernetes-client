@@ -204,6 +204,10 @@ public class OperationSupport {
       resourceURL = new URL(
           URLUtils.join(resourceURL.toString(), "?fieldValidation=" + context.fieldValidation.parameterValue()));
     }
+    if (config.getFieldManagerOverride() != null) {
+      resourceURL = new URLUtils.URLBuilder(resourceURL).addQueryParameter("fieldManager", config.getFieldManagerOverride()).build();
+    }
+
     return resourceURL;
   }
 
@@ -227,6 +231,9 @@ public class OperationSupport {
       }
       if (fieldManager == null && patchContext.getPatchType() == PatchType.SERVER_SIDE_APPLY) {
         fieldManager = "fabric8";
+      }
+      if (fieldManager == null && patchContext.getPatchType() != PatchType.SERVER_SIDE_APPLY && config.getFieldManagerOverride() != null) {
+        fieldManager = config.getFieldManagerOverride();
       }
       if (fieldManager != null) {
         url = URLUtils.join(url, FIELD_MANAGER_PARAM + fieldManager);
@@ -334,9 +341,10 @@ public class OperationSupport {
    */
   protected <T, I> T handleCreate(I resource, Class<T> outputType) throws InterruptedException, IOException {
     resource = correctNamespace(resource);
+    URL resourceUrl = getResourceURLForWriteOperation(getResourceUrl(checkNamespace(resource), null));
     HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
         .post(JSON, getKubernetesSerialization().asJson(resource))
-        .url(getResourceURLForWriteOperation(getResourceUrl(checkNamespace(resource), null)));
+        .url(resourceUrl);
     return handleResponse(requestBuilder, outputType);
   }
 
@@ -354,16 +362,7 @@ public class OperationSupport {
     updated = correctNamespace(updated);
 
     URL resourceUrl = getResourceURLForWriteOperation(getResourceUrl(checkNamespace(updated), checkName(updated)));
-    if (config.getFieldManagerOverride() != null) {
-      // TODO: Can probably do this with methods on URL rather than string concatenation
-      String url = resourceUrl.toString();
-      if (url.contains("?")) {
-        url += "&fieldManager=" + config.getFieldManagerOverride();
-      } else {
-        url += "?fieldManager=" + config.getFieldManagerOverride();
-      }
-      resourceUrl = new URL(url);
-    }
+
     System.out.println("mbc: In handleUpdate, resource URL: " + resourceUrl);
     HttpRequest.Builder requestBuilder = httpClient.newHttpRequestBuilder()
         .put(JSON, getKubernetesSerialization().asJson(updated))
