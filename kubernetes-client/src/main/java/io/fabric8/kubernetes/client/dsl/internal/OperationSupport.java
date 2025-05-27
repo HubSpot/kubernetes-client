@@ -206,7 +206,7 @@ public class OperationSupport {
     }
     if (config.getFieldManagerOverride() != null) {
       resourceURL = new URL(
-        URLUtils.join(resourceURL.toString(), "?fieldManager=" + config.getFieldManagerOverride()));
+        URLUtils.join(resourceURL.toString(), FIELD_MANAGER_PARAM + config.getFieldManagerOverride()));
     }
 
     return resourceURL;
