@@ -157,7 +157,7 @@ public class Config {
   private Boolean trustCerts;
   private Boolean disableHostnameVerification;
   private String masterUrl;
-  private String fieldManagerOverride;
+  private String fieldManagerDefault;
   private String apiVersion;
   private String namespace;
   private Boolean defaultNamespace;
@@ -1349,13 +1349,13 @@ public class Config {
     this.masterUrl = ensureEndsWithSlash(ensureHttps(masterUrl, this));
   }
 
-  @JsonProperty("fieldManagerOverride")
-  public String getFieldManagerOverride() {
-    return fieldManagerOverride;
+  @JsonProperty("fieldManagerDefault")
+  public String getFieldManagerDefault() {
+    return fieldManagerDefault;
   }
 
-  public void setFieldManagerOverride(String fieldManagerOverride) {
-    this.fieldManagerOverride = fieldManagerOverride;
+  public void setFieldManagerDefault(String fieldManagerDefault) {
+    this.fieldManagerDefault = fieldManagerDefault;
   }
 
   @JsonProperty("trustCerts")

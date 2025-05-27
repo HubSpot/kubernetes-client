@@ -204,9 +204,9 @@ public class OperationSupport {
       resourceURL = new URL(
           URLUtils.join(resourceURL.toString(), "?fieldValidation=" + context.fieldValidation.parameterValue()));
     }
-    if (config.getFieldManagerOverride() != null) {
+    if (config.getFieldManagerDefault() != null) {
       resourceURL = new URL(
-        URLUtils.join(resourceURL.toString(), FIELD_MANAGER_PARAM + config.getFieldManagerOverride()));
+        URLUtils.join(resourceURL.toString(), FIELD_MANAGER_PARAM + config.getFieldManagerDefault()));
     }
 
     return resourceURL;
@@ -230,8 +230,8 @@ public class OperationSupport {
       if (fieldManager == null) {
         fieldManager = this.context.fieldManager;
       }
-      if (fieldManager == null && config.getFieldManagerOverride() != null) {
-        fieldManager = config.getFieldManagerOverride();
+      if (fieldManager == null && config.getFieldManagerDefault() != null) {
+        fieldManager = config.getFieldManagerDefault();
       }
       if (fieldManager == null && patchContext.getPatchType() == PatchType.SERVER_SIDE_APPLY) {
         fieldManager = "fabric8";
