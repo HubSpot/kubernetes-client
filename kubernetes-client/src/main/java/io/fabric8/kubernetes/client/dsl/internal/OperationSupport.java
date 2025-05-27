@@ -205,7 +205,8 @@ public class OperationSupport {
           URLUtils.join(resourceURL.toString(), "?fieldValidation=" + context.fieldValidation.parameterValue()));
     }
     if (config.getFieldManagerOverride() != null) {
-      resourceURL = new URLUtils.URLBuilder(resourceURL).addQueryParameter("fieldManager", config.getFieldManagerOverride()).build();
+      resourceURL = new URL(
+        URLUtils.join(resourceURL.toString(), "?fieldManager=" + config.getFieldManagerOverride()));
     }
 
     return resourceURL;
