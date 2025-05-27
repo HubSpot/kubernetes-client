@@ -230,11 +230,11 @@ public class OperationSupport {
       if (fieldManager == null) {
         fieldManager = this.context.fieldManager;
       }
+      if (fieldManager == null && config.getFieldManagerOverride() != null) {
+        fieldManager = config.getFieldManagerOverride();
+      }
       if (fieldManager == null && patchContext.getPatchType() == PatchType.SERVER_SIDE_APPLY) {
         fieldManager = "fabric8";
-      }
-      if (fieldManager == null && patchContext.getPatchType() != PatchType.SERVER_SIDE_APPLY && config.getFieldManagerOverride() != null) {
-        fieldManager = config.getFieldManagerOverride();
       }
       if (fieldManager != null) {
         url = URLUtils.join(url, FIELD_MANAGER_PARAM + fieldManager);
