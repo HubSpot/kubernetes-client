@@ -15,6 +15,8 @@
  */
 package io.fabric8.crd.generator;
 
+import io.fabric8.crd.generator.annotation.AdditionalPrinterColumn;
+import io.fabric8.crd.generator.annotation.AdditionalPrinterColumns;
 import io.fabric8.crd.generator.annotation.PrinterColumnFormat;
 import io.fabric8.crd.generator.decorator.Decorator;
 import io.fabric8.crd.generator.visitor.*;
@@ -25,6 +27,7 @@ import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
 import io.sundr.model.TypeDefBuilder;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -105,6 +108,10 @@ public abstract class AbstractCustomResourceHandler {
       resources.decorate(
           getPrinterColumnDecorator(name, version, path, type, column, description, format, priority));
     });
+
+    if(!maybeAddPrinterColumnDecoratorsFromSingleAnnotation(name, version, def)) {
+      maybeAddPrinterColumnDecoratorsFromRepeatableAnnotation(name, version, def);
+    }
   }
 
   private TypeDef visitTypeDef(TypeDef def, List<Visitor<TypeDefBuilder>> visitors) {
@@ -153,6 +160,211 @@ public abstract class AbstractCustomResourceHandler {
       executorService.shutdown();
     }
     return def;
+  }
+
+  private boolean maybeAddPrinterColumnDecoratorsFromSingleAnnotation(
+    String name,
+    String version,
+    TypeDef def
+  ) {
+    List<AnnotationRef> annotationRefs = def
+      .getAnnotations()
+      .stream()
+      .filter(annotationRef ->
+        annotationRef
+          .getClassRef()
+          .getName()
+          .equals(AdditionalPrinterColumn.class.getSimpleName())
+      )
+      .collect(Collectors.toList());
+
+    if (annotationRefs.isEmpty()) {
+      return false;
+    }
+
+    addPrinterColumnDecoratorsFromAnnotationRefs(
+      name,
+      version,
+      annotationRefs
+    );
+
+    return true;
+  }
+
+  private void addPrinterColumnDecoratorsFromAnnotationRefs(
+    String name,
+    String version,
+    List<AnnotationRef> columns
+  ) {
+    for (AnnotationRef column : columns) {
+      Map<String, Object> params = column.getParameters();
+
+      String path = (String) params.get("jsonPath");
+      if (Utils.isNullOrEmpty(path)) {
+        continue;
+      }
+
+      if (!params.containsKey("type")) {
+        continue;
+      }
+      String type = extractEnumValue(
+        params.get("type"),
+        AdditionalPrinterColumn.Type.class
+      )
+        .getValue();
+
+      String nameOfColumn = (String) params.get("name");
+      if (Utils.isNullOrEmpty(nameOfColumn)) {
+        nameOfColumn = generateColumnNameFromPath(path);
+      }
+
+      String description = (!params.containsKey("getDescription"))
+        ? getAdditionalPrinterColumnDefault("getDescription", String.class)
+        : (String) params.get("getDescription");
+
+      String format = (!params.containsKey("format"))
+        ? getAdditionalPrinterColumnDefault(
+        "format",
+        AdditionalPrinterColumn.Format.class
+      )
+        .getValue()
+        : extractEnumValue(params.get("format"), AdditionalPrinterColumn.Format.class)
+        .getValue();
+
+      int priority = (!params.containsKey("priority"))
+        ? getAdditionalPrinterColumnDefault("priority", Integer.class)
+        : (int) params.get("priority");
+
+      resources.decorate(
+        getPrinterColumnDecorator(
+          name,
+          version,
+          path,
+          type,
+          nameOfColumn,
+          description,
+          format,
+          priority
+        )
+      );
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T extends Enum<T>> T extractEnumValue(Object enumObject, Class<T> enumClass) {
+    if (enumObject instanceof Enum) {
+      return (T) enumObject;
+    }
+
+    String stringValue;
+    try {
+      stringValue =
+        enumObject.getClass().getMethod("getSimpleName").invoke(enumObject).toString();
+    } catch (
+      NoSuchMethodException | InvocationTargetException | IllegalAccessException e
+    ) {
+      throw new RuntimeException(e);
+    }
+    Optional<T> maybeEnumValue = Arrays
+      .stream(enumClass.getEnumConstants())
+      .filter(formatValue -> formatValue.name().equals(stringValue))
+      .findFirst();
+
+    if (!maybeEnumValue.isPresent()) {
+      throw new IllegalArgumentException(
+        "Unknown enum value for " + enumClass.getSimpleName() + ": " + stringValue
+      );
+    }
+
+    return maybeEnumValue.get();
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> T getAdditionalPrinterColumnDefault(
+    String methodName,
+    Class<T> returnType
+  ) {
+    try {
+      return (T) AdditionalPrinterColumn.class.getMethod(methodName).getDefaultValue();
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private String generateColumnNameFromPath(String path) {
+    String[] splitPath = path.split("\\.");
+    return splitPath[splitPath.length - 1].replaceAll("\\W+", "_").toUpperCase();
+  }
+
+  private void maybeAddPrinterColumnDecoratorsFromRepeatableAnnotation(
+    String name,
+    String version,
+    TypeDef def
+  ) {
+    Optional<AnnotationRef> maybeRepeatableAnnotationRef = def
+      .getAnnotations()
+      .stream()
+      .filter(annotationRef ->
+        annotationRef
+          .getClassRef()
+          .getName()
+          .equals(AdditionalPrinterColumns.class.getSimpleName())
+      )
+      .findFirst();
+
+    if (!maybeRepeatableAnnotationRef.isPresent()) {
+      return;
+    }
+
+    Object innerAnnotationsObject = maybeRepeatableAnnotationRef
+      .get()
+      .getParameters()
+      .get("value");
+
+    if (innerAnnotationsObject instanceof AdditionalPrinterColumn[]) {
+      addPrinterColumnDecoratorsFromAdditionalPrinterColumns(
+        name,
+        version,
+        Arrays.asList((AdditionalPrinterColumn[]) innerAnnotationsObject)
+      );
+    } else {
+      addPrinterColumnDecoratorsFromAnnotationRefs(
+        name,
+        version,
+        Arrays.asList((AnnotationRef[]) innerAnnotationsObject)
+      );
+    }
+  }
+
+  private void addPrinterColumnDecoratorsFromAdditionalPrinterColumns(
+    String name,
+    String version,
+    List<AdditionalPrinterColumn> columns
+  ) {
+    for (AdditionalPrinterColumn column : columns) {
+      String path = column.jsonPath();
+      if (Utils.isNullOrEmpty(path)) {
+        continue;
+      }
+
+      String nameOfColumn = column.name();
+      if (Utils.isNullOrEmpty(nameOfColumn)) {
+        nameOfColumn = generateColumnNameFromPath(path);
+      }
+
+      resources.decorate(
+        getPrinterColumnDecorator(
+          name,
+          version,
+          path,
+          column.type().getValue(),
+          nameOfColumn,
+          column.getDescription(),
+          column.format().getValue(),
+          column.priority()
+        )
+      );
+    }
   }
 
   /**
