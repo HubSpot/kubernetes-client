@@ -27,6 +27,7 @@ import io.fabric8.crd.example.inherited.BaseStatus;
 import io.fabric8.crd.example.inherited.Child;
 import io.fabric8.crd.example.inherited.ChildSpec;
 import io.fabric8.crd.example.inherited.ChildStatus;
+import io.fabric8.crd.example.joke.AnotherJokeRequest;
 import io.fabric8.crd.example.joke.Joke;
 import io.fabric8.crd.example.joke.JokeRequest;
 import io.fabric8.crd.example.joke.JokeRequestSpec;
@@ -426,18 +427,23 @@ class CRDGeneratorTest {
       // printer columns should be ordered in the alphabetical order of their json path
       final List<CustomResourceColumnDefinition> printerColumns = version
           .getAdditionalPrinterColumns();
-      assertEquals(3, printerColumns.size());
+      assertEquals(4, printerColumns.size());
       CustomResourceColumnDefinition columnDefinition = printerColumns.get(0);
+      assertEquals("date", columnDefinition.getType());
+      assertEquals(".metadata.creationTimestamp", columnDefinition.getJsonPath());
+      assertEquals("Age", columnDefinition.getName());
+      assertEquals(0, columnDefinition.getPriority());
+      columnDefinition = printerColumns.get(1);
       assertEquals("string", columnDefinition.getType());
       assertEquals(".spec.category", columnDefinition.getJsonPath());
       assertEquals("jokeCategory", columnDefinition.getName());
       assertEquals(1, columnDefinition.getPriority());
-      columnDefinition = printerColumns.get(1);
+      columnDefinition = printerColumns.get(2);
       assertEquals("string", columnDefinition.getType());
       assertEquals(".spec.excluded", columnDefinition.getJsonPath());
       assertEquals("excludedTopics", columnDefinition.getName());
       assertEquals(0, columnDefinition.getPriority());
-      columnDefinition = printerColumns.get(2);
+      columnDefinition = printerColumns.get(3);
       assertEquals("string", columnDefinition.getType());
       assertEquals(".status.category", columnDefinition.getJsonPath());
       assertEquals("jokeCategory", columnDefinition.getName());
@@ -457,6 +463,37 @@ class CRDGeneratorTest {
       assertEquals("array", excluded.getType());
       assertEquals("string", excluded.getItems().getSchema().getType());
       assertEquals(6, excluded.getItems().getSchema().getEnum().size());
+    });
+  }
+
+  @Test
+  void anotherJokeRequestShouldProcessTwoPrinterColumns() {
+    outputCRDIfFailed(AnotherJokeRequest.class, (customResource) -> {
+      final CustomResourceDefinitionSpec spec = checkSpec(customResource, Scope.NAMESPACED,
+        JokeRequestSpec.class, JokeRequestStatus.class, JokeRequestSpec.Category.class, JokeRequestSpec.ExcludedTopic.class,
+        JokeRequestStatus.State.class);
+
+      final CustomResourceDefinitionNames names = checkNames("AnotherJokeRequest",
+        "anotherjokerequests", spec);
+      assertEquals(1, names.getShortNames().size());
+      assertTrue(names.getShortNames().contains("ajr"));
+
+      final CustomResourceDefinitionVersion version = checkVersion(spec);
+      assertNotNull(version.getSubresources());
+      // printer columns should be ordered in the alphabetical order of their json path
+      final List<CustomResourceColumnDefinition> printerColumns = version
+        .getAdditionalPrinterColumns();
+      assertEquals(5, printerColumns.size());
+      CustomResourceColumnDefinition columnDefinition = printerColumns.get(0);
+      assertEquals("date", columnDefinition.getType());
+      assertEquals(".metadata.creationTimestamp", columnDefinition.getJsonPath());
+      assertEquals("Age", columnDefinition.getName());
+      assertEquals(0, columnDefinition.getPriority());
+      columnDefinition = printerColumns.get(1);
+      assertEquals("string", columnDefinition.getType());
+      assertEquals(".metadata.namespace", columnDefinition.getJsonPath());
+      assertEquals("NAMESPACE", columnDefinition.getName());
+      assertEquals(0, columnDefinition.getPriority());
     });
   }
 
