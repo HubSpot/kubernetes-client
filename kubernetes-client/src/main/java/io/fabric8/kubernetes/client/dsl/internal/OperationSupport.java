@@ -41,9 +41,6 @@ import io.fabric8.kubernetes.client.utils.KubernetesResourceUtil;
 import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 import io.fabric8.kubernetes.client.utils.URLUtils;
 import io.fabric8.kubernetes.client.utils.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -58,6 +55,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OperationSupport {
 
@@ -66,6 +65,8 @@ public class OperationSupport {
   public static final String JSON_PATCH = "application/json-patch+json";
   public static final String STRATEGIC_MERGE_JSON_PATCH = "application/strategic-merge-patch+json";
   public static final String JSON_MERGE_PATCH = "application/merge-patch+json";
+
+  private static final int MAX_RETRIES = 3;
 
   private static final Logger LOG = LoggerFactory.getLogger(OperationSupport.class);
   private static final String CLIENT_STATUS_FLAG = "CLIENT_STATUS_FLAG";
@@ -521,12 +522,47 @@ public class OperationSupport {
    * @throws IOException IOException
    */
   protected <T> T handleResponse(HttpRequest.Builder requestBuilder, Class<T> type) throws IOException {
-    return waitForResult(handleResponse(httpClient, withRequestTimeout(requestBuilder), new TypeReference<T>() {
+    TypeReference<T> typeReference = new TypeReference<T>() {
       @Override
       public Type getType() {
         return type;
       }
-    }));
+    };
+
+    IOException lastException = null;
+    for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return waitForResult(handleResponse(httpClient, withRequestTimeout(requestBuilder), typeReference));
+      } catch (IOException e) {
+        lastException = e;
+        if (!isRetryable(e)) {
+          throw e;
+        }
+        LOG.info("Retryable IOException on {} attempt {}/{}: {}",
+          requestBuilder.build().uri(), attempt + 1, MAX_RETRIES + 1, e.getMessage());
+        if (attempt < MAX_RETRIES) {
+          try {
+            Thread.sleep(100L * (1L << Math.min(attempt, 5)));
+          } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            throw lastException;
+          }
+        }
+      }
+    }
+    throw lastException;
+  }
+
+  private static boolean isRetryable(IOException e) {
+    Throwable cause = e.getCause();
+    // Connection drops, EOF during streaming, connection refused
+    if (cause instanceof java.net.ConnectException
+      || cause instanceof java.io.EOFException
+      || cause instanceof java.net.SocketException) {
+      return true;
+    }
+    // The wrapper IOException from waitForResult always has a cause
+    return cause instanceof IOException;
   }
 
   /**
