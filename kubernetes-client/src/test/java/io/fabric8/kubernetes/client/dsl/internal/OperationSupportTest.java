@@ -15,12 +15,14 @@
  */
 package io.fabric8.kubernetes.client.dsl.internal;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.RequestConfigBuilder;
+import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.http.HttpRequest;
 import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.http.StandardHttpRequest;
@@ -35,15 +37,25 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
+import java.io.EOFException;
+import java.io.IOException;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
+import java.net.SocketException;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OperationSupportTest {
@@ -205,6 +217,167 @@ class OperationSupportTest {
     assertThat(operationSupport.getOperationContext()
         .withRequestConfig(new RequestConfigBuilder().withRequestTimeout(1337).build()).getRequestConfig())
         .hasFieldOrPropertyWithValue("requestTimeout", 1337);
+  }
+
+  // --- handleResponse retry tests ---
+
+  private OperationSupport createOperationSupportWithMockHttpClient(HttpClient mockHttpClient) {
+    BaseClient mockClient = mock(BaseClient.class, Mockito.RETURNS_SELF);
+    Mockito.when(mockClient.adapt(BaseClient.class).getKubernetesSerialization())
+        .thenReturn(new KubernetesSerialization());
+    Mockito.when(mockClient.getHttpClient()).thenReturn(mockHttpClient);
+    OperationContext ctx = new OperationContext().withClient(mockClient);
+    Config globalConfig = new ConfigBuilder(Config.empty())
+        .withRequestTimeout(10000)
+        .build();
+    when(ctx.getClient().getConfiguration()).thenReturn(globalConfig);
+    return spy(new OperationSupport(ctx));
+  }
+
+  private CompletableFuture<HttpResponse<byte[]>> failedFuture(Throwable cause) {
+    CompletableFuture<HttpResponse<byte[]>> future = new CompletableFuture<>();
+    future.completeExceptionally(cause);
+    return future;
+  }
+
+  private CompletableFuture<HttpResponse<byte[]>> successFuture(String body) {
+    HttpResponse<byte[]> response = TestHttpResponse.from(200, body);
+    CompletableFuture<HttpResponse<byte[]>> future = new CompletableFuture<>();
+    future.complete(response);
+    return future;
+  }
+
+  @Test
+  @DisplayName("handleResponse retries on ConnectException and eventually succeeds")
+  void itRetriesOnConnectExceptionAndSucceeds() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(failedFuture(new ConnectException("Connection refused")))
+        .thenReturn(successFuture("{\"kind\":\"Pod\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"test\"}}"));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    Object result = os.handleResponse(requestBuilder, HasMetadata.class);
+
+    assertThat(result).isNotNull();
+    verify(mockHttpClient, times(2)).sendAsync(any(HttpRequest.class), any(Class.class));
+  }
+
+  @Test
+  @DisplayName("handleResponse retries on EOFException and eventually succeeds")
+  void itRetriesOnEOFExceptionAndSucceeds() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(failedFuture(new EOFException("Unexpected EOF")))
+        .thenReturn(successFuture("{\"kind\":\"Pod\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"test\"}}"));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    Object result = os.handleResponse(requestBuilder, HasMetadata.class);
+
+    assertThat(result).isNotNull();
+    verify(mockHttpClient, times(2)).sendAsync(any(HttpRequest.class), any(Class.class));
+  }
+
+  @Test
+  @DisplayName("handleResponse retries on SocketException and eventually succeeds")
+  void itRetriesOnSocketExceptionAndSucceeds() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(failedFuture(new SocketException("Connection reset")))
+        .thenReturn(successFuture("{\"kind\":\"Pod\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"test\"}}"));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    Object result = os.handleResponse(requestBuilder, HasMetadata.class);
+
+    assertThat(result).isNotNull();
+    verify(mockHttpClient, times(2)).sendAsync(any(HttpRequest.class), any(Class.class));
+  }
+
+  @Test
+  @DisplayName("handleResponse does not retry on KubernetesClientException")
+  void itDoesNotRetryOnKubernetesClientException() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    // Non-IOException exceptions (e.g. from thread interrupts) become KubernetesClientException
+    // and are not caught by the retry loop
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(failedFuture(new InterruptedException("interrupted")));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    assertThatThrownBy(() -> os.handleResponse(requestBuilder, HasMetadata.class))
+        .isInstanceOf(KubernetesClientException.class);
+
+    verify(mockHttpClient, times(1)).sendAsync(any(HttpRequest.class), any(Class.class));
+  }
+
+  @Test
+  @DisplayName("handleResponse exhausts all retries and throws last exception")
+  void itExhaustsRetriesAndThrowsLastException() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    // All 4 attempts (1 initial + 3 retries) fail with retryable exception
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(failedFuture(new ConnectException("Connection refused")))
+        .thenReturn(failedFuture(new ConnectException("Connection refused")))
+        .thenReturn(failedFuture(new ConnectException("Connection refused")))
+        .thenReturn(failedFuture(new ConnectException("Connection refused")));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    assertThatThrownBy(() -> os.handleResponse(requestBuilder, HasMetadata.class))
+        .isInstanceOf(IOException.class)
+        .hasCauseInstanceOf(ConnectException.class);
+
+    // 1 initial attempt + 3 retries = 4 total
+    verify(mockHttpClient, times(4)).sendAsync(any(HttpRequest.class), any(Class.class));
+  }
+
+  @Test
+  @DisplayName("handleResponse succeeds on first attempt without retrying")
+  void itSucceedsOnFirstAttemptWithoutRetrying() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(successFuture("{\"kind\":\"Pod\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"test\"}}"));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    Object result = os.handleResponse(requestBuilder, HasMetadata.class);
+
+    assertThat(result).isNotNull();
+    verify(mockHttpClient, times(1)).sendAsync(any(HttpRequest.class), any(Class.class));
+  }
+
+  @Test
+  @DisplayName("handleResponse retries on wrapped IOException cause from waitForResult")
+  void itRetriesOnWrappedIOExceptionCause() throws Exception {
+    HttpClient mockHttpClient = mock(HttpClient.class);
+    OperationSupport os = createOperationSupportWithMockHttpClient(mockHttpClient);
+
+    // waitForResult wraps ExecutionException causes in a new IOException(message, cause)
+    // so an IOException with an IOException cause should be retryable
+    when(mockHttpClient.sendAsync(any(HttpRequest.class), any(Class.class)))
+        .thenReturn(failedFuture(new IOException("inner failure")))
+        .thenReturn(successFuture("{\"kind\":\"Pod\",\"apiVersion\":\"v1\",\"metadata\":{\"name\":\"test\"}}"));
+
+    HttpRequest.Builder requestBuilder = new StandardHttpRequest.Builder().uri("https://example.com");
+
+    Object result = os.handleResponse(requestBuilder, HasMetadata.class);
+
+    assertThat(result).isNotNull();
+    verify(mockHttpClient, times(2)).sendAsync(any(HttpRequest.class), any(Class.class));
   }
 
 }
