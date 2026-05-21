@@ -67,6 +67,7 @@ public class OperationSupport {
   public static final String JSON_MERGE_PATCH = "application/merge-patch+json";
 
   private static final int MAX_RETRIES = 3;
+  private static final boolean RETRIES_DISABLED = Boolean.parseBoolean(System.getenv("KUBERNETES_CLIENT_RETRIES_DISABLED"));
 
   private static final Logger LOG = LoggerFactory.getLogger(OperationSupport.class);
   private static final String CLIENT_STATUS_FLAG = "CLIENT_STATUS_FLAG";
@@ -529,6 +530,10 @@ public class OperationSupport {
       }
     };
 
+    if (RETRIES_DISABLED) {
+      return waitForResult(handleResponse(httpClient, withRequestTimeout(requestBuilder), typeReference));
+    }
+
     IOException lastException = null;
     for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       try {
@@ -538,8 +543,8 @@ public class OperationSupport {
         if (!isRetryable(e)) {
           throw e;
         }
-        LOG.info("Retryable IOException on {} attempt {}/{}: {}",
-          requestBuilder.build().uri(), attempt + 1, MAX_RETRIES + 1, e.getMessage());
+        LOG.info("Retryable IOException on {} attempt {}/{} with message: {}",
+          requestBuilder.build().uri(), attempt + 1, MAX_RETRIES + 1, e.getMessage(), e.getCause());
         if (attempt < MAX_RETRIES) {
           try {
             Thread.sleep(100L * (1L << Math.min(attempt, 5)));
