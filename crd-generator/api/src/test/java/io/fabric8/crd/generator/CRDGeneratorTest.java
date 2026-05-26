@@ -476,11 +476,11 @@ class CRDGeneratorTest {
   void anotherJokeRequestShouldProcessTwoPrinterColumns() {
     outputCRDIfFailed(AnotherJokeRequest.class, (customResource) -> {
       final CustomResourceDefinitionSpec spec = checkSpec(customResource, Scope.NAMESPACED,
-        JokeRequestSpec.class, JokeRequestStatus.class, JokeRequestSpec.Category.class, JokeRequestSpec.ExcludedTopic.class,
-        JokeRequestStatus.State.class);
+          JokeRequestSpec.class, JokeRequestStatus.class, JokeRequestSpec.Category.class, JokeRequestSpec.ExcludedTopic.class,
+          JokeRequestStatus.State.class);
 
       final CustomResourceDefinitionNames names = checkNames("AnotherJokeRequest",
-        "anotherjokerequests", spec);
+          "anotherjokerequests", spec);
       assertEquals(1, names.getShortNames().size());
       assertTrue(names.getShortNames().contains("ajr"));
 
@@ -488,7 +488,7 @@ class CRDGeneratorTest {
       assertNotNull(version.getSubresources());
       // printer columns should be ordered in the alphabetical order of their json path
       final List<CustomResourceColumnDefinition> printerColumns = version
-        .getAdditionalPrinterColumns();
+          .getAdditionalPrinterColumns();
       assertEquals(5, printerColumns.size());
       CustomResourceColumnDefinition columnDefinition = printerColumns.get(0);
       assertEquals("date", columnDefinition.getType());
