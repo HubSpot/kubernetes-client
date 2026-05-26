@@ -41,6 +41,9 @@ import io.fabric8.kubernetes.client.utils.KubernetesResourceUtil;
 import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 import io.fabric8.kubernetes.client.utils.URLUtils;
 import io.fabric8.kubernetes.client.utils.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -55,8 +58,6 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class OperationSupport {
 
@@ -544,7 +545,7 @@ public class OperationSupport {
           throw e;
         }
         LOG.info("Retryable IOException on {} attempt {}/{} with message: {}",
-          requestBuilder.build().uri(), attempt + 1, MAX_RETRIES + 1, e.getMessage(), e.getCause());
+            requestBuilder.build().uri(), attempt + 1, MAX_RETRIES + 1, e.getMessage(), e.getCause());
         if (attempt < MAX_RETRIES) {
           try {
             Thread.sleep(100L * (1L << Math.min(attempt, 5)));
@@ -562,8 +563,8 @@ public class OperationSupport {
     Throwable cause = e.getCause();
     // Connection drops, EOF during streaming, connection refused
     if (cause instanceof java.net.ConnectException
-      || cause instanceof java.io.EOFException
-      || cause instanceof java.net.SocketException) {
+        || cause instanceof java.io.EOFException
+        || cause instanceof java.net.SocketException) {
       return true;
     }
     // The wrapper IOException from waitForResult always has a cause
