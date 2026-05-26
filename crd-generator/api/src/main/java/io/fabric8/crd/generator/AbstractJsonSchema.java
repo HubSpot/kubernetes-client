@@ -323,7 +323,8 @@ public abstract class AbstractJsonSchema<T, B> {
     }
   }
 
-  private T internalFromImpl(TypeDef definition, LinkedHashMap<String, String> visited, InternalSchemaSwaps schemaSwaps, ParameterMap parameterMap, String... ignore) {
+  private T internalFromImpl(TypeDef definition, LinkedHashMap<String, String> visited, InternalSchemaSwaps schemaSwaps,
+      ParameterMap parameterMap, String... ignore) {
     Set<String> ignores = ignore.length > 0 ? new LinkedHashSet<>(Arrays.asList(ignore))
         : Collections
             .emptySet();
@@ -429,18 +430,18 @@ public abstract class AbstractJsonSchema<T, B> {
       this.mappings = mappings;
     }
 
-    TypeRef exchange(TypeRef original){
+    TypeRef exchange(TypeRef original) {
       return exchange(original, true);
     }
 
-    TypeRef exchange(TypeRef original, boolean throwOnFailedLookup){
+    TypeRef exchange(TypeRef original, boolean throwOnFailedLookup) {
       if (original instanceof TypeParamRef) {
         String name = original.getName();
         TypeRef ref = mappings.get(name);
-        if(ref != null) {
+        if (ref != null) {
           return ref;
         }
-        if(throwOnFailedLookup) {
+        if (throwOnFailedLookup) {
           throw new RuntimeException(String.format("Could not find type mapping for parametrized type %s", name));
         }
       }
@@ -451,11 +452,10 @@ public abstract class AbstractJsonSchema<T, B> {
       TypeDef def = Types.typeDefFrom(classRef);
 
       Map<String, TypeRef> mappings = new HashMap<>();
-      for(int i=0; i<def.getParameters().size(); i++) {
+      for (int i = 0; i < def.getParameters().size(); i++) {
         mappings.put(
-          def.getParameters().get(i).getName(),
-          parentMappings.exchange(classRef.getArguments().get(i))
-        );
+            def.getParameters().get(i).getName(),
+            parentMappings.exchange(classRef.getArguments().get(i)));
       }
 
       return new ParameterMap(mappings);
@@ -661,7 +661,8 @@ public abstract class AbstractJsonSchema<T, B> {
     private TypeRef schemaFrom;
     private List<KubernetesValidationRule> validationRules;
 
-    public PropertyFacade(Property property, Map<String, Method> potentialAccessors, ClassRef schemaSwap,  ParameterMap parameterMap) {
+    public PropertyFacade(Property property, Map<String, Method> potentialAccessors, ClassRef schemaSwap,
+        ParameterMap parameterMap) {
       original = property;
       this.parameterMap = parameterMap;
       final String capitalized = property.getNameCapitalized();
@@ -742,7 +743,7 @@ public abstract class AbstractJsonSchema<T, B> {
       });
 
       String caseCorrectedPropertyName = getCaseCorrectedPropertyName();
-      if(renamedTo == null && !original.getName().equals(caseCorrectedPropertyName) ) {
+      if (renamedTo == null && !original.getName().equals(caseCorrectedPropertyName)) {
         renamedTo = caseCorrectedPropertyName;
       }
 
@@ -753,21 +754,21 @@ public abstract class AbstractJsonSchema<T, B> {
           original.getComments(), false, false, original.getModifiers(), original.getAttributes());
     }
 
-    private  String getCaseCorrectedPropertyName() {
+    private String getCaseCorrectedPropertyName() {
       String capitalizedOriginalPropertyName = original.getNameCapitalized();
       StringBuilder newPropertyNameBuilder = new StringBuilder();
 
       int index;
-      for (index = 0;index<capitalizedOriginalPropertyName.length();index++) {
+      for (index = 0; index < capitalizedOriginalPropertyName.length(); index++) {
         char charAtIndex = capitalizedOriginalPropertyName.charAt(index);
-        if(Character.isUpperCase(charAtIndex)) {
+        if (Character.isUpperCase(charAtIndex)) {
           newPropertyNameBuilder.append(Character.toLowerCase(charAtIndex));
         } else {
           break;
         }
       }
 
-      if(index<capitalizedOriginalPropertyName.length()) {
+      if (index < capitalizedOriginalPropertyName.length()) {
         newPropertyNameBuilder.append(capitalizedOriginalPropertyName.substring(index));
       }
 
@@ -927,7 +928,8 @@ public abstract class AbstractJsonSchema<T, B> {
     return internalFromImpl(name, typeRef, new LinkedHashMap<>(), new InternalSchemaSwaps(), new ParameterMap(new HashMap<>()));
   }
 
-  private T internalFromImpl(String name, TypeRef typeRef, LinkedHashMap<String, String> visited, InternalSchemaSwaps schemaSwaps, ParameterMap parameterMap) {
+  private T internalFromImpl(String name, TypeRef typeRef, LinkedHashMap<String, String> visited,
+      InternalSchemaSwaps schemaSwaps, ParameterMap parameterMap) {
     // Note that ordering of the checks here is meaningful: we need to check for complex types last
     // in case some "complex" types are handled specifically
     if (typeRef.getDimensions() > 0 || io.sundr.model.utils.Collections.isCollection(typeRef)) { // Handle Collections & Arrays
@@ -954,7 +956,8 @@ public abstract class AbstractJsonSchema<T, B> {
 
       return mapLikeProperty(schema);
     } else if (io.sundr.model.utils.Optionals.isOptional(typeRef)) { // Handle Optionals
-      return internalFromImpl(name, parameterMap.exchange(TypeAs.UNWRAP_OPTIONAL_OF.apply(typeRef)), visited, schemaSwaps, parameterMap);
+      return internalFromImpl(name, parameterMap.exchange(TypeAs.UNWRAP_OPTIONAL_OF.apply(typeRef)), visited, schemaSwaps,
+          parameterMap);
     } else {
       final String typeName = COMMON_MAPPINGS.get(typeRef);
       if (typeName != null) { // we have a type that we handle specifically
