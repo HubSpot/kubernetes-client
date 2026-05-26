@@ -37,8 +37,8 @@ import io.fabric8.crd.generator.utils.Types;
 import io.fabric8.kubernetes.api.model.AnyType;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaPropsBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.ValidationRule;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaPropsOrArray;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.ValidationRule;
 import io.sundr.model.TypeDef;
 import org.junit.jupiter.api.Test;
 
@@ -212,7 +212,7 @@ class JsonSchemaTest {
     assertEquals("object", fooField.getType());
     assertTrue(fooField.getXKubernetesPreserveUnknownFields());
 
-    Map<String, JSONSchemaProps> fooProperties =  fooField.getProperties();
+    Map<String, JSONSchemaProps> fooProperties = fooField.getProperties();
     JSONSchemaProps configAsMapField = fooProperties.get("configAsMap");
 
     assertNotNull(configAsMapField);
