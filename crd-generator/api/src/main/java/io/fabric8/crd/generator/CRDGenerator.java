@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 /**
  * @deprecated Use io.fabric8.crdv2.generator.CRDGenerator instead.
