@@ -15,6 +15,8 @@
  */
 package io.fabric8.crd.generator.visitor;
 
+import static io.fabric8.crd.generator.AbstractJsonSchema.ANNOTATION_JSON_IGNORE;
+
 import io.fabric8.crd.generator.utils.Types;
 import io.sundr.builder.TypedVisitor;
 import io.sundr.model.AnnotationRef;
@@ -22,7 +24,6 @@ import io.sundr.model.ClassRef;
 import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
 import io.sundr.model.TypeDefBuilder;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -30,8 +31,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-
-import static io.fabric8.crd.generator.AbstractJsonSchema.ANNOTATION_JSON_IGNORE;
 
 public class AnnotatedPropertyPathDetector extends TypedVisitor<TypeDefBuilder> {
 
