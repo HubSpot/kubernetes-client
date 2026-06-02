@@ -70,7 +70,6 @@ import static io.sundr.model.utils.Types.LONG_REF;
 import static io.sundr.model.utils.Types.STRING_REF;
 import static io.sundr.model.utils.Types.VOID;
 
-
 /**
  * Encapsulates the common logic supporting OpenAPI schema generation for CRD generation.
  *
