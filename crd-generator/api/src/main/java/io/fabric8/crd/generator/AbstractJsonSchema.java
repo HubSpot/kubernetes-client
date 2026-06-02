@@ -15,14 +15,6 @@
  */
 package io.fabric8.crd.generator;
 
-import static io.sundr.model.utils.Types.BOOLEAN_REF;
-import static io.sundr.model.utils.Types.DOUBLE_REF;
-import static io.sundr.model.utils.Types.FLOAT_REF;
-import static io.sundr.model.utils.Types.INT_REF;
-import static io.sundr.model.utils.Types.LONG_REF;
-import static io.sundr.model.utils.Types.STRING_REF;
-import static io.sundr.model.utils.Types.VOID;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +41,9 @@ import io.sundr.model.TypeParamRef;
 import io.sundr.model.TypeRef;
 import io.sundr.model.functions.GetDefinition;
 import io.sundr.utils.Strings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,8 +61,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.sundr.model.utils.Types.BOOLEAN_REF;
+import static io.sundr.model.utils.Types.DOUBLE_REF;
+import static io.sundr.model.utils.Types.FLOAT_REF;
+import static io.sundr.model.utils.Types.INT_REF;
+import static io.sundr.model.utils.Types.LONG_REF;
+import static io.sundr.model.utils.Types.STRING_REF;
+import static io.sundr.model.utils.Types.VOID;
+
 
 /**
  * Encapsulates the common logic supporting OpenAPI schema generation for CRD generation.
@@ -453,7 +455,8 @@ public abstract class AbstractJsonSchema<T, B> {
       for(int i=0; i<def.getParameters().size(); i++) {
         mappings.put(
           def.getParameters().get(i).getName(),
-          parentMappings.exchange(classRef.getArguments().get(i)));
+          parentMappings.exchange(classRef.getArguments().get(i))
+        );
       }
 
       return new ParameterMap(mappings);
@@ -659,7 +662,7 @@ public abstract class AbstractJsonSchema<T, B> {
     private TypeRef schemaFrom;
     private List<KubernetesValidationRule> validationRules;
 
-    public PropertyFacade(Property property, Map<String, Method> potentialAccessors, ClassRef schemaSwap, ParameterMap parameterMap) {
+    public PropertyFacade(Property property, Map<String, Method> potentialAccessors, ClassRef schemaSwap,  ParameterMap parameterMap) {
       original = property;
       this.parameterMap = parameterMap;
       final String capitalized = property.getNameCapitalized();

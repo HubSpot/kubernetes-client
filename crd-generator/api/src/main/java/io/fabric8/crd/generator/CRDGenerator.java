@@ -15,10 +15,6 @@
  */
 package io.fabric8.crd.generator;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
-import static com.fasterxml.jackson.annotation.JsonInclude.Value.construct;
-
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -30,6 +26,9 @@ import io.fabric8.crd.generator.v1.CustomResourceHandler;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -45,8 +44,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+import static com.fasterxml.jackson.annotation.JsonInclude.Value.construct;
 
 /**
  * @deprecated Use io.fabric8.crdv2.generator.CRDGenerator instead.

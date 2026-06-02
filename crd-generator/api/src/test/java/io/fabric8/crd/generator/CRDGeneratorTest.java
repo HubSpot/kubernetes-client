@@ -15,13 +15,6 @@
  */
 package io.fabric8.crd.generator;
 
-import static io.fabric8.crd.generator.CRDGeneratorAssertions.assertFileEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import io.fabric8.crd.example.basic.Basic;
 import io.fabric8.crd.example.basic.BasicSpec;
 import io.fabric8.crd.example.basic.BasicStatus;
@@ -60,6 +53,12 @@ import io.fabric8.kubernetes.api.model.apiextensions.v1.JSONSchemaProps;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.kubernetes.model.Scope;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -71,11 +70,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
-import org.opentest4j.AssertionFailedError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.fabric8.crd.generator.CRDGeneratorAssertions.assertFileEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CRDGeneratorTest {
 
