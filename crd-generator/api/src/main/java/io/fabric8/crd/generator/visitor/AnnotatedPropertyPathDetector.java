@@ -15,7 +15,6 @@
  */
 package io.fabric8.crd.generator.visitor;
 
-
 import io.fabric8.crd.generator.utils.Types;
 import io.sundr.builder.TypedVisitor;
 import io.sundr.model.AnnotationRef;

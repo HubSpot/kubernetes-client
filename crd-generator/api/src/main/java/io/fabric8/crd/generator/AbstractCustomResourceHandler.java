@@ -159,7 +159,7 @@ public abstract class AbstractCustomResourceHandler {
     String name,
     String version,
     TypeDef def
-    ) {
+  ) {
     List<AnnotationRef> annotationRefs = def
       .getAnnotations()
       .stream()
@@ -218,7 +218,8 @@ public abstract class AbstractCustomResourceHandler {
       String format = (!params.containsKey("format"))
         ? getAdditionalPrinterColumnDefault(
         "format",
-        AdditionalPrinterColumn.Format.class)
+        AdditionalPrinterColumn.Format.class
+      )
         .getValue()
         : extractEnumValue(params.get("format"), AdditionalPrinterColumn.Format.class)
         .getValue();
@@ -229,14 +230,14 @@ public abstract class AbstractCustomResourceHandler {
 
       resources.decorate(
         getPrinterColumnDecorator(
-        name,
-        version,
-        path,
-        type,
-        nameOfColumn,
-        description,
-        format,
-        priority
+          name,
+          version,
+          path,
+          type,
+          nameOfColumn,
+          description,
+          format,
+          priority
         )
       );
     }
