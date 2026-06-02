@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
+
 import io.fabric8.crd.generator.annotation.Format;
 import io.fabric8.crd.generator.annotation.Rename;
 import io.fabric8.generator.annotation.Default;

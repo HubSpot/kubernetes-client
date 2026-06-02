@@ -18,17 +18,14 @@ package io.fabric8.crd.generator;
 import io.fabric8.crd.generator.annotation.AdditionalPrinterColumn;
 import io.fabric8.crd.generator.annotation.AdditionalPrinterColumns;
 import io.fabric8.crd.generator.decorator.Decorator;
-import io.fabric8.crd.generator.visitor.AdditionalPrinterColumnDetector;
-import io.fabric8.crd.generator.visitor.ClassDependenciesVisitor;
-import io.fabric8.crd.generator.visitor.LabelSelectorPathDetector;
-import io.fabric8.crd.generator.visitor.SpecReplicasPathDetector;
-import io.fabric8.crd.generator.visitor.StatusReplicasPathDetector;
+import io.fabric8.crd.generator.visitor.*;
 import io.fabric8.kubernetes.client.utils.Utils;
 import io.sundr.builder.Visitor;
 import io.sundr.model.AnnotationRef;
 import io.sundr.model.Property;
 import io.sundr.model.TypeDef;
 import io.sundr.model.TypeDefBuilder;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -161,14 +158,17 @@ public abstract class AbstractCustomResourceHandler {
   private boolean maybeAddPrinterColumnDecoratorsFromSingleAnnotation(
     String name,
     String version,
-    TypeDef def) {
+    TypeDef def
+    ) {
     List<AnnotationRef> annotationRefs = def
       .getAnnotations()
       .stream()
-      .filter(annotationRef -> annotationRef
+      .filter(annotationRef ->
+        annotationRef
           .getClassRef()
           .getName()
-          .equals(AdditionalPrinterColumn.class.getSimpleName()))
+          .equals(AdditionalPrinterColumn.class.getSimpleName())
+      )
       .collect(Collectors.toList());
 
     if (annotationRefs.isEmpty()) {
@@ -178,7 +178,8 @@ public abstract class AbstractCustomResourceHandler {
     addPrinterColumnDecoratorsFromAnnotationRefs(
       name,
       version,
-      annotationRefs);
+      annotationRefs
+    );
 
     return true;
   }
@@ -186,7 +187,8 @@ public abstract class AbstractCustomResourceHandler {
   private void addPrinterColumnDecoratorsFromAnnotationRefs(
     String name,
     String version,
-    List<AnnotationRef> columns) {
+    List<AnnotationRef> columns
+  ) {
     for (AnnotationRef column : columns) {
       Map<String, Object> params = column.getParameters();
 
@@ -200,7 +202,8 @@ public abstract class AbstractCustomResourceHandler {
       }
       String type = extractEnumValue(
         params.get("type"),
-        AdditionalPrinterColumn.Type.class)
+        AdditionalPrinterColumn.Type.class
+      )
         .getValue();
 
       String nameOfColumn = (String) params.get("name");
@@ -214,11 +217,11 @@ public abstract class AbstractCustomResourceHandler {
 
       String format = (!params.containsKey("format"))
         ? getAdditionalPrinterColumnDefault(
-            "format",
-            AdditionalPrinterColumn.Format.class)
-            .getValue()
+        "format",
+        AdditionalPrinterColumn.Format.class)
+        .getValue()
         : extractEnumValue(params.get("format"), AdditionalPrinterColumn.Format.class)
-            .getValue();
+        .getValue();
 
       int priority = (!params.containsKey("priority"))
         ? getAdditionalPrinterColumnDefault("priority", Integer.class)
@@ -226,14 +229,16 @@ public abstract class AbstractCustomResourceHandler {
 
       resources.decorate(
         getPrinterColumnDecorator(
-            name,
-            version,
-            path,
-            type,
-            nameOfColumn,
-            description,
-            format,
-            priority));
+        name,
+        version,
+        path,
+        type,
+        nameOfColumn,
+        description,
+        format,
+        priority
+        )
+      );
     }
   }
 
@@ -248,7 +253,8 @@ public abstract class AbstractCustomResourceHandler {
       stringValue =
         enumObject.getClass().getMethod("getSimpleName").invoke(enumObject).toString();
     } catch (
-      NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+      NoSuchMethodException | InvocationTargetException | IllegalAccessException e
+    ) {
       throw new RuntimeException(e);
     }
     Optional<T> maybeEnumValue = Arrays
@@ -258,7 +264,8 @@ public abstract class AbstractCustomResourceHandler {
 
     if (!maybeEnumValue.isPresent()) {
       throw new IllegalArgumentException(
-        "Unknown enum value for " + enumClass.getSimpleName() + ": " + stringValue);
+        "Unknown enum value for " + enumClass.getSimpleName() + ": " + stringValue
+      );
     }
 
     return maybeEnumValue.get();
@@ -267,7 +274,8 @@ public abstract class AbstractCustomResourceHandler {
   @SuppressWarnings("unchecked")
   private <T> T getAdditionalPrinterColumnDefault(
     String methodName,
-    Class<T> returnType) {
+    Class<T> returnType
+  ) {
     try {
       return (T) AdditionalPrinterColumn.class.getMethod(methodName).getDefaultValue();
     } catch (NoSuchMethodException e) {
@@ -283,14 +291,17 @@ public abstract class AbstractCustomResourceHandler {
   private void maybeAddPrinterColumnDecoratorsFromRepeatableAnnotation(
     String name,
     String version,
-    TypeDef def) {
+    TypeDef def
+  ) {
     Optional<AnnotationRef> maybeRepeatableAnnotationRef = def
       .getAnnotations()
       .stream()
-      .filter(annotationRef -> annotationRef
+      .filter(annotationRef ->
+        annotationRef
           .getClassRef()
           .getName()
-          .equals(AdditionalPrinterColumns.class.getSimpleName()))
+          .equals(AdditionalPrinterColumns.class.getSimpleName())
+      )
       .findFirst();
 
     if (!maybeRepeatableAnnotationRef.isPresent()) {
@@ -304,21 +315,24 @@ public abstract class AbstractCustomResourceHandler {
 
     if (innerAnnotationsObject instanceof AdditionalPrinterColumn[]) {
       addPrinterColumnDecoratorsFromAdditionalPrinterColumns(
-          name,
-          version,
-          Arrays.asList((AdditionalPrinterColumn[]) innerAnnotationsObject));
+        name,
+        version,
+        Arrays.asList((AdditionalPrinterColumn[]) innerAnnotationsObject)
+      );
     } else {
       addPrinterColumnDecoratorsFromAnnotationRefs(
         name,
         version,
-        Arrays.asList((AnnotationRef[]) innerAnnotationsObject));
+        Arrays.asList((AnnotationRef[]) innerAnnotationsObject)
+      );
     }
   }
 
   private void addPrinterColumnDecoratorsFromAdditionalPrinterColumns(
     String name,
     String version,
-    List<AdditionalPrinterColumn> columns) {
+    List<AdditionalPrinterColumn> columns
+  ) {
     for (AdditionalPrinterColumn column : columns) {
       String path = column.jsonPath();
       if (Utils.isNullOrEmpty(path)) {
@@ -332,14 +346,16 @@ public abstract class AbstractCustomResourceHandler {
 
       resources.decorate(
         getPrinterColumnDecorator(
-            name,
-            version,
-            path,
-            column.type().getValue(),
-            nameOfColumn,
-            column.getDescription(),
-            column.format().getValue(),
-            column.priority()));
+          name,
+          version,
+          path,
+          column.type().getValue(),
+          nameOfColumn,
+          column.getDescription(),
+          column.format().getValue(),
+          column.priority()
+        )
+      );
     }
   }
 
