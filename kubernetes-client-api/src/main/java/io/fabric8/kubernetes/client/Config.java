@@ -51,6 +51,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -884,6 +885,14 @@ public class Config {
       fileName = fileNames[0];
     }
     return fileName;
+  }
+
+  public static Collection<String> getKubeconfigFilenames() {
+    final String valueOrDefault = Utils.getSystemPropertyOrEnvVar(KUBERNETES_KUBECONFIG_FILE,
+        new File(getHomeDir(), ".kube" + File.separator + "config").toString());
+    // if system property/env var contains multiple files take the first one based on the environment
+    // we are running in (eg. : for Linux, ; for Windows)
+    return Arrays.asList(valueOrDefault.split(File.pathSeparator));
   }
 
   private static String getKubeconfigContents(File kubeConfigFile) {
